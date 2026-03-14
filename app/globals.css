@@ -1,0 +1,454 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 126 24% 97%;
+  --foreground: 148 26% 17%;
+  --card: 0 0% 100%;
+  --card-foreground: 148 26% 17%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 148 26% 17%;
+  --primary: 148 36% 22%;
+  --primary-foreground: 120 30% 98%;
+  --secondary: 126 30% 92%;
+  --secondary-foreground: 148 26% 17%;
+  --muted: 126 18% 93%;
+  --muted-foreground: 145 12% 36%;
+  --accent: 142 42% 40%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 52%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 132 16% 80%;
+  --input: 132 16% 80%;
+  --ring: 145 34% 34%;
+  --radius: 1.05rem;
+  --page-max: 84rem;
+  --page-max-narrow: 72rem;
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2rem;
+  --space-5: 2.5rem;
+  --space-6: 3rem;
+}
+
+* {
+  @apply border-border;
+}
+
+html {
+  scroll-behavior: smooth;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+body {
+  @apply min-h-screen bg-background text-foreground antialiased;
+  background-image:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.96), transparent 22%),
+    radial-gradient(circle at 86% 12%, rgba(185, 214, 193, 0.26), transparent 24%),
+    linear-gradient(180deg, rgba(249, 251, 249, 1), rgba(239, 246, 241, 1));
+  font-feature-settings: "liga" 1, "kern" 1;
+  max-width: 100%;
+  overflow-x: clip;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+a {
+  @apply text-inherit no-underline;
+}
+
+img,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+main,
+section,
+article,
+aside,
+nav,
+form,
+fieldset {
+  min-width: 0;
+}
+
+::selection {
+  background: rgba(74, 155, 102, 0.24);
+}
+
+.page-shell {
+  width: min(100%, var(--page-max));
+  min-width: 0;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+.page-shell > * {
+  min-width: 0;
+}
+
+.panel {
+  @apply min-w-0 overflow-hidden rounded-[1.05rem] border border-border/75;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(249, 251, 249, 0.98));
+  box-shadow: 0 10px 24px rgba(22, 74, 47, 0.045);
+}
+
+.stack-safe {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.gradient-chip {
+  @apply inline-flex items-center rounded-full border border-border/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-foreground/80;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.95), rgba(225, 239, 229, 0.92));
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 1.18rem + 1.3vw, 2.35rem);
+  line-height: 1.04;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: hsl(var(--foreground));
+}
+
+.section-copy {
+  max-width: 42rem;
+  font-size: clamp(0.94rem, 0.9rem + 0.18vw, 1rem);
+  line-height: 1.7;
+  color: hsl(var(--muted-foreground));
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.85rem, 1.3rem + 2vw, 3rem);
+  line-height: 0.98;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  color: hsl(var(--foreground));
+}
+
+.page-intro {
+  max-width: 42rem;
+  font-size: clamp(0.96rem, 0.92rem + 0.14vw, 1rem);
+  line-height: 1.72;
+  color: hsl(var(--muted-foreground));
+}
+
+.section-divider {
+  @apply relative mx-auto h-10 w-full max-w-4xl;
+}
+
+.section-divider::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  transform: translateY(-50%);
+  background: linear-gradient(
+    90deg,
+    rgba(34, 93, 59, 0),
+    rgba(34, 93, 59, 0.28),
+    rgba(34, 93, 59, 0.68),
+    rgba(34, 93, 59, 0.28),
+    rgba(34, 93, 59, 0)
+  );
+}
+
+.section-divider::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0.7rem;
+  height: 0.7rem;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(63, 146, 92, 1), rgba(24, 82, 53, 1));
+  box-shadow: 0 0 0 0.4rem rgba(228, 240, 231, 0.94);
+}
+
+.section-divider-dots {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 4rem;
+  height: 2.8rem;
+  transform: translateY(-50%);
+  background-image: radial-gradient(rgba(34, 93, 59, 0.24) 1px, transparent 1px);
+  background-size: 0.7rem 0.7rem;
+  opacity: 0.8;
+}
+
+.card-corner-accent {
+  position: relative;
+  min-width: 0;
+}
+
+.card-corner-accent::after {
+  content: "";
+  position: absolute;
+  right: -2rem;
+  bottom: -2rem;
+  width: 7rem;
+  height: 7rem;
+  border-radius: 999px;
+  background: radial-gradient(circle at center, rgba(78, 158, 104, 0.16), rgba(78, 158, 104, 0));
+  pointer-events: none;
+}
+
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition:
+    opacity 720ms ease,
+    transform 720ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes intro-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes intro-soft-rise {
+  from {
+    opacity: 0;
+    transform: translateY(26px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.intro-animate {
+  opacity: 0;
+  animation: intro-fade-up 820ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  will-change: opacity, transform;
+}
+
+.intro-animate-soft {
+  opacity: 0;
+  animation: intro-soft-rise 920ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  will-change: opacity, transform;
+}
+
+/* Premium Golden Ticket Effects */
+.bg-golden-foil {
+  background: linear-gradient(
+    135deg,
+    #fef3c7 0%,
+    #fde68a 25%,
+    #fbbf24 50%,
+    #fde68a 75%,
+    #fef3c7 100%
+  );
+  background-size: 200% 200%;
+}
+
+.golden-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.golden-shine::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.3) 45%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.3) 55%,
+    transparent 65%,
+    transparent 100%
+  );
+  transform: rotate(-45deg);
+  animation: shine 6s infinite linear;
+}
+
+@keyframes shine {
+  0% { transform: translate(-50%, -50%) rotate(-45deg); }
+  20% { transform: translate(50%, 50%) rotate(-45deg); }
+  100% { transform: translate(50%, 50%) rotate(-45deg); }
+}
+
+.ticket-ornament {
+  background-image: radial-gradient(circle at 2px 2px, rgba(146, 64, 14, 0.15) 1px, transparent 0);
+  background-size: 12px 12px;
+}
+
+.ticket-landscape {
+  width: min(100%, 72rem);
+  aspect-ratio: 1.9 / 1;
+}
+
+details,
+details > div,
+details > summary,
+[role="dialog"] {
+  min-width: 0;
+}
+
+@media (max-width: 420px) {
+  .page-shell {
+    padding-left: 0.8rem;
+    padding-right: 0.8rem;
+  }
+
+  .panel {
+    border-radius: 1rem;
+  }
+
+  .gradient-chip {
+    padding-inline: 0.65rem;
+    letter-spacing: 0.12em;
+  }
+
+  .section-title {
+    font-size: 1.38rem;
+    line-height: 1.08;
+  }
+
+  .page-title {
+    font-size: 1.62rem;
+    line-height: 1.02;
+  }
+
+  .page-intro,
+  .section-copy {
+    font-size: 0.92rem;
+    line-height: 1.65;
+  }
+}
+
+@media (min-width: 768px) {
+  .page-shell {
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .page-shell {
+    padding-inline: 2rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  :root {
+    --page-max: 88rem;
+  }
+}
+
+.intro-delay-1 {
+  animation-delay: 80ms;
+}
+
+.intro-delay-2 {
+  animation-delay: 170ms;
+}
+
+.intro-delay-3 {
+  animation-delay: 280ms;
+}
+
+.intro-delay-4 {
+  animation-delay: 390ms;
+}
+
+.intro-delay-5 {
+  animation-delay: 500ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-on-scroll,
+  .reveal-on-scroll.is-visible,
+  .intro-animate,
+  .intro-animate-soft {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    animation: none;
+  }
+}
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 0;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .page-shell {
+    max-width: none;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .ticket-page {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .ticket-landscape {
+    width: 100% !important;
+    max-width: none !important;
+    aspect-ratio: auto !important;
+    min-height: 100vh;
+    break-inside: avoid;
+  }
+
+  .bg-golden-foil {
+    background: linear-gradient(
+      135deg,
+      #fef3c7 0%,
+      #fde68a 50%,
+      #fef3c7 100%
+    ) !important;
+  }
+}
