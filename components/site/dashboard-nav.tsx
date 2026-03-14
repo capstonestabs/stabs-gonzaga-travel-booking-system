@@ -16,7 +16,8 @@ import {
   MessageSquareText,
   Package,
   UserRound,
-  Users
+  Users,
+  UsersRound
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ const iconByName = {
   feedback: MessageSquareText,
   account: UserRound,
   staff: Users,
+  tourists: UsersRound,
   create: CirclePlus,
   financials: Landmark,
   history: History

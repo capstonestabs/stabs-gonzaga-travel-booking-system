@@ -19,6 +19,7 @@ const navByRole = {
     { href: "/admin/financials", label: "Financials", icon: "financials" },
     { href: "/admin/financials/history", label: "Payout history", icon: "history" },
     { href: "/admin/staff", label: "Staff", icon: "staff" },
+    { href: "/admin/tourists", label: "Tourists", icon: "tourists" },
     { href: "/admin/staff/create", label: "Create staff", icon: "create" }
   ]
 } satisfies Record<"staff" | "admin", Array<{ href: string; label: string; icon: DashboardNavIconName }>>;

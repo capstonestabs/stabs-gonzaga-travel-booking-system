@@ -1,6 +1,6 @@
 import type { Route } from "next";
 import Link from "next/link";
-import { AlertCircle, Clock3, Landmark, PlusCircle, Users } from "lucide-react";
+import { AlertCircle, Clock3, Landmark, PlusCircle, Users, UsersRound } from "lucide-react";
 
 import { AdminStaffList } from "@/components/site/admin-staff-list";
 import { DashboardShell } from "@/components/site/dashboard-shell";
@@ -72,6 +72,12 @@ export default async function AdminDashboardPage() {
               <Button variant="secondary" className="min-h-11 w-full justify-between">
                 Staff accounts
                 <Users className="h-4 w-4" />
+              </Button>
+            </Link>
+            <Link href={"/admin/tourists" as Route}>
+              <Button variant="secondary" className="min-h-11 w-full justify-between">
+                Tourist accounts
+                <UsersRound className="h-4 w-4" />
               </Button>
             </Link>
             <Link href={"/admin/financials" as Route}>
@@ -189,6 +195,29 @@ export default async function AdminDashboardPage() {
             showViewAllLink
             emptyMessage="No staff accounts yet. Create the first staff account from the admin navigation."
           />
+        </CardContent>
+      </Card>
+
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b border-border/70">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle>Tourist accounts</CardTitle>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Review active tourist accounts and archive access when a public account should no longer sign in.
+              </p>
+            </div>
+            <Link href={"/admin/tourists" as Route}>
+              <Button variant="outline" size="sm">
+                View all tourists
+              </Button>
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4">
+          <p className="text-sm text-muted-foreground">
+            {data.tourists.length} tourist account{data.tourists.length === 1 ? "" : "s"} currently active.
+          </p>
         </CardContent>
       </Card>
     </DashboardShell>

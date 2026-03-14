@@ -47,6 +47,10 @@ export async function getCurrentUserContext(): Promise<CurrentUserContext | null
     .eq("id", user.id)
     .maybeSingle<AppUser>();
 
+  if (profile?.archived_at) {
+    return null;
+  }
+
   return {
     authUserId: user.id,
     email: user.email ?? "",

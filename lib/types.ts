@@ -292,6 +292,8 @@ export interface AdminDashboardData {
   bookingMetrics: DashboardMetric[];
   listings: Destination[];
   staff: UserWithStaffProfile[];
+  tourists: AppUser[];
+  bookingActivity: Array<Pick<Booking, "user_id" | "status">>;
   destinationRevenue: DestinationRevenueSummary[];
   financialRecords: FinancialRecord[];
   archivedFinancialRecordCount: number;

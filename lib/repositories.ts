@@ -830,13 +830,15 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
           value: "0",
           helper: "Supabase service role not configured"
         }
-      ],
-      listings: [],
-      staff: [],
-      destinationRevenue: [],
-      financialRecords: [],
-      archivedFinancialRecordCount: 0
-    };
+        ],
+        listings: [],
+        staff: [],
+        tourists: [],
+        bookingActivity: [],
+        destinationRevenue: [],
+        financialRecords: [],
+        archivedFinancialRecordCount: 0
+      };
   }
 
   await releaseExpiredSlotLocks();
@@ -844,27 +846,34 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
 
   const supabase = createAdminSupabaseClient();
 
-  const [
-    { data: listings, error: listingsError },
-    { data: staff, error: staffError },
-    { data: bookings, error: bookingsError },
-    { data: payments, error: paymentsError },
-    { data: financialRecords, error: financialRecordsError },
+    const [
+      { data: listings, error: listingsError },
+      { data: staff, error: staffError },
+      { data: tourists, error: touristsError },
+      { data: bookings, error: bookingsError },
+      { data: payments, error: paymentsError },
+      { data: financialRecords, error: financialRecordsError },
     { data: allFinancialRecords, error: allFinancialRecordsError },
     { count: archivedFinancialRecordCount, error: archivedFinancialRecordCountError }
   ] =
     await Promise.all([
       supabase.from("destinations").select("*, destination_services(*)").order("created_at", { ascending: false }),
-      supabase
-        .from("users")
-        .select("*, staff_profile:staff_profiles(*)")
-        .eq("role", "staff")
-        .is("archived_at", null)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("bookings")
-        .select("status")
-        .order("created_at", { ascending: false }),
+        supabase
+          .from("users")
+          .select("*, staff_profile:staff_profiles(*)")
+          .eq("role", "staff")
+          .is("archived_at", null)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("users")
+          .select("*")
+          .eq("role", "user")
+          .is("archived_at", null)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("bookings")
+          .select("user_id, status")
+          .order("created_at", { ascending: false }),
       supabase
         .from("payments")
         .select("status, amount, paid_at")
@@ -875,19 +884,21 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     ]);
 
   if (
-    listingsError ||
-    staffError ||
-    bookingsError ||
-    paymentsError ||
-    financialRecordsError ||
+      listingsError ||
+      staffError ||
+      touristsError ||
+      bookingsError ||
+      paymentsError ||
+      financialRecordsError ||
     allFinancialRecordsError
   ) {
     throw new Error(
-      listingsError?.message ??
-        staffError?.message ??
-        bookingsError?.message ??
-        paymentsError?.message ??
-        financialRecordsError?.message ??
+        listingsError?.message ??
+          staffError?.message ??
+          touristsError?.message ??
+          bookingsError?.message ??
+          paymentsError?.message ??
+          financialRecordsError?.message ??
         allFinancialRecordsError?.message ??
         "Failed to load admin data."
     );
@@ -982,11 +993,13 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         value: formatCompactNumber(cancelledBookings),
         helper: "Failed, expired, or manually cancelled records"
       }
-    ],
-    listings: (listings ?? []) as Destination[],
-    staff: staff as AdminDashboardData["staff"],
-    destinationRevenue,
-    financialRecords: visibleRecords,
+      ],
+      listings: (listings ?? []) as Destination[],
+      staff: staff as AdminDashboardData["staff"],
+      tourists: (tourists ?? []) as AdminDashboardData["tourists"],
+      bookingActivity: (bookings ?? []) as AdminDashboardData["bookingActivity"],
+      destinationRevenue,
+      financialRecords: visibleRecords,
     archivedFinancialRecordCount:
       archivedFinancialRecordCountError ? 0 : archivedFinancialRecordCount ?? 0
   };
