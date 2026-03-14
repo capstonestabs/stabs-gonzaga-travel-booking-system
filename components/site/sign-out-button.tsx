@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { LogOut } from "lucide-react";
 
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
@@ -40,15 +41,13 @@ export function SignOutButton({ variant = "ghost", size = "sm", className }: But
       <ConfirmationDialog
         open={isDialogOpen}
         title="Sign out now?"
-        description="You will be returned to the public homepage after signing out."
+        description="Your current session will end and you will be returned to the public homepage."
+        icon={<LogOut className="h-5 w-5" />}
         confirmLabel="Sign out"
         confirmVariant="destructive"
         isPending={isPending}
         onClose={() => setIsDialogOpen(false)}
-        onConfirm={async () => {
-          setIsDialogOpen(false);
-          await handleSignOut();
-        }}
+        onConfirm={handleSignOut}
       />
     </>
   );

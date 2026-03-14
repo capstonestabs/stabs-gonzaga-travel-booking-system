@@ -37,7 +37,7 @@ export default async function AdminDashboardPage() {
     <DashboardShell
       role="admin"
       title="Admin control"
-      description="Keep the tourism workspace organized from here, then jump into the dedicated pages for payouts, staff accounts, and archive history."
+      description="Keep the tourism workspace organized from here, then jump into the dedicated pages for payouts, staff accounts, tourist accounts, and payout history."
     >
       <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr),18rem]">
         <Card className="overflow-hidden">
@@ -177,7 +177,7 @@ export default async function AdminDashboardPage() {
             <div>
               <CardTitle>Staff accounts</CardTitle>
               <p className="mt-2 text-sm text-muted-foreground">
-                Manage destination managers and move inactive staff to archive.
+                Manage destination managers and delete inactive staff from active access.
               </p>
             </div>
             <Link href={"/admin/staff" as Route}>
@@ -204,7 +204,7 @@ export default async function AdminDashboardPage() {
             <div>
               <CardTitle>Tourist accounts</CardTitle>
               <p className="mt-2 text-sm text-muted-foreground">
-                Review active tourist accounts and archive access when a public account should no longer sign in.
+                Review active tourist accounts and delete access when a public account should no longer sign in.
               </p>
             </div>
             <Link href={"/admin/tourists" as Route}>

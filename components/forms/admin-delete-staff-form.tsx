@@ -38,7 +38,7 @@ export function AdminDeleteStaffForm({
 
       const body = (await response.json()) as { error?: string };
       if (!response.ok) {
-        throw new Error(body.error ?? "Unable to archive staff account.");
+        throw new Error(body.error ?? "Unable to delete staff account.");
       }
 
       if (redirectTo) {
@@ -49,7 +49,7 @@ export function AdminDeleteStaffForm({
       setError(
         submissionError instanceof Error
           ? submissionError.message
-          : "Unable to archive staff account."
+          : "Unable to delete staff account."
       );
       setIsPending(false);
     }
@@ -67,13 +67,13 @@ export function AdminDeleteStaffForm({
           onClick={() => setIsDialogOpen(true)}
           className="w-full sm:w-auto"
         >
-          {isPending ? "Archiving..." : "Archive"}
+          {isPending ? "Deleting..." : "Delete staff"}
         </Button>
         <ConfirmationDialog
           open={isDialogOpen}
-          title={`Archive ${staffName}?`}
-          description="This removes public media, hides the destination, and keeps financial history."
-          confirmLabel="Archive"
+          title={`Delete ${staffName}?`}
+          description="This removes staff access from active use, hides the destination, and keeps financial history."
+          confirmLabel="Delete staff"
           confirmVariant="destructive"
           isPending={isPending}
           onClose={() => setIsDialogOpen(false)}
@@ -89,12 +89,12 @@ export function AdminDeleteStaffForm({
   return (
     <Card className={cn("h-fit", className)}>
       <CardHeader>
-        <CardTitle>Archive staff</CardTitle>
+        <CardTitle>Delete staff account</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Archive this staff account, hide the destination from the public site, and remove avatar
-          and gallery media from storage. Future active bookings block archiving.
+          Delete this staff account from active access, hide the destination from the public site, and remove avatar
+          and gallery media from storage. Future active bookings block deletion.
         </p>
 
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
@@ -106,13 +106,13 @@ export function AdminDeleteStaffForm({
           onClick={() => setIsDialogOpen(true)}
           className="w-full sm:w-auto"
         >
-          {isPending ? "Archiving..." : "Archive staff"}
+          {isPending ? "Deleting..." : "Delete staff account"}
         </Button>
         <ConfirmationDialog
           open={isDialogOpen}
-          title={`Archive ${staffName}?`}
-          description="This removes public media, hides the destination, and keeps financial history."
-          confirmLabel="Archive staff"
+          title={`Delete ${staffName}?`}
+          description="This removes staff access from active use, hides the destination, and keeps financial history."
+          confirmLabel="Delete staff account"
           confirmVariant="destructive"
           isPending={isPending}
           onClose={() => setIsDialogOpen(false)}

@@ -43,7 +43,7 @@ export async function DELETE(
     }
 
     if (staffUser.archived_at) {
-      return NextResponse.json({ message: "Staff account already archived." });
+      return NextResponse.json({ message: "Staff account already deleted from active access." });
     }
 
     const { data: destination, error: destinationError } = await supabase
@@ -76,13 +76,13 @@ export async function DELETE(
         ]);
 
       if (activeLocksError || upcomingBookingsError) {
-        throw new Error(activeLocksError?.message ?? upcomingBookingsError?.message ?? "Unable to check archive status.");
+        throw new Error(activeLocksError?.message ?? upcomingBookingsError?.message ?? "Unable to check delete status.");
       }
 
       if ((activeLocksCount ?? 0) > 0 || (upcomingBookingsCount ?? 0) > 0) {
         return NextResponse.json(
           {
-            error: "Archive is blocked while this destination still has active slot holds or future confirmed bookings."
+            error: "Delete is blocked while this destination still has active slot holds or future confirmed bookings."
           },
           { status: 400 }
         );
@@ -151,11 +151,11 @@ export async function DELETE(
       throw new Error(userUpdateError.message);
     }
 
-    return NextResponse.json({ message: "Staff account archived." });
+    return NextResponse.json({ message: "Staff account deleted from active access." });
   } catch (error) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Unable to archive staff account."
+        error: error instanceof Error ? error.message : "Unable to delete staff account."
       },
       { status: 400 }
     );

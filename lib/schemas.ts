@@ -15,6 +15,10 @@ export const forgotPasswordSchema = z.object({
   email: z.string().email()
 });
 
+export const resendConfirmationSchema = z.object({
+  email: z.string().email()
+});
+
 export const setPasswordSchema = z
   .object({
     password: z.string().min(8),

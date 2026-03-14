@@ -43,7 +43,7 @@ export async function DELETE(
     }
 
     if (touristUser.archived_at) {
-      return NextResponse.json({ message: "Tourist account already archived." });
+      return NextResponse.json({ message: "Tourist account already deleted from active access." });
     }
 
     const today = new Date().toISOString().slice(0, 10);
@@ -77,7 +77,7 @@ export async function DELETE(
         activeLocksError?.message ??
           pendingBookingsError?.message ??
           upcomingConfirmedError?.message ??
-          "Unable to check tourist account archive status."
+          "Unable to check tourist account delete status."
       );
     }
 
@@ -85,7 +85,7 @@ export async function DELETE(
       return NextResponse.json(
         {
           error:
-            "Archive is blocked while this tourist account still has active slot holds, pending payment bookings, or future confirmed bookings."
+            "Delete is blocked while this tourist account still has active slot holds, pending payment bookings, or future confirmed bookings."
         },
         { status: 400 }
       );
@@ -112,11 +112,11 @@ export async function DELETE(
       throw new Error(userUpdateError.message);
     }
 
-    return NextResponse.json({ message: "Tourist account archived." });
+    return NextResponse.json({ message: "Tourist account deleted from active access." });
   } catch (error) {
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Unable to archive tourist account."
+        error: error instanceof Error ? error.message : "Unable to delete tourist account."
       },
       { status: 400 }
     );

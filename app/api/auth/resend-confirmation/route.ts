@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-import { env, getSiteUrl, hasSupabaseBrowserEnv, hasSupabaseServiceEnv } from "@/lib/env";
-import { forgotPasswordSchema } from "@/lib/schemas";
+import {
+  env,
+  getSiteUrl,
+  hasSupabaseBrowserEnv,
+  hasSupabaseServiceEnv
+} from "@/lib/env";
+import { resendConfirmationSchema } from "@/lib/schemas";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
-const TOURIST_RECOVERY_MESSAGE =
-  "If the email belongs to a tourist account, a password reset link has been sent.";
+const TOURIST_CONFIRMATION_MESSAGE =
+  "If the email belongs to a tourist account that still needs confirmation, a new confirmation link has been sent.";
 
 export async function POST(request: Request) {
   try {
@@ -17,7 +22,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const payload = forgotPasswordSchema.parse(await request.json());
+    const payload = resendConfirmationSchema.parse(await request.json());
     const email = payload.email.trim().toLowerCase();
     const adminSupabase = createAdminSupabaseClient();
     const { data: user, error: userError } = await adminSupabase
@@ -31,7 +36,7 @@ export async function POST(request: Request) {
     }
 
     if (!user || user.archived_at) {
-      return NextResponse.json({ message: TOURIST_RECOVERY_MESSAGE });
+      return NextResponse.json({ message: TOURIST_CONFIRMATION_MESSAGE });
     }
 
     if (user.role === "staff") {
@@ -43,7 +48,7 @@ export async function POST(request: Request) {
 
     if (user.role === "admin") {
       return NextResponse.json({
-        message: "Admin password recovery is handled directly by the system owner.",
+        message: "Admin email confirmation is handled directly by the system owner.",
         mode: "admin"
       });
     }
@@ -55,17 +60,21 @@ export async function POST(request: Request) {
       }
     });
 
-    const redirectTo = `${getSiteUrl()}/auth/set-password`;
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo
+    const emailRedirectUrl = `${getSiteUrl()}/auth/callback`;
+    const { error: resendError } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: {
+        emailRedirectTo: emailRedirectUrl
+      }
     });
 
-    if (resetError) {
-      throw new Error(resetError.message);
+    if (resendError) {
+      throw new Error(resendError.message);
     }
 
     return NextResponse.json({
-      message: TOURIST_RECOVERY_MESSAGE,
+      message: TOURIST_CONFIRMATION_MESSAGE,
       mode: "tourist"
     });
   } catch (error) {
@@ -74,7 +83,7 @@ export async function POST(request: Request) {
         error:
           error instanceof Error
             ? error.message
-            : "Unable to start password recovery."
+            : "Unable to resend confirmation email."
       },
       { status: 400 }
     );

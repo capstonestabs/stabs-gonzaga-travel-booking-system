@@ -18,7 +18,7 @@ export default async function AdminStaffAccountsPage() {
     <DashboardShell
       role="admin"
       title="Staff accounts"
-      description="Open staff details, review assigned destinations and service counts, reset passwords, or archive inactive accounts."
+      description="Open staff details, review assigned destinations and service counts, reset passwords, or delete inactive accounts."
     >
       <Card className="overflow-hidden">
         <CardHeader className="border-b border-border/70">

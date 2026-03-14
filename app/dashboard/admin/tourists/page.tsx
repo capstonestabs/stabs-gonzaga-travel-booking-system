@@ -18,7 +18,7 @@ export default async function AdminTouristAccountsPage() {
     <DashboardShell
       role="admin"
       title="Tourist accounts"
-      description="Review tourist accounts and archive access when a public account should no longer sign in."
+      description="Review tourist accounts and remove access when a public account should no longer sign in."
     >
       <Card className="overflow-hidden">
         <CardHeader className="border-b border-border/70">
@@ -29,7 +29,7 @@ export default async function AdminTouristAccountsPage() {
                 Active tourist accounts
               </CardTitle>
               <p className="mt-2 text-sm text-muted-foreground">
-                Archive tourist access without removing historical bookings already recorded in the system.
+                Delete tourist access without removing historical bookings already recorded in the system.
               </p>
             </div>
             <Link href={"/admin" as Route}>

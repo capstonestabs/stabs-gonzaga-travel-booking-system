@@ -34,7 +34,7 @@ export default async function AdminStaffProfilePage({
           <div className="gradient-chip w-fit">Admin staff management</div>
           <h1 className="page-title">Manage staff account</h1>
           <p className="page-intro">
-            View staff information, review the assigned destination and service count, update the assigned location, reset password, or archive the staff account.
+            View staff information, review the assigned destination and service count, update the assigned location, reset password, or delete the staff account from active access.
           </p>
         </div>
         <Link href={"/admin/staff" as Route}>
@@ -59,7 +59,7 @@ export default async function AdminStaffProfilePage({
             <p>View staff account information.</p>
             <p>Update the assigned location for the destination.</p>
             <p>Reset the staff password.</p>
-            <p>Archive the staff account when needed.</p>
+            <p>Delete the staff account from active access when needed.</p>
           </CardContent>
         </Card>
         <Card className="overflow-hidden">

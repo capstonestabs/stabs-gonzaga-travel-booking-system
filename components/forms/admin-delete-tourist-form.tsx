@@ -35,7 +35,7 @@ export function AdminDeleteTouristForm({
 
       const body = (await response.json()) as { error?: string };
       if (!response.ok) {
-        throw new Error(body.error ?? "Unable to archive tourist account.");
+        throw new Error(body.error ?? "Unable to delete tourist account.");
       }
 
       router.refresh();
@@ -43,7 +43,7 @@ export function AdminDeleteTouristForm({
       setError(
         submissionError instanceof Error
           ? submissionError.message
-          : "Unable to archive tourist account."
+          : "Unable to delete tourist account."
       );
       setIsPending(false);
     }
@@ -61,13 +61,13 @@ export function AdminDeleteTouristForm({
           onClick={() => setIsDialogOpen(true)}
           className="w-full sm:w-auto"
         >
-          {isPending ? "Archiving..." : "Archive"}
+          {isPending ? "Deleting..." : "Delete user"}
         </Button>
         <ConfirmationDialog
           open={isDialogOpen}
-          title={`Archive ${touristName}?`}
-          description="This blocks future tourist access while keeping historical bookings and financial records already on file."
-          confirmLabel="Archive"
+          title={`Delete ${touristName}?`}
+          description="This removes tourist access from active use while keeping historical bookings and financial records already on file."
+          confirmLabel="Delete user"
           confirmVariant="destructive"
           isPending={isPending}
           onClose={() => setIsDialogOpen(false)}
@@ -83,11 +83,11 @@ export function AdminDeleteTouristForm({
   return (
     <Card className={cn("h-fit", className)}>
       <CardHeader>
-        <CardTitle>Archive tourist account</CardTitle>
+        <CardTitle>Delete tourist account</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Archive this tourist account to block future sign-ins while keeping historical records already on file.
+          Delete this tourist account from active access while keeping historical records already on file.
         </p>
 
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
@@ -99,13 +99,13 @@ export function AdminDeleteTouristForm({
           onClick={() => setIsDialogOpen(true)}
           className="w-full sm:w-auto"
         >
-          {isPending ? "Archiving..." : "Archive tourist account"}
+          {isPending ? "Deleting..." : "Delete tourist account"}
         </Button>
         <ConfirmationDialog
           open={isDialogOpen}
-          title={`Archive ${touristName}?`}
-          description="This blocks future tourist access while keeping historical bookings and financial records already on file."
-          confirmLabel="Archive tourist account"
+          title={`Delete ${touristName}?`}
+          description="This removes tourist access from active use while keeping historical bookings and financial records already on file."
+          confirmLabel="Delete tourist account"
           confirmVariant="destructive"
           isPending={isPending}
           onClose={() => setIsDialogOpen(false)}
