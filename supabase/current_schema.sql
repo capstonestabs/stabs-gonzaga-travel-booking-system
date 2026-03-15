@@ -1,6 +1,6 @@
--- STABS current Supabase schema
--- Use this file for a fresh setup or to bring an existing database up to the
--- current application schema without replaying the old migration chain.
+-- STABS final Supabase schema
+-- This is the single source-of-truth SQL file for the current database shape.
+-- Old migration fragments have been consolidated here.
 -- Obsolete destination-wide availability tables/functions are cleaned up here
 -- because the app now uses service-based availability only.
 
@@ -193,7 +193,7 @@ create table if not exists public.booking_slot_locks (
   id uuid primary key default gen_random_uuid(),
   booking_id uuid not null unique references public.bookings (id) on delete cascade,
   destination_id uuid not null references public.destinations (id) on delete cascade,
-  service_id uuid references public.destination_services (id) on delete cascade,
+  service_id uuid not null references public.destination_services (id) on delete cascade,
   user_id uuid not null references public.users (id) on delete cascade,
   service_date date not null,
   guest_count integer not null check (guest_count > 0),
@@ -288,15 +288,6 @@ alter table public.destination_services
     or availability_end_date is null
     or availability_start_date <= availability_end_date
   );
-
-alter table public.booking_slot_locks
-  add column if not exists service_id uuid references public.destination_services (id) on delete cascade;
-
-delete from public.booking_slot_locks
-where service_id is null;
-
-alter table public.booking_slot_locks
-  alter column service_id set not null;
 
 alter table public.financial_records
   add column if not exists archived_at timestamptz,
