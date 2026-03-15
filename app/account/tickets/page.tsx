@@ -1,7 +1,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Download, History, LayoutDashboard, Ticket } from "lucide-react";
+import { CalendarDays, Download, History, LayoutDashboard, Ticket } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,12 @@ export default async function TouristTicketsPage() {
             <Button variant="secondary" className="w-full sm:w-auto">
               <LayoutDashboard className="h-4 w-4" />
               Tourist dashboard
+            </Button>
+          </Link>
+          <Link href={"/account/current" as Route}>
+            <Button variant="secondary" className="w-full sm:w-auto">
+              <CalendarDays className="h-4 w-4" />
+              Current bookings
             </Button>
           </Link>
           <Link href="/account/history">

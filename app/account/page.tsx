@@ -4,11 +4,9 @@ import { redirect } from "next/navigation";
 import { CalendarDays, History, LayoutDashboard, Settings2, Ticket } from "lucide-react";
 
 import { ProfileSummaryCard } from "@/components/site/profile-summary-card";
-import { TouristBookingRecordCard } from "@/components/site/tourist-booking-record-card";
 import { UserBookingCalendar } from "@/components/site/user-booking-calendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ProgressiveList } from "@/components/ui/progressive-list";
 import { getCurrentUserContext } from "@/lib/auth";
 import { getBookingsForUser, getProfileBundle } from "@/lib/repositories";
 import {
@@ -56,10 +54,17 @@ export default async function AccountPage() {
           </div>
           <h1 className="page-title">Tourist dashboard</h1>
           <p className="page-intro">
-            Keep current reservations in view, then open dedicated pages for past history and saved passes.
+            Keep your travel summary in one place, then open dedicated pages for current bookings,
+            booking history, and saved passes.
           </p>
         </div>
         <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
+          <Link href={"/account/current" as Route}>
+            <Button variant="secondary" className="w-full sm:w-auto">
+              <CalendarDays className="h-4 w-4" />
+              Current bookings
+            </Button>
+          </Link>
           <Link href="/account/tickets">
             <Button variant="secondary" className="w-full sm:w-auto">
               <Ticket className="h-4 w-4" />
@@ -124,47 +129,39 @@ export default async function AccountPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 sm:gap-5">
-        {activeBookings.length === 0 ? (
-          <Card>
-            <CardContent className="space-y-3.5 p-6 text-sm text-muted-foreground">
-              <p>No active reservations are sitting in your dashboard right now.</p>
-              <p>
-                Browse destinations for your next trip, or open booking history and ticket wallet
-                to review older records.
-              </p>
-              <div className="grid gap-2 sm:flex sm:flex-wrap">
-                <Link href="/destinations">
-                  <Button variant="secondary">
-                    <CalendarDays className="h-4 w-4" />
-                    Browse destinations
-                  </Button>
-                </Link>
-                {historyBookings.length > 0 ? (
-                  <Link href="/account/history">
-                    <Button variant="outline">
-                      <History className="h-4 w-4" />
-                      Open booking history
-                    </Button>
-                  </Link>
-                ) : null}
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <ProgressiveList
-            initialCount={4}
-            step={4}
-            maxHeightClass="max-h-[min(70vh,36rem)]"
-            showMoreLabel="Show more current bookings"
-            showLessLabel="Show fewer current bookings"
-          >
-            {activeBookings.map((booking) => (
-              <TouristBookingRecordCard key={booking.id} booking={booking} />
-            ))}
-          </ProgressiveList>
-        )}
-      </div>
+      <Card>
+        <CardContent className="space-y-4 p-6">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-foreground">Current bookings now have their own page.</p>
+            <p className="text-sm leading-6 text-muted-foreground">
+              Open your active reservations separately so the dashboard stays lighter and easier to
+              scan, especially when your account grows.
+            </p>
+          </div>
+          <div className="grid gap-2 sm:flex sm:flex-wrap">
+            <Link href={"/account/current" as Route}>
+              <Button>
+                <CalendarDays className="h-4 w-4" />
+                Open current bookings
+              </Button>
+            </Link>
+            <Link href="/destinations">
+              <Button variant="secondary">
+                <CalendarDays className="h-4 w-4" />
+                Browse destinations
+              </Button>
+            </Link>
+            {historyBookings.length > 0 ? (
+              <Link href="/account/history">
+                <Button variant="outline">
+                  <History className="h-4 w-4" />
+                  Open booking history
+                </Button>
+              </Link>
+            ) : null}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

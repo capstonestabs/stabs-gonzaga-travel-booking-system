@@ -1,7 +1,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { History, LayoutDashboard } from "lucide-react";
+import { CalendarDays, History, LayoutDashboard } from "lucide-react";
 
 import { ClearBookingHistoryButton } from "@/components/forms/clear-booking-history-button";
 import { TouristBookingRecordCard } from "@/components/site/tourist-booking-record-card";
@@ -43,6 +43,12 @@ export default async function TouristBookingHistoryPage() {
             <Button variant="secondary" className="w-full sm:w-auto">
               <LayoutDashboard className="h-4 w-4" />
               Tourist dashboard
+            </Button>
+          </Link>
+          <Link href={"/account/current" as Route}>
+            <Button variant="secondary" className="w-full sm:w-auto">
+              <CalendarDays className="h-4 w-4" />
+              Current bookings
             </Button>
           </Link>
           {historyBookings.length > 0 ? <ClearBookingHistoryButton count={historyBookings.length} /> : null}
