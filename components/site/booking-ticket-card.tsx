@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Download, MapPin, ShieldCheck, Ticket } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -18,82 +18,261 @@ type BookingTicketCardProps = {
   isExpired?: boolean;
 };
 
-function inlineStyles(source: HTMLElement, target: HTMLElement) {
-  const computed = window.getComputedStyle(source);
+function roundRectPath(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+) {
+  const safeRadius = Math.min(radius, width / 2, height / 2);
 
-  for (const property of Array.from(computed)) {
-    target.style.setProperty(
-      property,
-      computed.getPropertyValue(property),
-      computed.getPropertyPriority(property)
-    );
-  }
+  context.beginPath();
+  context.moveTo(x + safeRadius, y);
+  context.lineTo(x + width - safeRadius, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + safeRadius);
+  context.lineTo(x + width, y + height - safeRadius);
+  context.quadraticCurveTo(x + width, y + height, x + width - safeRadius, y + height);
+  context.lineTo(x + safeRadius, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - safeRadius);
+  context.lineTo(x, y + safeRadius);
+  context.quadraticCurveTo(x, y, x + safeRadius, y);
+  context.closePath();
+}
 
-  const sourceChildren = Array.from(source.children) as HTMLElement[];
-  const targetChildren = Array.from(target.children) as HTMLElement[];
+function fillRoundedRect(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+  fillStyle: string
+) {
+  roundRectPath(context, x, y, width, height, radius);
+  context.fillStyle = fillStyle;
+  context.fill();
+}
 
-  for (let index = 0; index < sourceChildren.length; index += 1) {
-    const sourceChild = sourceChildren[index];
-    const targetChild = targetChildren[index];
+function strokeRoundedRect(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+  strokeStyle: string,
+  lineWidth: number
+) {
+  roundRectPath(context, x, y, width, height, radius);
+  context.lineWidth = lineWidth;
+  context.strokeStyle = strokeStyle;
+  context.stroke();
+}
 
-    if (!sourceChild || !targetChild) {
+function wrapCanvasText(
+  context: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  maxLines?: number
+) {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let currentLine = "";
+
+  for (const word of words) {
+    const candidate = currentLine ? `${currentLine} ${word}` : word;
+
+    if (context.measureText(candidate).width <= maxWidth) {
+      currentLine = candidate;
       continue;
     }
 
-    inlineStyles(sourceChild, targetChild);
+    if (currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      lines.push(word);
+      currentLine = "";
+    }
+
+    if (maxLines && lines.length >= maxLines) {
+      break;
+    }
   }
+
+  if (currentLine && (!maxLines || lines.length < maxLines)) {
+    lines.push(currentLine);
+  }
+
+  if (maxLines && lines.length > maxLines) {
+    return lines.slice(0, maxLines);
+  }
+
+  if (maxLines && lines.length === maxLines && words.length > 0) {
+    const truncated = [...lines];
+    const lastIndex = truncated.length - 1;
+
+    while (
+      truncated[lastIndex].length > 0 &&
+      context.measureText(`${truncated[lastIndex]}...`).width > maxWidth
+    ) {
+      truncated[lastIndex] = truncated[lastIndex].slice(0, -1).trimEnd();
+    }
+
+    if (truncated[lastIndex] !== lines[lastIndex]) {
+      truncated[lastIndex] = `${truncated[lastIndex]}...`;
+    }
+
+    return truncated;
+  }
+
+  return lines;
 }
 
-async function downloadNodeAsImage(node: HTMLElement, fileName: string) {
-  const clone = node.cloneNode(true) as HTMLElement;
-  const rect = node.getBoundingClientRect();
-  const width = Math.ceil(rect.width);
-  const height = Math.ceil(rect.height);
-  const scale = Math.max(2, Math.min(3, Math.ceil(window.devicePixelRatio || 2)));
-
-  clone.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
-  clone.style.margin = "0";
-  clone.style.width = `${width}px`;
-  clone.style.height = `${height}px`;
-
-  inlineStyles(node, clone);
-
-  const serialized = new XMLSerializer().serializeToString(clone);
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${width * scale}" height="${height * scale}" viewBox="0 0 ${width} ${height}">
-      <foreignObject x="0" y="0" width="100%" height="100%">
-        ${serialized}
-      </foreignObject>
-    </svg>
-  `;
-
-  const svgBlob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
-  const svgUrl = URL.createObjectURL(svgBlob);
-  const image = new Image();
-
-  await new Promise<void>((resolve, reject) => {
-    image.onload = () => resolve();
-    image.onerror = () => reject(new Error("Unable to prepare the ticket image."));
-    image.src = svgUrl;
-  });
-
+function renderTicketCanvas(props: BookingTicketCardProps) {
+  const width = 1600;
+  const height = 980;
   const canvas = document.createElement("canvas");
-  canvas.width = width * scale;
-  canvas.height = height * scale;
+  canvas.width = width;
+  canvas.height = height;
 
   const context = canvas.getContext("2d");
   if (!context) {
-    URL.revokeObjectURL(svgUrl);
     throw new Error("Unable to prepare the ticket download.");
   }
 
-  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  const gradient = context.createLinearGradient(0, 0, width, height);
+  gradient.addColorStop(0, "#0f4b33");
+  gradient.addColorStop(0.6, "#156545");
+  gradient.addColorStop(1, "#1c7a53");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, width, height);
+
+  strokeRoundedRect(context, 26, 26, width - 52, height - 52, 36, "rgba(255,255,255,0.18)", 3);
+  fillRoundedRect(context, 1094, 86, 410, 808, 34, "rgba(255,255,255,0.10)");
+  strokeRoundedRect(context, 1094, 86, 410, 808, 34, "rgba(255,255,255,0.12)", 2);
+
+  fillRoundedRect(context, 76, 82, 258, 58, 29, "rgba(255,255,255,0.10)");
+  strokeRoundedRect(context, 76, 82, 258, 58, 29, "rgba(255,255,255,0.22)", 2);
+  context.fillStyle = "#f8fffb";
+  context.font = "700 24px system-ui, -apple-system, sans-serif";
+  context.fillText(props.isExpired ? "Expired pass" : "Verified booking", 126, 120);
+  context.fillStyle = "rgba(255,255,255,0.82)";
+  context.font = "700 16px system-ui, -apple-system, sans-serif";
+  context.fillText("STABS Gonzaga Travel Bookings", 76, 175);
+
+  fillRoundedRect(context, 1220, 82, 212, 88, 24, "rgba(255,255,255,0.10)");
+  strokeRoundedRect(context, 1220, 82, 212, 88, 24, "rgba(255,255,255,0.18)", 2);
+  context.fillStyle = "rgba(255,255,255,0.74)";
+  context.font = "700 16px system-ui, -apple-system, sans-serif";
+  context.fillText("Reference", 1256, 117);
+  context.fillStyle = "#ffffff";
+  context.font = "700 33px ui-monospace, SFMono-Regular, Menlo, monospace";
+  context.fillText(`#${props.referenceCode}`, 1256, 151);
+
+  context.fillStyle = "#ffffff";
+  context.font = "700 66px Georgia, 'Times New Roman', serif";
+  const titleLines = wrapCanvasText(context, props.destinationTitle, 900, 2);
+  titleLines.forEach((line, index) => {
+    context.fillText(line, 76, 280 + index * 78);
+  });
+
+  context.fillStyle = "rgba(255,255,255,0.94)";
+  context.font = "600 30px system-ui, -apple-system, sans-serif";
+  const serviceLine = wrapCanvasText(context, props.serviceTitle, 835, 1)[0] ?? props.serviceTitle;
+  context.fillText(serviceLine, 76, 410);
+
+  context.fillStyle = "rgba(255,255,255,0.82)";
+  context.font = "500 24px system-ui, -apple-system, sans-serif";
+  const locationLine =
+    wrapCanvasText(context, props.locationText, 835, 1)[0] ?? props.locationText;
+  context.fillText(locationLine, 76, 458);
+
+  fillRoundedRect(context, 76, 515, 412, 134, 28, "rgba(0,0,0,0.14)");
+  fillRoundedRect(context, 516, 515, 412, 134, 28, "rgba(0,0,0,0.14)");
+  strokeRoundedRect(context, 76, 515, 412, 134, 28, "rgba(255,255,255,0.10)", 2);
+  strokeRoundedRect(context, 516, 515, 412, 134, 28, "rgba(255,255,255,0.10)", 2);
+
+  context.fillStyle = "rgba(255,255,255,0.76)";
+  context.font = "700 18px system-ui, -apple-system, sans-serif";
+  context.fillText("Visit date", 116, 560);
+  context.fillText("Guests", 556, 560);
+
+  context.fillStyle = "#ffffff";
+  context.font = "700 34px system-ui, -apple-system, sans-serif";
+  context.fillText(props.serviceDate, 116, 610);
+  context.fillText(
+    `${props.guestCount} ${props.guestCount === 1 ? "guest" : "guests"}`,
+    556,
+    610
+  );
+
+  context.fillStyle = "rgba(255,255,255,0.74)";
+  context.font = "700 18px system-ui, -apple-system, sans-serif";
+  context.fillText("Guest name", 76, 744);
+  const guestLines = wrapCanvasText(context, props.guestName, 650, 2);
+  context.fillStyle = "#ffffff";
+  context.font = "700 34px system-ui, -apple-system, sans-serif";
+  guestLines.forEach((line, index) => {
+    context.fillText(line, 76, 796 + index * 42);
+  });
+
+  context.fillStyle = "rgba(255,255,255,0.74)";
+  context.font = "700 18px system-ui, -apple-system, sans-serif";
+  context.fillText("Paid", 832, 744);
+  context.fillStyle = "#ffffff";
+  context.font = "700 38px ui-monospace, SFMono-Regular, Menlo, monospace";
+  const paidLine = wrapCanvasText(context, props.totalPaid, 180, 1)[0] ?? props.totalPaid;
+  context.fillText(paidLine, 832, 796);
+
+  fillRoundedRect(context, 1176, 170, 246, 246, 30, "#ffffff");
+  for (let row = 0; row < 7; row += 1) {
+    for (let column = 0; column < 7; column += 1) {
+      const index = row * 7 + column;
+      const isFilled =
+        index % 3 === 0 ||
+        index % 7 === 0 ||
+        index === 0 ||
+        index === 6 ||
+        index === 42 ||
+        index === 48;
+
+      fillRoundedRect(
+        context,
+        1204 + column * 30,
+        198 + row * 30,
+        18,
+        18,
+        4,
+        isFilled ? "#0f4b33" : "#d9efe4"
+      );
+    }
+  }
+
+  context.fillStyle = "rgba(255,255,255,0.74)";
+  context.font = "700 18px system-ui, -apple-system, sans-serif";
+  context.fillText("Ticket code", 1176, 504);
+  context.fillStyle = "#ffffff";
+  context.font = "700 58px Georgia, 'Times New Roman', serif";
+  context.fillText(props.ticketCode.split("-").pop() ?? props.ticketCode, 1176, 575);
+  context.fillStyle = "rgba(255,255,255,0.68)";
+  context.font = "500 18px ui-monospace, SFMono-Regular, Menlo, monospace";
+  const fullCodeLines = wrapCanvasText(context, props.ticketCode, 290, 2);
+  fullCodeLines.forEach((line, index) => {
+    context.fillText(line, 1176, 614 + index * 28);
+  });
+
+  return canvas;
+}
+
+async function downloadTicketImage(props: BookingTicketCardProps, fileName: string) {
+  const canvas = renderTicketCanvas(props);
 
   const pngBlob = await new Promise<Blob | null>((resolve) =>
     canvas.toBlob(resolve, "image/png", 1)
   );
-
-  URL.revokeObjectURL(svgUrl);
 
   if (!pngBlob) {
     throw new Error("Unable to generate the ticket image.");
@@ -103,111 +282,105 @@ async function downloadNodeAsImage(node: HTMLElement, fileName: string) {
   const link = document.createElement("a");
   link.href = downloadUrl;
   link.download = fileName;
+  document.body.appendChild(link);
   link.click();
-  URL.revokeObjectURL(downloadUrl);
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1500);
 }
 
 export function BookingTicketCard(props: BookingTicketCardProps) {
   const [isDownloading, setIsDownloading] = useState(false);
-  const cardRef = useRef<HTMLDivElement | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   async function handleDownload() {
-    if (!cardRef.current) {
-      return;
-    }
-
     setIsDownloading(true);
+    setDownloadError(null);
 
     try {
-      await downloadNodeAsImage(
-        cardRef.current,
-        `gonzaga-booking-pass-${props.ticketCode.toLowerCase()}.png`
-      );
+      await downloadTicketImage(props, `gonzaga-booking-pass-${props.ticketCode.toLowerCase()}.png`);
     } catch (error) {
       console.error(error);
+      setDownloadError("Unable to download the ticket right now. Please try again.");
     } finally {
       setIsDownloading(false);
     }
   }
 
   return (
-    <div className="mx-auto w-full max-w-[31.5rem] space-y-4">
+    <div className="mx-auto w-full max-w-5xl space-y-4">
       <div
-        ref={cardRef}
-        className="relative aspect-[1.586/1] overflow-hidden rounded-[1.6rem] border border-primary/15 bg-[linear-gradient(135deg,#0f4b33_0%,#156545_62%,#1c7a53_100%)] p-3.5 text-white shadow-[0_26px_50px_-20px_rgba(15,75,51,0.5)] sm:p-4"
+        className="relative overflow-hidden rounded-[1.6rem] border border-primary/15 bg-[linear-gradient(135deg,#0f4b33_0%,#156545_62%,#1c7a53_100%)] p-4 text-white shadow-[0_26px_50px_-20px_rgba(15,75,51,0.5)] sm:p-5 lg:p-6"
       >
         <div className="absolute inset-[0.45rem] rounded-[1.2rem] border border-white/14" />
 
-        <div className="relative grid h-full grid-cols-[1.54fr,0.46fr] gap-2.5">
-          <div className="flex h-full min-w-0 flex-col pr-0.5">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 space-y-1">
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-white/24 bg-white/8 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/95">
-                  <ShieldCheck className="h-3.5 w-3.5" />
+        <div className="relative grid gap-4 lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-5">
+          <div className="flex min-w-0 flex-col gap-4 lg:min-h-[25rem]">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 space-y-2">
+                <div className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/24 bg-white/8 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/95">
+                  <ShieldCheck className="h-4 w-4" />
                   {props.isExpired ? "Expired pass" : "Verified booking"}
                 </div>
-                <p className="truncate text-[8.5px] uppercase tracking-[0.12em] text-white/84">
+                <p className="text-[11px] uppercase tracking-[0.16em] text-white/84">
                   Gonzaga Travel Bookings
                 </p>
               </div>
-              <div className="rounded-[0.9rem] border border-white/18 bg-white/10 px-2.5 py-1.5 text-right">
-                <p className="text-[8.5px] uppercase tracking-[0.12em] text-white/74">Ref</p>
-                <p className="font-mono text-[12px] font-semibold text-white">
+              <div className="w-full rounded-[1rem] border border-white/18 bg-white/10 px-3 py-2 text-left sm:w-auto sm:min-w-[8.5rem] sm:text-right">
+                <p className="text-[11px] uppercase tracking-[0.14em] text-white/74">Ref</p>
+                <p className="font-mono text-[15px] font-semibold text-white sm:text-[16px]">
                   #{props.referenceCode}
                 </p>
               </div>
             </div>
 
-            <div className="mt-2.5 min-w-0 space-y-1.25">
-              <h2 className="line-clamp-2 font-display text-[1.38rem] font-semibold leading-tight tracking-tight text-white sm:text-[1.5rem]">
+            <div className="min-w-0 space-y-2">
+              <h2 className="break-words font-display text-[clamp(1.7rem,1.3rem+1vw,2.45rem)] font-semibold leading-tight tracking-tight text-white">
                 {props.destinationTitle}
               </h2>
-              <p className="inline-flex items-center gap-2 text-[0.9rem] font-medium text-white/92">
-                <Ticket className="h-3.5 w-3.5 shrink-0" />
-                <span className="line-clamp-1">{props.serviceTitle}</span>
+              <p className="inline-flex items-start gap-2 text-sm font-medium text-white/92 sm:text-base">
+                <Ticket className="mt-0.5 h-4 w-4 shrink-0" />
+                <span className="break-words">{props.serviceTitle}</span>
               </p>
-              <p className="inline-flex items-center gap-2 text-[12px] text-white/82">
-                <MapPin className="h-3.5 w-3.5 shrink-0" />
-                <span className="line-clamp-1">{props.locationText}</span>
+              <p className="inline-flex items-start gap-2 text-[13px] text-white/82 sm:text-sm">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                <span className="break-words">{props.locationText}</span>
               </p>
             </div>
 
-            <div className="mt-2.5 grid grid-cols-2 gap-2 text-[10px] text-white/80">
-              <div className="rounded-[0.95rem] bg-black/14 px-3 py-2.25 ring-1 ring-white/10">
-                <p className="uppercase tracking-[0.12em]">Visit date</p>
-                <p className="mt-1 text-[14px] font-semibold text-white">{props.serviceDate}</p>
+            <div className="grid gap-3 text-white/80 sm:grid-cols-2">
+              <div className="rounded-[1rem] bg-black/14 px-4 py-3 ring-1 ring-white/10">
+                <p className="text-[11px] uppercase tracking-[0.14em]">Visit date</p>
+                <p className="mt-1.5 break-words text-base font-semibold text-white sm:text-lg">
+                  {props.serviceDate}
+                </p>
               </div>
-              <div className="rounded-[0.95rem] bg-black/14 px-3 py-2.25 ring-1 ring-white/10">
-                <p className="uppercase tracking-[0.12em]">Guests</p>
-                <p className="mt-1 text-[14px] font-semibold text-white">
+              <div className="rounded-[1rem] bg-black/14 px-4 py-3 ring-1 ring-white/10">
+                <p className="text-[11px] uppercase tracking-[0.14em]">Guests</p>
+                <p className="mt-1.5 break-words text-base font-semibold text-white sm:text-lg">
                   {props.guestCount} {props.guestCount === 1 ? "guest" : "guests"}
                 </p>
               </div>
             </div>
 
-            <div className="mt-auto grid grid-cols-[minmax(0,1fr),auto] items-end gap-2.5 border-t border-white/12 pt-2.5">
+            <div className="mt-auto grid gap-4 border-t border-white/12 pt-4 sm:grid-cols-[minmax(0,1fr),auto] sm:items-end">
               <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-[0.12em] text-white/74">
-                  Guest name
-                </p>
-                <p className="mt-1 break-words text-[13px] font-semibold leading-[1.25] text-white">
+                <p className="text-[11px] uppercase tracking-[0.14em] text-white/74">Guest name</p>
+                <p className="mt-1.5 break-words text-base font-semibold leading-tight text-white sm:text-lg">
                   {props.guestName}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="text-[9.5px] uppercase tracking-[0.12em] text-white/74">
-                  Paid
-                </p>
-                <p className="mt-1 font-mono text-[13px] font-semibold text-white">
+              <div className="sm:text-right">
+                <p className="text-[11px] uppercase tracking-[0.14em] text-white/74">Paid</p>
+                <p className="mt-1.5 break-words font-mono text-base font-semibold text-white sm:text-lg">
                   {props.totalPaid}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex h-full flex-col rounded-[1.2rem] bg-white/8 px-2.5 py-2.5 ring-1 ring-white/12">
-            <div className="mx-auto rounded-[0.95rem] bg-white p-2.5 shadow-sm">
-              <div className="grid h-[3.35rem] w-[3.35rem] grid-cols-5 gap-1">
+          <div className="flex min-w-0 flex-col rounded-[1.2rem] bg-white/8 px-4 py-4 ring-1 ring-white/12">
+            <div className="mx-auto rounded-[1rem] bg-white p-3 shadow-sm">
+              <div className="grid h-[5.25rem] w-[5.25rem] grid-cols-5 gap-1.5">
                 {Array.from({ length: 25 }).map((_, index) => (
                   <div
                     key={index}
@@ -226,12 +399,12 @@ export function BookingTicketCard(props: BookingTicketCardProps) {
               </div>
             </div>
 
-            <div className="mt-2.5">
-              <p className="text-[9.5px] uppercase tracking-[0.12em] text-white/74">Ticket code</p>
-              <p className="mt-1 font-display text-[1.36rem] font-semibold leading-none tracking-[0.04em] text-white">
+            <div className="mt-4 min-w-0">
+              <p className="text-[11px] uppercase tracking-[0.14em] text-white/74">Ticket code</p>
+              <p className="mt-1.5 break-all font-display text-[2rem] font-semibold leading-none tracking-[0.04em] text-white sm:text-[2.2rem]">
                 {props.ticketCode.split("-").pop() ?? props.ticketCode}
               </p>
-              <p className="mt-1 break-all font-mono text-[9px] text-white/62">
+              <p className="mt-2 break-all font-mono text-[11px] text-white/62">
                 {props.ticketCode}
               </p>
             </div>
@@ -252,6 +425,9 @@ export function BookingTicketCard(props: BookingTicketCardProps) {
             ? "Preparing image..."
             : "Download ticket image"}
       </Button>
+      {downloadError ? (
+        <p className="text-center text-sm text-destructive">{downloadError}</p>
+      ) : null}
     </div>
   );
 }

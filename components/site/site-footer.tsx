@@ -25,8 +25,8 @@ export function SiteFooter() {
       </div>
 
       <div className="relative">
-        <div className="page-shell grid grid-cols-1 gap-4 py-6 sm:grid-cols-2 sm:gap-5 sm:py-8 lg:grid-cols-[1.15fr,0.72fr,0.85fr]">
-          <div className="space-y-3 sm:col-span-2 lg:col-span-1">
+        <div className="page-shell grid grid-cols-1 gap-4 py-6 sm:gap-5 sm:py-8 lg:grid-cols-[1.15fr,0.72fr] lg:items-start">
+          <div className="space-y-3">
             <p className="font-display text-[1.55rem] font-semibold tracking-tight sm:text-[1.7rem]">STABS</p>
             <p className="max-w-xl text-sm leading-6 text-primary-foreground/84">
               Discover Gonzaga escapes, compare destination details, and plan the kind of trip you
@@ -34,26 +34,13 @@ export function SiteFooter() {
             </p>
           </div>
 
-          <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary-foreground/66">
-              About
-            </p>
+          <div className="space-y-3 lg:justify-self-start">
             <Link
               href="/about"
-              className="inline-flex text-sm font-medium text-primary-foreground/84 transition hover:text-white"
+              className="inline-flex min-h-11 items-center rounded-full border border-white/16 bg-white/6 px-4 py-2 text-sm font-medium text-primary-foreground/88 transition hover:bg-white/10 hover:text-white"
             >
-              About STABS
+              About us
             </Link>
-          </div>
-
-          <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary-foreground/66">
-              System access
-            </p>
-            <div className="flex flex-col gap-1.5 text-sm text-primary-foreground/84">
-              <Link href="/sign-in">Sign in</Link>
-              <Link href="/sign-up">Create account</Link>
-            </div>
           </div>
         </div>
 
