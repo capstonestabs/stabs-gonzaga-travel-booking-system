@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
+import { NavigationProgress } from "@/components/site/navigation-progress";
+import { PageTransitionShell } from "@/components/site/page-transition-shell";
 
 import "./globals.css";
 
@@ -24,8 +27,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
         <SiteHeader />
-        <main>{children}</main>
+        <main>
+          <PageTransitionShell>{children}</PageTransitionShell>
+        </main>
         <SiteFooter />
       </body>
     </html>

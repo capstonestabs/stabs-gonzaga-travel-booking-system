@@ -66,7 +66,7 @@ export function DashboardShell({
 
           {role === "admin" ? (
             <div className="mt-3 border-t border-border/70 pt-3">
-              <Link href="/auth/set-password">
+              <Link href="/auth/set-password" prefetch>
                 <Button variant="outline" size="sm" className="min-h-11 w-full">
                   <KeyRound className="h-4 w-4" />
                   Change password

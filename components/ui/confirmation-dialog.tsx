@@ -56,7 +56,7 @@ export function ConfirmationDialog({
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[120] flex min-h-[100dvh] items-center justify-center p-4 sm:p-5 lg:p-6">
+    <div className="dialog-overlay fixed inset-0 z-[120] flex min-h-[100dvh] items-center justify-center p-4 sm:p-5 lg:p-6">
       <button
         type="button"
         aria-label="Close confirmation"
@@ -71,7 +71,7 @@ export function ConfirmationDialog({
         role="dialog"
         aria-modal="true"
         className={cn(
-          "relative mx-auto w-full max-w-[28rem] overflow-hidden rounded-[1.35rem] border border-border/80 bg-card shadow-[0_32px_90px_rgba(14,30,20,0.28)]"
+          "dialog-pop-in relative mx-auto w-full max-w-[28rem] overflow-hidden rounded-[1.35rem] border border-border/80 bg-card shadow-[0_32px_90px_rgba(14,30,20,0.28)]"
         )}
       >
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary/0 via-primary/70 to-primary/0" />

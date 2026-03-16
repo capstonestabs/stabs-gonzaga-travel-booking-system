@@ -105,9 +105,10 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
             <Link
               key={item.href}
               href={item.href as Route}
+              prefetch
               onClick={() => setIsOpen(false)}
               className={cn(
-                "group flex min-h-11 min-w-0 items-center gap-2.5 rounded-[0.95rem] border px-3 py-2.5 text-sm font-medium transition-all",
+                "group flex min-h-11 min-w-0 items-center gap-2.5 rounded-[0.95rem] border px-3 py-2.5 text-sm font-medium transition-[transform,background-color,border-color,color,box-shadow] duration-150 hover:-translate-y-[1px] active:translate-y-0",
                 active
                   ? "border-primary/15 bg-primary/10 text-primary"
                   : "border-border/60 bg-card/90 text-foreground/82 hover:border-border/80 hover:bg-muted/70"

@@ -65,7 +65,7 @@ export function SiteHeaderClient({
           )}
         >
           <div className="flex min-w-0 items-center justify-between gap-3 lg:contents">
-          <Link href="/" className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+          <Link href="/" prefetch className="flex min-w-0 items-center gap-2.5 transition-transform duration-150 hover:-translate-y-[1px] sm:gap-3">
             <img
               src={blueprintLogo}
               alt="Gonzaga Travel Bookings logo"
@@ -94,7 +94,7 @@ export function SiteHeaderClient({
           </Link>
 
           <div className="flex items-center gap-2 lg:hidden">
-            <Link href={mobilePrimaryHref} className="min-w-0">
+            <Link href={mobilePrimaryHref} prefetch className="min-w-0">
               <Button
                 variant={isScenicPage ? "outline" : "secondary"}
                 size="sm"
@@ -137,8 +137,9 @@ export function SiteHeaderClient({
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch
                   className={cn(
-                    "transition-colors",
+                    "transition-[color,transform] duration-150 hover:-translate-y-[1px]",
                     isScenicPage ? "hover:text-white" : "hover:text-emerald-950"
                   )}
                   style={isScenicPage ? { textShadow: "0 2px 14px rgba(0,0,0,0.34)" } : undefined}
@@ -194,7 +195,7 @@ export function SiteHeaderClient({
           <div className="hidden min-w-0 lg:flex lg:flex-wrap lg:items-center lg:justify-end lg:gap-2.5 xl:gap-3">
             {role ? (
               <>
-                <Link href={panelHref as Route} className="min-w-0 sm:flex-none">
+                <Link href={panelHref as Route} prefetch className="min-w-0 sm:flex-none">
                   <Button
                     variant={isScenicPage ? "outline" : "secondary"}
                     size="sm"
@@ -222,7 +223,7 @@ export function SiteHeaderClient({
               </>
             ) : (
               <>
-                <Link href="/sign-in" className="min-w-0 sm:flex-none">
+                <Link href="/sign-in" prefetch className="min-w-0 sm:flex-none">
                   <Button
                     variant={isScenicPage ? "outline" : "secondary"}
                     size="sm"
@@ -236,7 +237,7 @@ export function SiteHeaderClient({
                     Sign in
                   </Button>
                 </Link>
-                <Link href="/sign-up" className="min-w-0 sm:flex-none">
+                <Link href="/sign-up" prefetch className="min-w-0 sm:flex-none">
                   <Button
                     size="sm"
                     className={cn(
@@ -308,8 +309,9 @@ export function SiteHeaderClient({
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch
                   className={cn(
-                    "flex min-h-11 items-center rounded-[0.95rem] border px-3 text-sm font-medium transition-colors",
+                    "flex min-h-11 items-center rounded-[0.95rem] border px-3 text-sm font-medium transition-[transform,background-color,border-color,color] duration-150 hover:-translate-y-[1px]",
                     isScenicPage
                       ? "border-white/14 bg-black/12 text-white hover:bg-white/10"
                       : "border-emerald-900/12 bg-white/82 text-emerald-950 hover:bg-emerald-950/6"
@@ -323,7 +325,7 @@ export function SiteHeaderClient({
             <div className="grid gap-2 sm:grid-cols-2">
               {role ? (
                 <>
-                  <Link href={panelHref as Route}>
+                  <Link href={panelHref as Route} prefetch>
                     <Button
                       variant={isScenicPage ? "outline" : "secondary"}
                       className={cn(
@@ -348,7 +350,7 @@ export function SiteHeaderClient({
                 </>
               ) : (
                 <>
-                  <Link href="/sign-in">
+                  <Link href="/sign-in" prefetch>
                     <Button
                       variant={isScenicPage ? "outline" : "secondary"}
                       className={cn(
@@ -361,7 +363,7 @@ export function SiteHeaderClient({
                       Sign in
                     </Button>
                   </Link>
-                  <Link href="/sign-up">
+                  <Link href="/sign-up" prefetch>
                     <Button
                       className={cn(
                         "min-h-11 w-full justify-center text-sm",
