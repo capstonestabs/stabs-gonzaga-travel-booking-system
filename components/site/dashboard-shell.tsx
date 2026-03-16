@@ -57,50 +57,45 @@ export function DashboardShell({
   const roleLabel = roleLabelByRole[role];
 
   return (
-    <div className="page-shell grid items-start grid-cols-[7rem,minmax(0,1fr)] gap-3 py-4 sm:grid-cols-[7.5rem,minmax(0,1fr)] sm:gap-3.5 sm:py-5 min-[480px]:grid-cols-[8.5rem,minmax(0,1fr)] xl:grid-cols-[13.5rem,minmax(0,1fr)] 2xl:grid-cols-[14.5rem,minmax(0,1fr)]">
-      <aside className="min-w-0 w-full justify-self-start sticky top-24 self-start">
-        <div className="panel p-2.5 sm:p-3">
-          <div className="mb-3 border-b border-border/70 pb-3">
-            <Badge className="inline-flex items-center gap-1.5">
-              <RoleIcon className="h-3.5 w-3.5" />
-              {roleLabel}
-            </Badge>
-          </div>
+    <div className="page-shell space-y-3 py-4 sm:space-y-3.5 sm:py-5">
+      <div className="panel p-3 sm:p-3.5">
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-2">
+              <Badge className="inline-flex items-center gap-1.5">
+                <RoleIcon className="h-3.5 w-3.5" />
+                {roleLabel}
+              </Badge>
+              <div className="flex items-center gap-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-[0.9rem] border border-border/70 bg-secondary/65 text-primary">
+                  <RoleIcon className="h-4 w-4" />
+                </span>
+                <p className="font-display text-[1rem] font-semibold tracking-tight sm:text-[1.18rem]">
+                  {title}
+                </p>
+              </div>
+              <p className="max-w-3xl text-[13px] leading-5 text-muted-foreground sm:text-sm sm:leading-6">
+                {description}
+              </p>
+            </div>
 
-          <DashboardNav items={nav} />
-
-          {role === "admin" ? (
-            <div className="mt-3 border-t border-border/70 pt-3">
+            {role === "admin" ? (
               <Link href="/auth/set-password" prefetch>
-                <Button variant="outline" size="sm" className="min-h-11 w-full">
+                <Button variant="outline" size="sm" className="min-h-11 w-full lg:w-auto">
                   <KeyRound className="h-4 w-4" />
                   Change password
                 </Button>
               </Link>
-            </div>
-          ) : null}
-        </div>
-      </aside>
+            ) : null}
+          </div>
 
-      <div className="min-w-0 space-y-3 sm:space-y-[1.125rem]">
-        <div className="panel p-3 sm:p-3.5">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-[0.9rem] border border-border/70 bg-secondary/65 text-primary">
-                <RoleIcon className="h-4 w-4" />
-              </span>
-              <p className="font-display text-[1rem] font-semibold tracking-tight sm:text-[1.18rem]">
-                {title}
-              </p>
-            </div>
-            <p className="text-[13px] leading-5 text-muted-foreground sm:text-sm sm:leading-6">
-              {description}
-            </p>
+          <div className="border-t border-border/70 pt-3">
+            <DashboardNav items={nav} />
           </div>
         </div>
-
-        {children}
       </div>
+
+      <div className="min-w-0 space-y-3 sm:space-y-[1.125rem]">{children}</div>
     </div>
   );
 }

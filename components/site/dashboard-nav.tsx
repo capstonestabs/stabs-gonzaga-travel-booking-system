@@ -63,37 +63,37 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
       .sort((left, right) => getBaseHref(right.href).length - getBaseHref(left.href).length)[0]
       ?.href ?? null;
   return (
-    <nav className="grid min-w-0 max-h-[min(24rem,62vh)] grid-cols-1 gap-2 overflow-y-auto pr-1 min-[380px]:max-h-[calc(100vh-12rem)] xl:max-h-none xl:overflow-visible xl:pr-0">
-        {items.map((item) => {
-          const Icon = iconByName[item.icon];
-          const active = activeHref === item.href;
+    <nav className="flex min-w-0 gap-2 overflow-x-auto pb-1 pr-1 [scrollbar-width:none] [-ms-overflow-style:none] xl:flex-wrap xl:overflow-visible xl:pb-0 xl:pr-0 [&::-webkit-scrollbar]:hidden">
+      {items.map((item) => {
+        const Icon = iconByName[item.icon];
+        const active = activeHref === item.href;
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href as Route}
-              prefetch
+        return (
+          <Link
+            key={item.href}
+            href={item.href as Route}
+            prefetch
+            className={cn(
+              "group inline-flex min-h-11 shrink-0 items-center gap-2 rounded-[0.9rem] border px-3 py-2.5 text-sm font-medium transition-[transform,background-color,border-color,color,box-shadow] duration-150 hover:-translate-y-[1px] active:translate-y-0",
+              active
+                ? "border-primary/15 bg-primary/10 text-primary"
+                : "border-border/60 bg-card/90 text-foreground/82 hover:border-border/80 hover:bg-muted/70"
+            )}
+          >
+            <span
               className={cn(
-                "group flex min-h-11 min-w-0 flex-col items-center gap-1.5 rounded-[0.9rem] border px-2.5 py-2.5 text-center text-[12px] font-medium transition-[transform,background-color,border-color,color,box-shadow] duration-150 hover:-translate-y-[1px] active:translate-y-0 min-[480px]:flex-row min-[480px]:justify-start min-[480px]:gap-2 min-[480px]:px-3 min-[480px]:text-left min-[480px]:text-sm",
+                "flex h-8 w-8 shrink-0 items-center justify-center rounded-[0.75rem] border transition-colors",
                 active
-                  ? "border-primary/15 bg-primary/10 text-primary"
-                  : "border-border/60 bg-card/90 text-foreground/82 hover:border-border/80 hover:bg-muted/70"
+                  ? "border-primary/15 bg-primary/12"
+                  : "border-border/60 bg-card/90 group-hover:border-primary/10 group-hover:bg-card"
               )}
             >
-              <span
-                className={cn(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-[0.75rem] border transition-colors",
-                  active
-                    ? "border-primary/15 bg-primary/12"
-                    : "border-border/60 bg-card/90 group-hover:border-primary/10 group-hover:bg-card"
-                )}
-              >
-                <Icon className={cn("h-4 w-4", active ? "text-primary" : "text-foreground/62")} />
-              </span>
-              <span className="min-w-0 break-words leading-4 min-[480px]:leading-5">{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
+              <Icon className={cn("h-4 w-4", active ? "text-primary" : "text-foreground/62")} />
+            </span>
+            <span className="whitespace-nowrap leading-5">{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
