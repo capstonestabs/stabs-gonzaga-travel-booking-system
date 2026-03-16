@@ -1,11 +1,18 @@
 import Link from "next/link";
-import { BriefcaseBusiness, KeyRound, ShieldCheck } from "lucide-react";
+import { BriefcaseBusiness, KeyRound, ShieldCheck, UserRound } from "lucide-react";
 
 import { DashboardNav, type DashboardNavIconName } from "@/components/site/dashboard-nav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 const navByRole = {
+  user: [
+    { href: "/account", label: "Overview", icon: "overview" },
+    { href: "/account/current", label: "Current bookings", icon: "bookings" },
+    { href: "/account/tickets", label: "Ticket wallet", icon: "tickets" },
+    { href: "/account/history", label: "Booking history", icon: "history" },
+    { href: "/profile", label: "Account settings", icon: "account", matchHrefs: ["/account/profile"] }
+  ],
   staff: [
     { href: "/staff", label: "Overview", icon: "overview" },
     { href: "/staff/destination", label: "Destination", icon: "destination" },
@@ -22,7 +29,16 @@ const navByRole = {
     { href: "/admin/tourists", label: "Tourists", icon: "tourists" },
     { href: "/admin/staff/create", label: "Create staff", icon: "create" }
   ]
-} satisfies Record<"staff" | "admin", Array<{ href: string; label: string; icon: DashboardNavIconName }>>;
+} satisfies Record<
+  "user" | "staff" | "admin",
+  Array<{ href: string; label: string; icon: DashboardNavIconName; matchHrefs?: string[] }>
+>;
+
+const roleLabelByRole = {
+  user: "tourist",
+  staff: "staff",
+  admin: "admin"
+} as const;
 
 export function DashboardShell({
   role,
@@ -30,13 +46,15 @@ export function DashboardShell({
   description,
   children
 }: {
-  role: "staff" | "admin";
+  role: "user" | "staff" | "admin";
   title: string;
   description: string;
   children: React.ReactNode;
 }) {
   const nav = navByRole[role];
-  const RoleIcon = role === "admin" ? ShieldCheck : BriefcaseBusiness;
+  const RoleIcon =
+    role === "admin" ? ShieldCheck : role === "staff" ? BriefcaseBusiness : UserRound;
+  const roleLabel = roleLabelByRole[role];
 
   return (
     <div className="page-shell grid gap-3.5 py-4 sm:gap-4 sm:py-5 xl:grid-cols-[14.5rem,minmax(0,1fr)] 2xl:grid-cols-[15.25rem,minmax(0,1fr)]">
@@ -45,7 +63,7 @@ export function DashboardShell({
           <div className="space-y-2">
             <Badge className="inline-flex items-center gap-1.5">
               <RoleIcon className="h-3.5 w-3.5" />
-              {role}
+              {roleLabel}
             </Badge>
             <div>
               <div className="flex items-center gap-2">

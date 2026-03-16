@@ -1,8 +1,9 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarDays, History, LayoutDashboard, Settings2, Ticket } from "lucide-react";
+import { CalendarDays, History, Settings2, Ticket } from "lucide-react";
 
+import { DashboardShell } from "@/components/site/dashboard-shell";
 import { ProfileSummaryCard } from "@/components/site/profile-summary-card";
 import { UserBookingCalendar } from "@/components/site/user-booking-calendar";
 import { Button } from "@/components/ui/button";
@@ -45,20 +46,12 @@ export default async function AccountPage() {
     };
 
   return (
-    <div className="page-shell space-y-5 py-6 sm:space-y-6 sm:py-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-3">
-          <div className="gradient-chip inline-flex w-fit items-center gap-2">
-            <LayoutDashboard className="h-4 w-4" />
-            Tourist account
-          </div>
-          <h1 className="page-title">Tourist dashboard</h1>
-          <p className="page-intro">
-            Keep your travel summary in one place, then open dedicated pages for current bookings,
-            booking history, and saved passes.
-          </p>
-        </div>
-        <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
+    <DashboardShell
+      role="user"
+      title="Tourist dashboard"
+      description="Keep your travel summary in one place, then move between current bookings, history, ticket wallet, and account settings from one section menu."
+    >
+      <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
           <Link href={"/account/current" as Route}>
             <Button variant="secondary" className="w-full sm:w-auto">
               <CalendarDays className="h-4 w-4" />
@@ -83,7 +76,6 @@ export default async function AccountPage() {
               Account settings
             </Button>
           </Link>
-        </div>
       </div>
 
       <ProfileSummaryCard
@@ -162,6 +154,6 @@ export default async function AccountPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </DashboardShell>
   );
 }

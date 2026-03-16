@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { CalendarDays, History, LayoutDashboard } from "lucide-react";
 
 import { ClearBookingHistoryButton } from "@/components/forms/clear-booking-history-button";
+import { DashboardShell } from "@/components/site/dashboard-shell";
 import { TouristBookingRecordCard } from "@/components/site/tourist-booking-record-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,19 +27,12 @@ export default async function TouristBookingHistoryPage() {
   const historyBookings = getTouristHistoryBookings(bookings);
 
   return (
-    <div className="page-shell space-y-5 py-6 sm:space-y-6 sm:py-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-3">
-          <div className="gradient-chip inline-flex w-fit items-center gap-2">
-            <History className="h-4 w-4" />
-            Booking history
-          </div>
-          <h1 className="page-title">Past and cleared-up trips</h1>
-          <p className="page-intro">
-            Review finished, cancelled, and expired reservations without stretching your main dashboard.
-          </p>
-        </div>
-        <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
+    <DashboardShell
+      role="user"
+      title="Booking history"
+      description="Review finished, cancelled, and expired reservations without stretching your main dashboard."
+    >
+      <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
           <Link href="/account">
             <Button variant="secondary" className="w-full sm:w-auto">
               <LayoutDashboard className="h-4 w-4" />
@@ -52,7 +46,6 @@ export default async function TouristBookingHistoryPage() {
             </Button>
           </Link>
           {historyBookings.length > 0 ? <ClearBookingHistoryButton count={historyBookings.length} /> : null}
-        </div>
       </div>
 
       {historyBookings.length === 0 ? (
@@ -81,6 +74,6 @@ export default async function TouristBookingHistoryPage() {
           ))}
         </ProgressiveList>
       )}
-    </div>
+    </DashboardShell>
   );
 }

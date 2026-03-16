@@ -15,6 +15,7 @@ import {
   Menu,
   MessageSquareText,
   Package,
+  Ticket,
   UserRound,
   Users,
   UsersRound
@@ -34,7 +35,8 @@ const iconByName = {
   tourists: UsersRound,
   create: CirclePlus,
   financials: Landmark,
-  history: History
+  history: History,
+  tickets: Ticket
 } as const;
 
 export type DashboardNavIconName = keyof typeof iconByName;
@@ -43,6 +45,7 @@ type NavItem = {
   href: string;
   label: string;
   icon: DashboardNavIconName;
+  matchHrefs?: string[];
 };
 
 function getBaseHref(href: string) {
@@ -59,7 +62,9 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
   const [isOpen, setIsOpen] = useState(false);
   const activeHref =
     items
-      .filter((item) => matchesPath(pathname, item.href))
+      .filter((item) =>
+        [item.href, ...(item.matchHrefs ?? [])].some((href) => matchesPath(pathname, href))
+      )
       .sort((left, right) => getBaseHref(right.href).length - getBaseHref(left.href).length)[0]
       ?.href ?? null;
   const activeItem = items.find((item) => item.href === activeHref) ?? items[0];

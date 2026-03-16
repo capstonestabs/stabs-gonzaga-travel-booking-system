@@ -12,6 +12,7 @@ import { getCurrentUserContext } from "@/lib/auth";
 import { getBookingsForUser } from "@/lib/repositories";
 import { getTouristTicketBookings } from "@/lib/tourist-bookings";
 import { formatCurrency } from "@/lib/utils";
+import { DashboardShell } from "@/components/site/dashboard-shell";
 
 const ticketBadgeVariantByState = {
   valid: "success",
@@ -35,19 +36,12 @@ export default async function TouristTicketsPage() {
   const ticketBookings = getTouristTicketBookings(bookings);
 
   return (
-    <div className="page-shell space-y-5 py-6 sm:space-y-6 sm:py-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-3">
-          <div className="gradient-chip inline-flex w-fit items-center gap-2">
-            <Ticket className="h-4 w-4" />
-            Ticket wallet
-          </div>
-          <h1 className="page-title">Saved booking passes</h1>
-          <p className="page-intro">
-            Open any confirmed or completed pass here, then save the ticket image when you need it.
-          </p>
-        </div>
-        <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
+    <DashboardShell
+      role="user"
+      title="Ticket wallet"
+      description="Open any confirmed or completed pass here, then save the ticket image when you need it."
+    >
+      <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
           <Link href="/account">
             <Button variant="secondary" className="w-full sm:w-auto">
               <LayoutDashboard className="h-4 w-4" />
@@ -66,7 +60,6 @@ export default async function TouristTicketsPage() {
               Booking history
             </Button>
           </Link>
-        </div>
       </div>
 
       {ticketBookings.length === 0 ? (
@@ -149,6 +142,6 @@ export default async function TouristTicketsPage() {
           })}
         </ProgressiveList>
       )}
-    </div>
+    </DashboardShell>
   );
 }

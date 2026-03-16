@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CalendarDays, History, LayoutDashboard, Ticket } from "lucide-react";
 
+import { DashboardShell } from "@/components/site/dashboard-shell";
 import { TouristBookingRecordCard } from "@/components/site/tourist-booking-record-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,20 +27,12 @@ export default async function TouristCurrentBookingsPage() {
   const historyBookings = getTouristHistoryBookings(bookings);
 
   return (
-    <div className="page-shell space-y-4 py-5 sm:space-y-5 sm:py-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-2.5">
-          <div className="gradient-chip inline-flex w-fit items-center gap-2">
-            <CalendarDays className="h-4 w-4" />
-            Current bookings
-          </div>
-          <h1 className="page-title">Reservations in progress</h1>
-          <p className="page-intro">
-            Keep active reservations on a dedicated page so your dashboard stays lighter and easier
-            to review.
-          </p>
-        </div>
-        <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-2.5">
+    <DashboardShell
+      role="user"
+      title="Current bookings"
+      description="Review active reservations on their own page so the tourist dashboard stays lighter and easier to scan."
+    >
+      <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-2.5">
           <Link href="/account">
             <Button variant="secondary" className="w-full sm:w-auto">
               <LayoutDashboard className="h-4 w-4" />
@@ -58,7 +51,6 @@ export default async function TouristCurrentBookingsPage() {
               Booking history
             </Button>
           </Link>
-        </div>
       </div>
 
       {activeBookings.length === 0 ? (
@@ -100,6 +92,6 @@ export default async function TouristCurrentBookingsPage() {
           ))}
         </ProgressiveList>
       )}
-    </div>
+    </DashboardShell>
   );
 }

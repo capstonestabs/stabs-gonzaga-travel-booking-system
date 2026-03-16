@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { AvatarUploadForm } from "@/components/forms/avatar-upload-form";
 import { ProfileForm } from "@/components/forms/profile-form";
+import { DashboardShell } from "@/components/site/dashboard-shell";
 import { ProfileSummaryCard } from "@/components/site/profile-summary-card";
 import { Button } from "@/components/ui/button";
 import { getCurrentUserContext } from "@/lib/auth";
@@ -36,24 +37,8 @@ export default async function ProfilePage() {
       staffProfile: null
     };
 
-  const backHref = role === "admin" ? "/admin" : "/account";
-  const backLabel = role === "admin" ? "Back to admin panel" : "Back to bookings";
-
-  return (
-    <div className="page-shell space-y-6 py-8 sm:py-10">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-3">
-          <div className="gradient-chip w-fit">Account settings</div>
-          <h1 className="page-title">Manage your account</h1>
-          <p className="page-intro">
-            Update your account details and avatar from one page.
-          </p>
-        </div>
-        <Link href={backHref as Route}>
-          <Button variant="secondary" className="w-full sm:w-auto">{backLabel}</Button>
-        </Link>
-      </div>
-
+  const accountContent = (
+    <>
       <ProfileSummaryCard
         role={role}
         user={profileBundle.user}
@@ -73,7 +58,37 @@ export default async function ProfilePage() {
           endpoint="/api/profile"
         />
       </div>
+    </>
+  );
 
+  if (role === "user") {
+    return (
+      <DashboardShell
+        role="user"
+        title="Account settings"
+        description="Update your traveler details, avatar, and personal account information from one settings page."
+      >
+        {accountContent}
+      </DashboardShell>
+    );
+  }
+
+  return (
+    <div className="page-shell space-y-6 py-8 sm:py-10">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-3">
+          <div className="gradient-chip w-fit">Account settings</div>
+          <h1 className="page-title">Manage your account</h1>
+          <p className="page-intro">
+            Update your account details and avatar from one page.
+          </p>
+        </div>
+        <Link href={"/admin" as Route}>
+          <Button variant="secondary" className="w-full sm:w-auto">Back to admin panel</Button>
+        </Link>
+      </div>
+
+      {accountContent}
     </div>
   );
 }
