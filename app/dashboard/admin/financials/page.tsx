@@ -103,7 +103,7 @@ export default async function AdminFinancialsPage() {
             </Link>
           </div>
         </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+        <CardContent className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
           {data.financialMetrics.map((metric) => (
             <FinancialMetricBlock key={metric.label} metric={metric} />
           ))}
@@ -120,7 +120,7 @@ export default async function AdminFinancialsPage() {
             Open a destination, review each service group, and record payouts only where action is still needed.
           </p>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3.5">
           {activeDestinationSummaries.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No destination payouts are waiting right now. Review settled records on the payout history page.
@@ -147,10 +147,10 @@ export default async function AdminFinancialsPage() {
             return (
               <details
                 key={summary.destination_id}
-                className="group rounded-[1rem] border border-border/70 bg-card/90"
+                className="group rounded-[0.95rem] border border-border/70 bg-card/90"
               >
-                <summary className="list-none cursor-pointer p-4">
-                  <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+                <summary className="list-none cursor-pointer p-3.5">
+                  <div className="flex flex-col gap-2.5 xl:flex-row xl:items-start xl:justify-between">
                     <div className="flex min-w-0 items-start gap-3">
                       <span className="mt-1 rounded-full border border-border/70 bg-muted/35 p-2 text-muted-foreground transition-transform group-open:rotate-180">
                         <ChevronDown className="h-4 w-4" />
@@ -169,8 +169,8 @@ export default async function AdminFinancialsPage() {
                       </div>
                     </div>
 
-                    <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
-                      <div className="rounded-[0.9rem] border border-border/70 bg-muted/22 px-3 py-3">
+                    <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+                      <div className="rounded-[0.85rem] border border-border/70 bg-muted/22 px-3 py-2.5">
                         <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
                           Gross paid
                         </p>
@@ -179,7 +179,7 @@ export default async function AdminFinancialsPage() {
                           {summary.booking_count} booking{summary.booking_count === 1 ? "" : "s"}
                         </p>
                       </div>
-                      <div className="rounded-[0.9rem] border border-border/70 bg-muted/22 px-3 py-3">
+                      <div className="rounded-[0.85rem] border border-border/70 bg-muted/22 px-3 py-2.5">
                         <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
                           Settled payout
                         </p>
@@ -188,7 +188,7 @@ export default async function AdminFinancialsPage() {
                           Waiting {formatCurrency(summary.unsettled_amount)}
                         </p>
                       </div>
-                      <div className="rounded-[0.9rem] border border-border/70 bg-muted/22 px-3 py-3">
+                      <div className="rounded-[0.85rem] border border-border/70 bg-muted/22 px-3 py-2.5">
                         <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
                           Service groups
                         </p>
@@ -201,8 +201,8 @@ export default async function AdminFinancialsPage() {
                   </div>
                 </summary>
 
-                <div className="border-t border-border/70 px-4 pb-4 pt-3">
-                  <div className="space-y-3">
+                <div className="border-t border-border/70 px-3.5 pb-3.5 pt-3">
+                  <div className="space-y-2.5">
                     {unsettledDestinationRecords.length > 0 ? (
                       <AdminBatchSettlementPanel
                         recordIds={unsettledDestinationRecords.map((record) => record.id)}
@@ -238,21 +238,21 @@ export default async function AdminFinancialsPage() {
                     <ProgressiveList
                       initialCount={4}
                       step={3}
-                      maxHeightClass="max-h-[min(56vh,28rem)]"
+                      maxHeightClass="max-h-[min(54vh,26rem)]"
                       showMoreLabel="Show more services"
                       showLessLabel="Show fewer services"
                     >
                     {serviceGroups.map((serviceGroup) => (
                       <details
                         key={serviceGroup.key}
-                        className="group rounded-[0.95rem] border border-border/70 bg-muted/18"
+                        className="group rounded-[0.9rem] border border-border/70 bg-muted/18"
                       >
-                        <summary className="list-none cursor-pointer p-3.5">
+                        <summary className="list-none cursor-pointer p-3">
                           <div className="flex min-w-0 items-start gap-3">
                             <span className="mt-1 rounded-full border border-border/70 bg-card/75 p-2 text-muted-foreground transition-transform group-open:rotate-180">
                               <ChevronDown className="h-4 w-4" />
                             </span>
-                            <div className="grid min-w-0 gap-3 sm:grid-cols-2 2xl:grid-cols-[minmax(0,1.1fr),repeat(3,minmax(0,0.72fr))]">
+                            <div className="grid min-w-0 gap-2.5 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.1fr),repeat(3,minmax(0,0.72fr))]">
                               <div className="min-w-0">
                                 <p className="font-medium text-foreground">{serviceGroup.title}</p>
                                 <p className="text-sm text-muted-foreground">
@@ -295,7 +295,7 @@ export default async function AdminFinancialsPage() {
                           </div>
                         </summary>
 
-                        <div className="space-y-3 border-t border-border/70 px-3.5 pb-3.5 pt-3.5">
+                        <div className="space-y-2.5 border-t border-border/70 px-3 pb-3 pt-3">
                           {serviceGroup.unsettledRecords.length > 0 ? (
                             <AdminBatchSettlementPanel
                               recordIds={serviceGroup.unsettledRecords.map((record) => record.id)}
@@ -323,7 +323,7 @@ export default async function AdminFinancialsPage() {
                             </div>
                           )}
 
-                          <div className="overflow-hidden rounded-[0.9rem] border border-border/70 bg-card/85">
+                          <div className="overflow-hidden rounded-[0.85rem] border border-border/70 bg-card/85">
                             <div className="hidden grid-cols-[minmax(0,1.2fr),0.65fr,0.7fr,0.8fr,0.8fr,auto] gap-3 border-b border-border/70 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground 2xl:grid">
                               <span>Booked by</span>
                               <span>Guests</span>
@@ -335,7 +335,7 @@ export default async function AdminFinancialsPage() {
                             <ProgressiveList
                               initialCount={6}
                               step={6}
-                              maxHeightClass="max-h-[min(48vh,21rem)]"
+                              maxHeightClass="max-h-[min(46vh,19rem)]"
                               itemsClassName="divide-y divide-border/70"
                               showMoreLabel="Show more bookings"
                               showLessLabel="Show fewer bookings"

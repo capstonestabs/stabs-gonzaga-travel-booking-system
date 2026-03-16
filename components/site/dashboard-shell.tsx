@@ -39,10 +39,10 @@ export function DashboardShell({
   const RoleIcon = role === "admin" ? ShieldCheck : BriefcaseBusiness;
 
   return (
-    <div className="page-shell grid gap-4 py-4 sm:gap-5 sm:py-6 xl:grid-cols-[15.25rem,minmax(0,1fr)] 2xl:grid-cols-[16rem,minmax(0,1fr)]">
-      <aside className="min-w-0 space-y-3 xl:sticky xl:top-24 xl:self-start">
-        <div className="panel p-3.5 sm:p-4">
-          <div className="space-y-2.5">
+    <div className="page-shell grid gap-3.5 py-4 sm:gap-4 sm:py-5 xl:grid-cols-[14.5rem,minmax(0,1fr)] 2xl:grid-cols-[15.25rem,minmax(0,1fr)]">
+      <aside className="min-w-0 space-y-2.5 xl:sticky xl:top-24 xl:self-start">
+        <div className="panel p-3 sm:p-3.5">
+          <div className="space-y-2">
             <Badge className="inline-flex items-center gap-1.5">
               <RoleIcon className="h-3.5 w-3.5" />
               {role}
@@ -52,7 +52,7 @@ export function DashboardShell({
                 <span className="flex h-8 w-8 items-center justify-center rounded-[0.9rem] border border-border/70 bg-secondary/65 text-primary">
                   <RoleIcon className="h-4 w-4" />
                 </span>
-                <p className="font-display text-[1.02rem] font-semibold tracking-tight sm:text-[1.18rem]">
+                <p className="font-display text-[1rem] font-semibold tracking-tight sm:text-[1.12rem]">
                   {title}
                 </p>
               </div>
@@ -61,7 +61,7 @@ export function DashboardShell({
           </div>
         </div>
 
-        <div className="panel p-3 sm:p-3.5">
+        <div className="panel p-2.5 sm:p-3">
           <DashboardNav items={nav} />
 
           {role === "admin" ? (
@@ -77,7 +77,7 @@ export function DashboardShell({
         </div>
       </aside>
 
-      <div className="min-w-0 space-y-4 sm:space-y-5">{children}</div>
+      <div className="min-w-0 space-y-3.5 sm:space-y-[1.125rem]">{children}</div>
     </div>
   );
 }

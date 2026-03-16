@@ -47,7 +47,7 @@ export function TouristBookingRecordCard({
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="flex flex-col gap-3 border-b border-border/70 sm:flex-row sm:items-start sm:justify-between">
+      <CardHeader className="flex flex-col gap-2.5 border-b border-border/70 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <CardTitle>{booking.destination_snapshot.title}</CardTitle>
           <p className="mt-1.5 text-sm text-muted-foreground">
@@ -70,9 +70,9 @@ export function TouristBookingRecordCard({
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-5">
-        <div className="grid gap-3 text-sm sm:grid-cols-2 2xl:grid-cols-5">
-          <div className="rounded-[1rem] bg-muted/45 px-4 py-3">
+      <CardContent className="space-y-4">
+        <div className="grid gap-2.5 text-sm sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+          <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3">
             <p className="text-muted-foreground">Package</p>
             <p className="mt-1 font-medium">
               {booking.service_snapshot?.title ?? "Standard service"}
@@ -81,15 +81,15 @@ export function TouristBookingRecordCard({
               {booking.service_snapshot?.service_type ?? "standard"}
             </p>
           </div>
-          <div className="rounded-[1rem] bg-muted/45 px-4 py-3">
+          <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3">
             <p className="text-muted-foreground">Guests</p>
             <p className="mt-1 font-medium">{booking.guest_count}</p>
           </div>
-          <div className="rounded-[1rem] bg-muted/45 px-4 py-3">
+          <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3">
             <p className="text-muted-foreground">Total amount</p>
             <p className="mt-1 font-medium">{formatCurrency(booking.total_amount)}</p>
           </div>
-          <div className="rounded-[1rem] bg-muted/45 px-4 py-3">
+          <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3">
             <p className="text-muted-foreground">Ticket</p>
             <p className="mt-1 font-medium">
               {booking.status === "cancelled"
@@ -108,28 +108,28 @@ export function TouristBookingRecordCard({
                       : "inactive"}
             </p>
           </div>
-          <div className="rounded-[1rem] bg-muted/45 px-4 py-3">
+          <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3">
             <p className="text-muted-foreground">Booking ID</p>
             <p className="mt-1 break-all font-medium">{booking.id}</p>
           </div>
         </div>
 
         {mode === "active" && booking.status === "pending_payment" ? (
-          <p className="rounded-[1rem] border border-border/70 bg-muted/35 px-4 py-3 text-sm text-muted-foreground">
+          <p className="rounded-[0.95rem] border border-border/70 bg-muted/35 px-3.5 py-3 text-sm text-muted-foreground">
             This reservation is still waiting for confirmation. If checkout is not completed, the
             5-minute slot hold will expire automatically and the record will move to history.
           </p>
         ) : null}
 
         {mode === "history" ? (
-          <p className="rounded-[1rem] border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+          <p className="rounded-[0.95rem] border border-border/60 bg-muted/30 px-3.5 py-3 text-sm text-muted-foreground">
             This trip is kept in your history so you can review the result, reopen any available
             pass, or clear the record from your account when you no longer need it.
           </p>
         ) : null}
 
         {booking.status === "pending_payment" || canOpenTicket || (mode === "history" && canClearHistory) ? (
-          <div className="grid gap-3 border-t border-border/60 pt-4 sm:flex sm:flex-wrap">
+          <div className="grid gap-2.5 border-t border-border/60 pt-3.5 sm:flex sm:flex-wrap">
             {booking.status === "pending_payment" && booking.payment?.checkout_url ? (
               <>
                 <a href={booking.payment.checkout_url}>

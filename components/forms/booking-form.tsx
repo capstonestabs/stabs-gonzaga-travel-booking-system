@@ -190,9 +190,9 @@ export function BookingForm({
         event.preventDefault();
         void handleSubmit(new FormData(event.currentTarget));
       }}
-      className="space-y-4 sm:space-y-5"
+      className="space-y-4 sm:space-y-[1.125rem]"
     >
-      <div className="rounded-[1.4rem] border border-border/70 bg-muted/50 px-4 py-3 text-sm leading-6 text-muted-foreground">
+      <div className="rounded-[1.15rem] border border-border/70 bg-muted/50 px-4 py-3 text-sm leading-6 text-muted-foreground">
         Take one last look at the trip details first. Your chosen date is only held for a few
         minutes after you continue.
       </div>
@@ -204,11 +204,11 @@ export function BookingForm({
       ) : (
         <div className="space-y-3">
           <span className="text-sm font-medium">Choose a package</span>
-          <div className="grid gap-3">
+          <div className="grid gap-2.5">
             {bookableServices.map((service) => (
               <label
                 key={service.id}
-                className={`grid cursor-pointer select-none grid-cols-[auto,minmax(0,1fr)] gap-3 rounded-[1.1rem] border p-4 transition-colors hover:border-primary/50 ${
+                className={`grid cursor-pointer select-none grid-cols-[auto,minmax(0,1fr)] gap-3 rounded-[0.95rem] border p-3.5 transition-colors hover:border-primary/50 sm:p-4 ${
                   selectedServiceId === service.id
                     ? "border-primary bg-primary/5 ring-1 ring-primary"
                     : "border-border/70"
@@ -227,7 +227,7 @@ export function BookingForm({
                     }}
                   />
                   {service.image_url ? (
-                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-[0.9rem] border border-border/70 bg-muted/40">
+                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-[0.85rem] border border-border/70 bg-muted/40 sm:h-16 sm:w-16">
                       <img
                         src={service.image_url}
                         alt={service.title}
@@ -285,7 +285,7 @@ export function BookingForm({
 
       {selectedService ? (
         <>
-          <div className="rounded-[1.2rem] border border-border/70 bg-muted/30 px-4 py-3">
+              <div className="rounded-[1rem] border border-border/70 bg-muted/30 px-3.5 py-3">
             <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
               Selected date
             </p>
@@ -316,7 +316,7 @@ export function BookingForm({
             />
           </label>
 
-          <div className={`rounded-[1.2rem] border px-4 py-3 text-sm ${availabilityToneClass}`}>
+          <div className={`rounded-[1rem] border px-3.5 py-3 text-sm ${availabilityToneClass}`}>
             {isAvailabilityLoading ? "Checking live availability..." : availabilityState.message}
           </div>
 
@@ -363,7 +363,7 @@ export function BookingForm({
 
               {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.2rem] border-2 border-primary/20 bg-background px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1rem] border-2 border-primary/20 bg-background px-3.5 py-3">
                 <span className="text-sm font-medium">Total</span>
                 <span className="font-display text-xl font-semibold text-primary">
                   {formatCurrency(
@@ -383,8 +383,8 @@ export function BookingForm({
               </Button>
             </div>
           ) : (
-            <div className="space-y-4 pt-4 sm:space-y-5">
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.2rem] border-2 border-primary/20 bg-background px-4 py-3">
+            <div className="space-y-4 pt-4 sm:space-y-[1.125rem]">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1rem] border-2 border-primary/20 bg-background px-3.5 py-3">
                 <span className="text-sm font-medium text-muted-foreground">Estimated Total</span>
                 <span className="font-display text-xl font-semibold text-muted-foreground">
                   {formatCurrency(
@@ -406,7 +406,7 @@ export function BookingForm({
           )}
         </>
       ) : (
-        <div className="rounded-[1.25rem] border border-border/70 bg-muted/35 px-4 py-4 text-sm leading-6 text-muted-foreground">
+        <div className="rounded-[1rem] border border-border/70 bg-muted/35 px-3.5 py-3.5 text-sm leading-6 text-muted-foreground">
           Choose one of the packages above to view open dates and continue planning your trip.
         </div>
       )}

@@ -90,7 +90,7 @@ export function AdminBatchSettlementPanel({
   }
 
   return (
-    <div className="space-y-3 rounded-[0.95rem] border border-border/70 bg-card/75 p-3">
+    <div className="space-y-2.5 rounded-[0.9rem] border border-border/70 bg-card/75 p-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
@@ -117,7 +117,7 @@ export function AdminBatchSettlementPanel({
       </div>
 
       {isOpen ? (
-        <div className="space-y-3 border-t border-border/70 pt-3">
+        <div className="space-y-2.5 border-t border-border/70 pt-3">
           <p className="text-xs leading-5 text-muted-foreground">
             {helperText}
           </p>

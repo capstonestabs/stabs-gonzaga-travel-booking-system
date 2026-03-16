@@ -23,8 +23,8 @@
   --input: 132 16% 80%;
   --ring: 145 34% 34%;
   --radius: 1.05rem;
-  --page-max: 84rem;
-  --page-max-narrow: 72rem;
+  --page-max: 82rem;
+  --page-max-narrow: 70rem;
   --space-1: 0.5rem;
   --space-2: 1rem;
   --space-3: 1.5rem;
@@ -480,7 +480,7 @@ details > summary,
 
 @media (min-width: 1536px) {
   :root {
-    --page-max: 88rem;
+    --page-max: 86rem;
   }
 }
 

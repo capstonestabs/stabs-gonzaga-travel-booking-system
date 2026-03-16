@@ -26,9 +26,9 @@ export default async function TouristCurrentBookingsPage() {
   const historyBookings = getTouristHistoryBookings(bookings);
 
   return (
-    <div className="page-shell space-y-5 py-6 sm:space-y-6 sm:py-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-3">
+    <div className="page-shell space-y-4 py-5 sm:space-y-5 sm:py-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-2.5">
           <div className="gradient-chip inline-flex w-fit items-center gap-2">
             <CalendarDays className="h-4 w-4" />
             Current bookings
@@ -39,7 +39,7 @@ export default async function TouristCurrentBookingsPage() {
             to review.
           </p>
         </div>
-        <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
+        <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-2.5">
           <Link href="/account">
             <Button variant="secondary" className="w-full sm:w-auto">
               <LayoutDashboard className="h-4 w-4" />
@@ -63,7 +63,7 @@ export default async function TouristCurrentBookingsPage() {
 
       {activeBookings.length === 0 ? (
         <Card>
-          <CardContent className="space-y-3.5 p-6 text-sm text-muted-foreground">
+          <CardContent className="space-y-3 p-5 text-sm text-muted-foreground sm:p-[1.375rem]">
             <p>No active reservations are sitting in your account right now.</p>
             <p>
               Browse destinations for your next trip, or open booking history and ticket wallet to
@@ -91,7 +91,7 @@ export default async function TouristCurrentBookingsPage() {
         <ProgressiveList
           initialCount={4}
           step={4}
-          maxHeightClass="max-h-[min(74vh,42rem)]"
+          maxHeightClass="max-h-[min(70vh,38rem)]"
           showMoreLabel="Show more current bookings"
           showLessLabel="Show fewer current bookings"
         >

@@ -146,7 +146,7 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
           </div>
 
           {bookings.length > 0 ? (
-            <div className="rounded-[1rem] border border-border/70 bg-muted/30 p-3.5">
+            <div className="rounded-[0.95rem] border border-border/70 bg-muted/30 p-3 sm:p-3.5">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0">
                   <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
@@ -240,7 +240,7 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4 p-4 sm:space-y-5 sm:p-5">
+      <CardContent className="space-y-3.5 p-3.5 sm:space-y-4 sm:p-[1.125rem]">
         {bookings.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No bookings have been received for your destination yet.
@@ -249,7 +249,7 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
           <ProgressiveList
             initialCount={6}
             step={6}
-            maxHeightClass="max-h-[72vh]"
+            maxHeightClass="max-h-[min(70vh,40rem)]"
             showMoreLabel="Show more bookings"
             showLessLabel="Show fewer bookings"
           >
@@ -264,7 +264,7 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
                 <div
                   key={booking.id}
                   className={cn(
-                    "grid gap-4 rounded-[1rem] border border-border/70 bg-card/85 p-4 sm:p-5 xl:grid-cols-[auto,1.15fr,0.75fr,0.75fr,0.95fr]",
+                    "grid gap-3 rounded-[0.95rem] border border-border/70 bg-card/85 p-3.5 sm:p-4 xl:grid-cols-[auto,1.1fr,0.7fr,0.7fr,0.92fr]",
                     checked ? "ring-1 ring-primary/35" : ""
                   )}
                 >
@@ -292,13 +292,13 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
                     </p>
                   </div>
 
-                  <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3 sm:px-4">
+                  <div className="rounded-[0.9rem] bg-muted/45 px-3 py-3 sm:px-3.5">
                     <p className="text-sm text-muted-foreground">Service date</p>
                     <p className="mt-1 font-medium">{booking.service_date}</p>
                     <p className="text-sm text-muted-foreground">{booking.guest_count} guests</p>
                   </div>
 
-                  <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3 sm:px-4">
+                  <div className="rounded-[0.9rem] bg-muted/45 px-3 py-3 sm:px-3.5">
                     <p className="text-sm text-muted-foreground">Amount</p>
                     <p className="mt-1 font-medium">{formatCurrency(booking.total_amount)}</p>
                     <p className="text-sm text-muted-foreground">
@@ -306,7 +306,7 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
                     </p>
                   </div>
 
-                  <div className="flex h-full flex-col gap-3 rounded-[0.95rem] bg-muted/45 px-3.5 py-3.5 sm:px-4 sm:py-4">
+                  <div className="flex h-full flex-col gap-2.5 rounded-[0.9rem] bg-muted/45 px-3 py-3 sm:px-3.5 sm:py-3.5">
                     <p className="text-sm text-muted-foreground">Status</p>
                     <Badge variant={getBookingBadgeVariant(booking.status)}>
                       {booking.status.replace("_", " ")}

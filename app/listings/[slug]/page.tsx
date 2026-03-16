@@ -116,11 +116,11 @@ export default async function ListingPage({
         </section>
       </div>
 
-      <div className="page-shell grid gap-5 xl:grid-cols-[minmax(0,1fr),22rem] 2xl:grid-cols-[minmax(0,1fr),24rem]">
-        <section className="space-y-5">
+      <div className="page-shell grid gap-4 xl:grid-cols-[minmax(0,1fr),20.5rem] 2xl:grid-cols-[minmax(0,1fr),22rem]">
+        <section className="space-y-4">
           <Card>
-            <CardContent className="grid gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(0,1.2fr),minmax(15rem,0.8fr)]">
-              <div className="space-y-3">
+            <CardContent className="grid gap-4 p-4 sm:p-[1.125rem] lg:grid-cols-[minmax(0,1.15fr),minmax(14rem,0.85fr)]">
+              <div className="space-y-2.5">
                 <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
                   About this destination
                 </p>
@@ -131,7 +131,7 @@ export default async function ListingPage({
                 <p className="text-sm leading-7 text-muted-foreground">{destination.description}</p>
               </div>
 
-              <div className="grid gap-3 rounded-[1.2rem] border border-border/70 bg-muted/35 p-4 text-sm text-muted-foreground">
+              <div className="grid gap-2.5 rounded-[1.05rem] border border-border/70 bg-muted/35 p-3.5 text-sm text-muted-foreground">
                 <div>
                   <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                     Location
@@ -183,9 +183,9 @@ export default async function ListingPage({
 
           <DestinationGalleryLightbox images={displayGalleryImages} title={destination.title} />
 
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-3.5 lg:grid-cols-2">
             <Card>
-              <CardContent className="space-y-4 p-5">
+              <CardContent className="space-y-3.5 p-4 sm:p-5">
                 <h2 className="font-display text-[1.55rem] font-semibold tracking-tight">
                   What&apos;s included
                 </h2>
@@ -201,7 +201,7 @@ export default async function ListingPage({
             </Card>
 
             <Card>
-              <CardContent className="space-y-4 p-5">
+              <CardContent className="space-y-3.5 p-4 sm:p-5">
                 <h2 className="font-display text-[1.55rem] font-semibold tracking-tight">
                   Policies
                 </h2>
@@ -215,7 +215,7 @@ export default async function ListingPage({
           </div>
 
           <Card>
-            <CardContent className="grid gap-4 lg:grid-cols-3">
+            <CardContent className="grid gap-3.5 p-4 sm:p-[1.125rem] lg:grid-cols-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Pick your package</p>
                 <p className="mt-2 text-sm leading-7 text-muted-foreground">
@@ -248,7 +248,7 @@ export default async function ListingPage({
           </Card>
 
           <Card>
-            <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-5">
+            <CardContent className="flex flex-col gap-3.5 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-[1.125rem]">
               <div className="space-y-2">
                 <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
                   Contact the destination
@@ -271,7 +271,7 @@ export default async function ListingPage({
           </Card>
 
           <Card>
-            <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+            <CardContent className="flex flex-col gap-3.5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-[1.125rem]">
               <div>
                 <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Feedback</p>
                 <p className="mt-2 text-sm leading-7 text-muted-foreground">
@@ -286,8 +286,8 @@ export default async function ListingPage({
         </section>
 
         <aside className="min-w-0">
-          <Card className="2xl:sticky 2xl:top-24">
-            <CardContent className="space-y-5 p-4 sm:p-5">
+          <Card className="xl:sticky xl:top-24">
+            <CardContent className="space-y-4 p-4 sm:p-[1.125rem]">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                   {destination.booking_type === "walk-in" ? "Visit or contact" : "Choose a service"}
@@ -307,7 +307,7 @@ export default async function ListingPage({
               </div>
 
               {destination.booking_type === "walk-in" ? (
-                <div className="space-y-4 rounded-[1.4rem] border border-border/70 bg-muted/50 px-4 py-5 text-sm leading-6">
+                <div className="space-y-3.5 rounded-[1.15rem] border border-border/70 bg-muted/50 px-4 py-4 text-sm leading-6">
                   <p className="font-medium text-foreground">Walk in or contact the destination first</p>
                   <p className="text-muted-foreground">
                     This place handles reservations and inquiries directly, so online slot booking is not available here.
@@ -328,7 +328,7 @@ export default async function ListingPage({
                   </div>
 
                   {activeServices.length ? (
-                    <div className="space-y-3 rounded-[1.1rem] border border-border/70 bg-background px-3 py-3">
+                    <div className="space-y-2.5 rounded-[1rem] border border-border/70 bg-background px-3 py-3">
                       <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                         Available services
                       </p>
@@ -336,7 +336,7 @@ export default async function ListingPage({
                         {activeServices.map((service) => (
                           <div
                             key={service.id}
-                            className="rounded-[0.95rem] border border-border/70 bg-muted/25 px-3 py-3"
+                            className="rounded-[0.9rem] border border-border/70 bg-muted/25 px-3 py-3"
                           >
                             <div className="grid grid-cols-[auto,minmax(0,1fr)] gap-3">
                               {service.image_url ? (
@@ -362,7 +362,7 @@ export default async function ListingPage({
                                   </p>
                                 ) : null}
                               </div>
-                              <div className="col-span-full flex items-end justify-between gap-3 border-t border-border/60 pt-3">
+                              <div className="col-span-full flex items-end justify-between gap-3 border-t border-border/60 pt-2.5">
                                 <div className="space-y-1">
                                   <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                                     Rate
