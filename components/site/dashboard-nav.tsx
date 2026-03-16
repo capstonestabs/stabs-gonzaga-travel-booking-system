@@ -65,8 +65,8 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
   const activeItem = items.find((item) => item.href === activeHref) ?? items[0];
 
   return (
-    <div className="space-y-3">
-      <div className="rounded-[0.95rem] border border-border/60 bg-muted/28 px-3 py-3">
+    <div className="space-y-2.5">
+      <div className="rounded-[0.9rem] border border-border/60 bg-muted/28 px-3 py-2.5">
         <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
           Section menu
         </p>
@@ -75,7 +75,7 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
         </p>
       </div>
 
-      <nav className="grid min-w-0 max-h-[min(24rem,58vh)] grid-cols-1 gap-2 overflow-y-auto pr-1 xl:max-h-none xl:overflow-visible xl:pr-0">
+      <nav className="grid min-w-0 max-h-[min(22rem,56vh)] grid-cols-1 gap-2 overflow-y-auto pr-1 min-[560px]:max-h-[calc(100vh-13rem)] xl:max-h-none xl:overflow-visible xl:pr-0">
         {items.map((item) => {
           const Icon = iconByName[item.icon];
           const active = activeHref === item.href;
@@ -86,7 +86,7 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
               href={item.href as Route}
               prefetch
               className={cn(
-                "group flex min-h-11 min-w-0 items-center gap-2.5 rounded-[0.95rem] border px-3 py-2.5 text-sm font-medium transition-[transform,background-color,border-color,color,box-shadow] duration-150 hover:-translate-y-[1px] active:translate-y-0",
+                "group flex min-h-11 min-w-0 items-center gap-2 rounded-[0.9rem] border px-3 py-2.5 text-sm font-medium transition-[transform,background-color,border-color,color,box-shadow] duration-150 hover:-translate-y-[1px] active:translate-y-0",
                 active
                   ? "border-primary/15 bg-primary/10 text-primary"
                   : "border-border/60 bg-card/90 text-foreground/82 hover:border-border/80 hover:bg-muted/70"
@@ -94,7 +94,7 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
             >
               <span
                 className={cn(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-[0.8rem] border transition-colors",
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-[0.75rem] border transition-colors",
                   active
                     ? "border-primary/15 bg-primary/12"
                     : "border-border/60 bg-card/90 group-hover:border-primary/10 group-hover:bg-card"

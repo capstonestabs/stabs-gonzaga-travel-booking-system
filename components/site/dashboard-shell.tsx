@@ -57,8 +57,8 @@ export function DashboardShell({
   const roleLabel = roleLabelByRole[role];
 
   return (
-    <div className="page-shell grid gap-3.5 py-4 sm:gap-4 sm:py-5 xl:grid-cols-[14.5rem,minmax(0,1fr)] 2xl:grid-cols-[15.25rem,minmax(0,1fr)]">
-      <aside className="min-w-0 space-y-2.5 xl:sticky xl:top-24 xl:self-start">
+    <div className="page-shell grid items-start gap-3 py-4 sm:gap-3.5 sm:py-5 min-[480px]:grid-cols-[10.25rem,minmax(0,1fr)] xl:grid-cols-[14.25rem,minmax(0,1fr)] 2xl:grid-cols-[15rem,minmax(0,1fr)]">
+      <aside className="min-w-0 w-full max-w-[13rem] space-y-2.5 justify-self-start min-[480px]:max-w-none min-[480px]:sticky min-[480px]:top-24 min-[480px]:self-start">
         <div className="panel p-3 sm:p-3.5">
           <div className="space-y-2">
             <Badge className="inline-flex items-center gap-1.5">
@@ -70,11 +70,13 @@ export function DashboardShell({
                 <span className="flex h-8 w-8 items-center justify-center rounded-[0.9rem] border border-border/70 bg-secondary/65 text-primary">
                   <RoleIcon className="h-4 w-4" />
                 </span>
-                <p className="font-display text-[1rem] font-semibold tracking-tight sm:text-[1.12rem]">
+                <p className="font-display text-[0.98rem] font-semibold tracking-tight sm:text-[1.12rem]">
                   {title}
                 </p>
               </div>
-              <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{description}</p>
+              <p className="mt-1.5 text-[13px] leading-5 text-muted-foreground sm:text-sm sm:leading-6">
+                {description}
+              </p>
             </div>
           </div>
         </div>
@@ -95,7 +97,7 @@ export function DashboardShell({
         </div>
       </aside>
 
-      <div className="min-w-0 space-y-3.5 sm:space-y-[1.125rem]">{children}</div>
+      <div className="min-w-0 space-y-3 sm:space-y-[1.125rem]">{children}</div>
     </div>
   );
 }

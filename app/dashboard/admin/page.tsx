@@ -12,14 +12,14 @@ import type { DashboardMetric } from "@/lib/types";
 
 function AdminStatBlock({ metric }: { metric: DashboardMetric }) {
   return (
-    <div className="rounded-[0.95rem] border border-border/70 bg-muted/30 p-3.5 sm:p-4">
+    <div className="rounded-[0.9rem] border border-border/70 bg-muted/30 p-3 sm:p-3.5">
       <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
         {metric.label}
       </p>
-      <p className="mt-1.5 font-display text-[1.3rem] font-semibold tracking-tight text-foreground sm:text-[1.45rem]">
+      <p className="mt-1 font-display text-[1.2rem] font-semibold tracking-tight text-foreground sm:text-[1.35rem]">
         {metric.value}
       </p>
-      <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{metric.helper}</p>
+      <p className="mt-1 text-sm leading-5 text-muted-foreground">{metric.helper}</p>
     </div>
   );
 }
@@ -39,7 +39,7 @@ export default async function AdminDashboardPage() {
       title="Admin control"
       description="Keep the tourism workspace organized from here, then jump into the dedicated pages for payouts, staff accounts, tourist accounts, and payout history."
     >
-      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr),18rem]">
+      <div className="grid gap-3.5 xl:grid-cols-[minmax(0,1fr),16rem] 2xl:grid-cols-[minmax(0,1fr),17rem]">
         <Card className="overflow-hidden">
           <CardHeader className="border-b border-border/70">
             <CardTitle>Platform snapshot</CardTitle>
@@ -47,7 +47,7 @@ export default async function AdminDashboardPage() {
               A quick look at your active destinations, bookings, and platform totals.
             </p>
           </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <CardContent className="grid gap-2.5 min-[480px]:grid-cols-2 xl:grid-cols-3">
             {[...data.metrics, ...data.financialMetrics.slice(0, 3)].map((metric) => (
               <AdminStatBlock key={metric.label} metric={metric} />
             ))}
@@ -61,7 +61,7 @@ export default async function AdminDashboardPage() {
               Open the pages you use most without crowding the overview.
             </p>
           </CardHeader>
-          <CardContent className="grid gap-2.5 sm:grid-cols-2 2xl:grid-cols-1">
+          <CardContent className="grid gap-2.5 min-[420px]:grid-cols-2 xl:grid-cols-1">
             <Link href={"/admin/staff/create" as Route}>
               <Button className="min-h-11 w-full justify-between">
                 Create staff
@@ -96,7 +96,7 @@ export default async function AdminDashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr),minmax(0,1fr)]">
+      <div className="grid gap-3.5 xl:grid-cols-[minmax(0,1fr),minmax(0,1fr)]">
         <Card className="overflow-hidden">
           <CardHeader className="border-b border-border/70">
             <CardTitle>Booking flow</CardTitle>
@@ -104,7 +104,7 @@ export default async function AdminDashboardPage() {
               Track how bookings move from checkout to completed trips.
             </p>
           </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2">
+          <CardContent className="grid gap-2.5 min-[480px]:grid-cols-2">
             {data.bookingMetrics.map((metric) => (
               <AdminStatBlock key={metric.label} metric={metric} />
             ))}
@@ -127,30 +127,30 @@ export default async function AdminDashboardPage() {
               </Link>
             </div>
           </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-[0.95rem] border border-border/70 bg-card/90 p-3.5">
+          <CardContent className="grid gap-2.5 min-[480px]:grid-cols-2">
+            <div className="rounded-[0.9rem] border border-border/70 bg-card/90 p-3">
               <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
                 Needs payout
               </p>
-              <p className="mt-1.5 font-display text-[1.35rem] font-semibold tracking-tight text-foreground">
+              <p className="mt-1 font-display text-[1.25rem] font-semibold tracking-tight text-foreground">
                 {unsettledRecords.length}
               </p>
-              <p className="mt-1.5 text-sm text-muted-foreground">
+              <p className="mt-1 text-sm leading-5 text-muted-foreground">
                 Booking rows are still waiting for staff payout recording.
               </p>
             </div>
-            <div className="rounded-[0.95rem] border border-border/70 bg-card/90 p-3.5">
+            <div className="rounded-[0.9rem] border border-border/70 bg-card/90 p-3">
               <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
                 In payout history
               </p>
-              <p className="mt-1.5 font-display text-[1.35rem] font-semibold tracking-tight text-foreground">
+              <p className="mt-1 font-display text-[1.25rem] font-semibold tracking-tight text-foreground">
                 {archivedRecords}
               </p>
-              <p className="mt-1.5 text-sm text-muted-foreground">
+              <p className="mt-1 text-sm leading-5 text-muted-foreground">
                 Archived rows stay out of the active payout workspace until deleted.
               </p>
             </div>
-            <div className="rounded-[0.95rem] border border-border/70 bg-card/90 p-3.5 sm:col-span-2">
+            <div className="rounded-[0.9rem] border border-border/70 bg-card/90 p-3 min-[480px]:col-span-2">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 text-foreground">
