@@ -48,7 +48,7 @@ export function WorkspaceLoadingState({ label }: { label: string }) {
   return (
     <div className="page-shell space-y-3 py-4 sm:space-y-3.5 sm:py-5">
       <div className="panel skeleton-surface p-3 sm:p-3.5">
-        <div className="space-y-3">
+        <div className="space-y-2">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-2">
               <div className="gradient-chip skeleton-surface inline-flex w-fit items-center gap-2">
@@ -63,20 +63,9 @@ export function WorkspaceLoadingState({ label }: { label: string }) {
               <LoadingBar className="h-4 w-5/6 max-w-[28rem]" />
             </div>
 
-            <div className="skeleton-bar h-11 w-full rounded-[0.95rem] lg:w-40" />
-          </div>
-
-          <div className="border-t border-border/70 pt-3">
-            <div className="flex gap-2 overflow-hidden">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="flex min-h-11 w-[9rem] shrink-0 items-center gap-2 rounded-[0.9rem] border border-border/60 bg-card/90 px-3 py-2.5"
-                >
-                  <div className="skeleton-bar h-8 w-8 rounded-[0.75rem]" />
-                  <LoadingBar className="h-4 w-16" />
-                </div>
-              ))}
+            <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:justify-end">
+              <div className="skeleton-bar h-11 w-full rounded-[0.95rem] sm:w-32" />
+              <div className="skeleton-bar h-11 w-full rounded-[0.95rem] sm:w-40" />
             </div>
           </div>
         </div>

@@ -79,18 +79,17 @@ export function DashboardShell({
               </p>
             </div>
 
-            {role === "admin" ? (
-              <Link href="/auth/set-password" prefetch>
-                <Button variant="outline" size="sm" className="min-h-11 w-full lg:w-auto">
-                  <KeyRound className="h-4 w-4" />
-                  Change password
-                </Button>
-              </Link>
-            ) : null}
-          </div>
-
-          <div className="border-t border-border/70 pt-3">
-            <DashboardNav items={nav} />
+            <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:justify-end">
+              <DashboardNav items={nav} />
+              {role === "admin" ? (
+                <Link href="/auth/set-password" prefetch>
+                  <Button variant="outline" size="sm" className="min-h-11 w-full sm:w-auto">
+                    <KeyRound className="h-4 w-4" />
+                    Change password
+                  </Button>
+                </Link>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>
