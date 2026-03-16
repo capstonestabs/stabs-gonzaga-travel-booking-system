@@ -7,6 +7,7 @@ import { BookingForm } from "@/components/forms/booking-form";
 import { DestinationGalleryLightbox } from "@/components/site/destination-gallery-lightbox";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { ExpandableText } from "@/components/ui/expandable-text";
 import { getCurrentUserContext } from "@/lib/auth";
 import { getBlueprintSceneBySeed } from "@/lib/blueprint";
 import { getDestinationBySlug } from "@/lib/repositories";
@@ -351,9 +352,13 @@ export default async function ListingPage({
                               <div className="min-w-0 flex-1 space-y-1">
                                 <p className="text-sm font-semibold text-foreground">{service.title}</p>
                                 {service.description ? (
-                                  <p className="text-xs leading-5 text-muted-foreground">
-                                    {service.description}
-                                  </p>
+                                  <ExpandableText
+                                    text={service.description}
+                                    textClassName="text-xs leading-5 text-muted-foreground"
+                                    collapsedClassName="line-clamp-2"
+                                    expandLabel="More"
+                                    collapseLabel="Less"
+                                  />
                                 ) : null}
                                 {service.availability_start_date || service.availability_end_date ? (
                                   <p className="text-[11px] leading-5 text-muted-foreground">

@@ -1,7 +1,7 @@
 import type { Route } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarDays, History, Settings2, Ticket } from "lucide-react";
+import Link from "next/link";
+import { CalendarDays, History, Ticket } from "lucide-react";
 
 import { DashboardShell } from "@/components/site/dashboard-shell";
 import { ProfileSummaryCard } from "@/components/site/profile-summary-card";
@@ -51,33 +51,6 @@ export default async function AccountPage() {
       title="Tourist dashboard"
       description="Keep your travel summary in one place, then move between current bookings, history, ticket wallet, and account settings from one section menu."
     >
-      <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
-          <Link href={"/account/current" as Route}>
-            <Button variant="secondary" className="w-full sm:w-auto">
-              <CalendarDays className="h-4 w-4" />
-              Current bookings
-            </Button>
-          </Link>
-          <Link href="/account/tickets">
-            <Button variant="secondary" className="w-full sm:w-auto">
-              <Ticket className="h-4 w-4" />
-              Ticket wallet
-            </Button>
-          </Link>
-          <Link href="/account/history">
-            <Button variant="secondary" className="w-full sm:w-auto">
-              <History className="h-4 w-4" />
-              Booking history
-            </Button>
-          </Link>
-          <Link href="/profile">
-            <Button variant="secondary" className="w-full sm:w-auto">
-              <Settings2 className="h-4 w-4" />
-              Account settings
-            </Button>
-          </Link>
-      </div>
-
       <ProfileSummaryCard
         role="user"
         user={profileBundle.user}
@@ -124,33 +97,19 @@ export default async function AccountPage() {
       <Card>
         <CardContent className="space-y-4 p-6">
           <div className="space-y-2">
-            <p className="text-sm font-medium text-foreground">Current bookings now have their own page.</p>
+            <p className="text-sm font-medium text-foreground">Ready for another trip?</p>
             <p className="text-sm leading-6 text-muted-foreground">
-              Open your active reservations separately so the dashboard stays lighter and easier to
-              scan, especially when your account grows.
+              Use the sidebar to move between your booking sections, then browse destinations again
+              when you are ready to plan another visit.
             </p>
           </div>
           <div className="grid gap-2 sm:flex sm:flex-wrap">
-            <Link href={"/account/current" as Route}>
-              <Button>
-                <CalendarDays className="h-4 w-4" />
-                Open current bookings
-              </Button>
-            </Link>
             <Link href="/destinations">
               <Button variant="secondary">
                 <CalendarDays className="h-4 w-4" />
                 Browse destinations
               </Button>
             </Link>
-            {historyBookings.length > 0 ? (
-              <Link href="/account/history">
-                <Button variant="outline">
-                  <History className="h-4 w-4" />
-                  Open booking history
-                </Button>
-              </Link>
-            ) : null}
           </div>
         </CardContent>
       </Card>

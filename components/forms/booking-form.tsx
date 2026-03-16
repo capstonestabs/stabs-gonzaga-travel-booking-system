@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { AvailabilityCalendarPanel } from "@/components/forms/availability-calendar-panel";
 import { Button } from "@/components/ui/button";
+import { ExpandableText } from "@/components/ui/expandable-text";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getAvailabilityState } from "@/lib/availability";
@@ -240,9 +241,14 @@ export function BookingForm({
                       {service.title}
                     </span>
                     {service.description ? (
-                      <span className="text-xs leading-5 text-muted-foreground line-clamp-2">
-                        {service.description}
-                      </span>
+                      <ExpandableText
+                        text={service.description}
+                        className="min-w-0"
+                        textClassName="text-xs leading-5 text-muted-foreground"
+                        collapsedClassName="line-clamp-2"
+                        expandLabel="More"
+                        collapseLabel="Less"
+                      />
                     ) : null}
                     <span className="text-[11px] leading-5 text-muted-foreground">
                       {formatServiceWindowLabel({

@@ -62,20 +62,8 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
       )
       .sort((left, right) => getBaseHref(right.href).length - getBaseHref(left.href).length)[0]
       ?.href ?? null;
-  const activeItem = items.find((item) => item.href === activeHref) ?? items[0];
-
   return (
-    <div className="space-y-2.5">
-      <div className="rounded-[0.9rem] border border-border/60 bg-muted/28 px-3 py-2.5">
-        <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-          Section menu
-        </p>
-        <p className="mt-1 text-sm font-medium text-foreground">
-          {activeItem?.label ?? "Choose a section"}
-        </p>
-      </div>
-
-      <nav className="grid min-w-0 max-h-[min(22rem,56vh)] grid-cols-1 gap-2 overflow-y-auto pr-1 min-[560px]:max-h-[calc(100vh-13rem)] xl:max-h-none xl:overflow-visible xl:pr-0">
+    <nav className="grid min-w-0 max-h-[min(24rem,62vh)] grid-cols-1 gap-2 overflow-y-auto pr-1 min-[380px]:max-h-[calc(100vh-12rem)] xl:max-h-none xl:overflow-visible xl:pr-0">
         {items.map((item) => {
           const Icon = iconByName[item.icon];
           const active = activeHref === item.href;
@@ -86,7 +74,7 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
               href={item.href as Route}
               prefetch
               className={cn(
-                "group flex min-h-11 min-w-0 items-center gap-2 rounded-[0.9rem] border px-3 py-2.5 text-sm font-medium transition-[transform,background-color,border-color,color,box-shadow] duration-150 hover:-translate-y-[1px] active:translate-y-0",
+                "group flex min-h-11 min-w-0 flex-col items-center gap-1.5 rounded-[0.9rem] border px-2.5 py-2.5 text-center text-[12px] font-medium transition-[transform,background-color,border-color,color,box-shadow] duration-150 hover:-translate-y-[1px] active:translate-y-0 min-[480px]:flex-row min-[480px]:justify-start min-[480px]:gap-2 min-[480px]:px-3 min-[480px]:text-left min-[480px]:text-sm",
                 active
                   ? "border-primary/15 bg-primary/10 text-primary"
                   : "border-border/60 bg-card/90 text-foreground/82 hover:border-border/80 hover:bg-muted/70"
@@ -102,11 +90,10 @@ export function DashboardNav({ items }: { items: NavItem[] }) {
               >
                 <Icon className={cn("h-4 w-4", active ? "text-primary" : "text-foreground/62")} />
               </span>
-              <span className="min-w-0 break-words leading-5">{item.label}</span>
+              <span className="min-w-0 break-words leading-4 min-[480px]:leading-5">{item.label}</span>
             </Link>
           );
         })}
       </nav>
-    </div>
   );
 }

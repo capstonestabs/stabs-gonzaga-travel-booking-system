@@ -1,7 +1,7 @@
-import type { Route } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarDays, Download, History, LayoutDashboard, Ticket } from "lucide-react";
+import type { Route } from "next";
+import { Download, Ticket } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,27 +41,6 @@ export default async function TouristTicketsPage() {
       title="Ticket wallet"
       description="Open any confirmed or completed pass here, then save the ticket image when you need it."
     >
-      <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
-          <Link href="/account">
-            <Button variant="secondary" className="w-full sm:w-auto">
-              <LayoutDashboard className="h-4 w-4" />
-              Tourist dashboard
-            </Button>
-          </Link>
-          <Link href={"/account/current" as Route}>
-            <Button variant="secondary" className="w-full sm:w-auto">
-              <CalendarDays className="h-4 w-4" />
-              Current bookings
-            </Button>
-          </Link>
-          <Link href="/account/history">
-            <Button variant="secondary" className="w-full sm:w-auto">
-              <History className="h-4 w-4" />
-              Booking history
-            </Button>
-          </Link>
-      </div>
-
       {ticketBookings.length === 0 ? (
         <Card>
           <CardContent className="space-y-3.5 p-6 text-sm text-muted-foreground">

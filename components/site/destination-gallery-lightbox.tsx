@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, Expand, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -13,10 +14,15 @@ export function DestinationGalleryLightbox({
   title: string;
 }) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   const safeImages = useMemo(
     () => images.filter((image, index, source) => Boolean(image) && source.indexOf(image) === index),
     [images]
   );
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (activeIndex == null) {
@@ -108,69 +114,85 @@ export function DestinationGalleryLightbox({
         </div>
       </section>
 
-      {currentImage ? (
-        <div
-          className="fixed inset-0 z-[80] bg-black/78 p-4 backdrop-blur-sm sm:p-6"
-          onClick={() => setActiveIndex(null)}
-        >
-          <div className="relative mx-auto flex h-full max-w-6xl items-center justify-center">
-            {safeImages.length > 1 ? (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setActiveIndex((current) =>
-                    current == null ? 0 : (current - 1 + safeImages.length) % safeImages.length
-                  );
-                }}
-                className="absolute left-0 top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-black/50 sm:left-3"
-                aria-label="Previous image"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-            ) : null}
-
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                setActiveIndex(null);
-              }}
-              className="absolute right-0 top-0 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-black/50 sm:right-3 sm:top-3"
-              aria-label="Close image viewer"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
+      {currentImage && isMounted
+        ? createPortal(
             <div
-              className="relative w-full max-w-5xl overflow-hidden rounded-[1.35rem] border border-white/14 bg-black/20"
-              onClick={(event) => event.stopPropagation()}
+              className="fixed inset-0 z-[90] bg-black/82 px-3 py-4 backdrop-blur-sm sm:p-6"
+              onClick={() => setActiveIndex(null)}
+              role="dialog"
+              aria-modal="true"
+              aria-label={`${title} gallery viewer`}
             >
-              <img
-                src={currentImage}
-                alt={`${title} gallery image ${currentIndex + 1}`}
-                className="max-h-[82vh] w-full object-contain"
-              />
-            </div>
+              <div className="relative mx-auto flex h-full w-full max-w-6xl flex-col items-center justify-center gap-3 sm:gap-4">
+                <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-3 px-0 sm:px-1">
+                  <div className="rounded-full border border-white/20 bg-black/35 px-3 py-1.5 text-xs font-medium text-white">
+                    {currentIndex + 1} / {safeImages.length}
+                  </div>
 
-            {safeImages.length > 1 ? (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setActiveIndex((current) =>
-                    current == null ? 0 : (current + 1) % safeImages.length
-                  );
-                }}
-                className="absolute right-0 top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-black/50 sm:right-3"
-                aria-label="Next image"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setActiveIndex(null);
+                    }}
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-black/50"
+                    aria-label="Close image viewer"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div
+                  className="flex min-h-0 w-full flex-1 items-center justify-center pt-12 sm:pt-14"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <div className="relative flex w-full max-w-5xl items-center justify-center overflow-hidden rounded-[1.15rem] border border-white/14 bg-black/20 px-2 py-3 sm:rounded-[1.35rem] sm:px-4 sm:py-4">
+                    <img
+                      src={currentImage}
+                      alt={`${title} gallery image ${currentIndex + 1}`}
+                      className="mx-auto max-h-[72vh] w-auto max-w-full object-contain sm:max-h-[80vh]"
+                    />
+                  </div>
+                </div>
+
+                {safeImages.length > 1 ? (
+                  <div
+                    className="flex w-full max-w-sm items-center justify-between gap-3"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveIndex((current) =>
+                          current == null ? 0 : (current - 1 + safeImages.length) % safeImages.length
+                        )
+                      }
+                      className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full border border-white/20 bg-black/30 px-4 text-sm font-medium text-white transition hover:bg-black/50"
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Back
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveIndex((current) =>
+                          current == null ? 0 : (current + 1) % safeImages.length
+                        )
+                      }
+                      className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full border border-white/20 bg-black/30 px-4 text-sm font-medium text-white transition hover:bg-black/50"
+                      aria-label="Next image"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
     </>
   );
 }

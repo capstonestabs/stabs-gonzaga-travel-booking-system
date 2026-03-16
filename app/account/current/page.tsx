@@ -1,7 +1,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarDays, History, LayoutDashboard, Ticket } from "lucide-react";
+import { CalendarDays, History } from "lucide-react";
 
 import { DashboardShell } from "@/components/site/dashboard-shell";
 import { TouristBookingRecordCard } from "@/components/site/tourist-booking-record-card";
@@ -32,27 +32,6 @@ export default async function TouristCurrentBookingsPage() {
       title="Current bookings"
       description="Review active reservations on their own page so the tourist dashboard stays lighter and easier to scan."
     >
-      <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-2.5">
-          <Link href="/account">
-            <Button variant="secondary" className="w-full sm:w-auto">
-              <LayoutDashboard className="h-4 w-4" />
-              Tourist dashboard
-            </Button>
-          </Link>
-          <Link href="/account/tickets">
-            <Button variant="secondary" className="w-full sm:w-auto">
-              <Ticket className="h-4 w-4" />
-              Ticket wallet
-            </Button>
-          </Link>
-          <Link href="/account/history">
-            <Button variant="secondary" className="w-full sm:w-auto">
-              <History className="h-4 w-4" />
-              Booking history
-            </Button>
-          </Link>
-      </div>
-
       {activeBookings.length === 0 ? (
         <Card>
           <CardContent className="space-y-3 p-5 text-sm text-muted-foreground sm:p-[1.375rem]">

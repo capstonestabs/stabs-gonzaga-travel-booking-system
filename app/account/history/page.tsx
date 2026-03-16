@@ -1,7 +1,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarDays, History, LayoutDashboard } from "lucide-react";
+import { History, LayoutDashboard } from "lucide-react";
 
 import { ClearBookingHistoryButton } from "@/components/forms/clear-booking-history-button";
 import { DashboardShell } from "@/components/site/dashboard-shell";
@@ -32,21 +32,7 @@ export default async function TouristBookingHistoryPage() {
       title="Booking history"
       description="Review finished, cancelled, and expired reservations without stretching your main dashboard."
     >
-      <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
-          <Link href="/account">
-            <Button variant="secondary" className="w-full sm:w-auto">
-              <LayoutDashboard className="h-4 w-4" />
-              Tourist dashboard
-            </Button>
-          </Link>
-          <Link href={"/account/current" as Route}>
-            <Button variant="secondary" className="w-full sm:w-auto">
-              <CalendarDays className="h-4 w-4" />
-              Current bookings
-            </Button>
-          </Link>
-          {historyBookings.length > 0 ? <ClearBookingHistoryButton count={historyBookings.length} /> : null}
-      </div>
+      {historyBookings.length > 0 ? <ClearBookingHistoryButton count={historyBookings.length} /> : null}
 
       {historyBookings.length === 0 ? (
         <Card>
