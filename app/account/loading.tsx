@@ -1,5 +1,5 @@
-import { PageLoadingState } from "@/components/site/page-loading-state";
+import { WorkspaceLoadingState } from "@/components/site/page-loading-state";
 
 export default function Loading() {
-  return <PageLoadingState label="Loading tourist page" cards={3} />;
+  return <WorkspaceLoadingState label="Loading tourist workspace" />;
 }
