@@ -102,8 +102,7 @@ export default async function AdminStaffProfilePage({
 
       <AdminDestinationAssignmentForm
         staffId={bundle.user.id}
-        staffName={bundle.user.full_name ?? bundle.user.email}
-        defaultDestinationTitle={destination?.title ?? bundle.user.full_name ?? bundle.user.email}
+        defaultDestinationTitle={destination?.title ?? ""}
         defaultLocationText={destination?.location_text ?? ""}
         hasDestination={Boolean(destination)}
       />

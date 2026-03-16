@@ -9,21 +9,19 @@ import { Input } from "@/components/ui/input";
 
 export function AdminDestinationAssignmentForm({
   staffId,
-  staffName,
   defaultDestinationTitle,
   defaultLocationText,
   hasDestination
 }: {
   staffId: string;
-  staffName: string;
   defaultDestinationTitle?: string;
   defaultLocationText?: string;
   hasDestination: boolean;
 }) {
   const router = useRouter();
   const initialDestinationTitle = useMemo(
-    () => defaultDestinationTitle ?? staffName,
-    [defaultDestinationTitle, staffName]
+    () => defaultDestinationTitle ?? "",
+    [defaultDestinationTitle]
   );
   const initialLocationText = useMemo(() => defaultLocationText ?? "", [defaultLocationText]);
   const [destinationTitle, setDestinationTitle] = useState(initialDestinationTitle);
