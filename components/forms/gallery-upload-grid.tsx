@@ -37,6 +37,9 @@ export function GalleryUploadGrid({
   const orderedImages = [...images].sort((left, right) => left.sort_order - right.sort_order);
   const slotMap = new Map(orderedImages.map((image) => [image.sort_order, image]));
   const slots = Array.from({ length: maxItems }, (_, index) => slotMap.get(index) ?? null);
+  const hasDescriptionChanges = orderedImages.some(
+    (image) => (draftAltTexts[image.id] ?? "") !== (image.alt_text ?? "")
+  );
 
   useEffect(() => {
     setDraftAltTexts(
@@ -287,7 +290,7 @@ export function GalleryUploadGrid({
                   setIsEditing(true);
                 }
               }}
-              disabled={pendingKey !== null}
+              disabled={pendingKey !== null || (isEditing && !hasDescriptionChanges)}
             >
               {isEditing ? (
                 <>

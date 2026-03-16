@@ -1,13 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { formatCurrency } from "@/lib/utils";
 
 interface ListingFormProps {
   destinationId?: string;
@@ -48,29 +47,89 @@ export function ListingForm({
   defaultValues
 }: ListingFormProps) {
   const router = useRouter();
+  const initialValues = useMemo(
+    () => ({
+      title: defaultValues?.title ?? "",
+      summary: defaultValues?.summary ?? "",
+      description: defaultValues?.description ?? "",
+      locationText: defaultValues?.locationText ?? "",
+      category: defaultValues?.category ?? "tour",
+      bookingType: defaultValues?.bookingType ?? "online",
+      status: defaultValues?.status ?? "draft",
+      inclusions: defaultValues?.inclusions ?? "",
+      policies: defaultValues?.policies ?? "",
+      featured: defaultValues?.featured ?? false,
+      contactEmail: contactEmailDefault ?? "",
+      contactPhone: contactPhoneDefault ?? ""
+    }),
+    [
+      contactEmailDefault,
+      contactPhoneDefault,
+      defaultValues?.bookingType,
+      defaultValues?.category,
+      defaultValues?.description,
+      defaultValues?.featured,
+      defaultValues?.inclusions,
+      defaultValues?.locationText,
+      defaultValues?.policies,
+      defaultValues?.status,
+      defaultValues?.summary,
+      defaultValues?.title
+    ]
+  );
+  const [title, setTitle] = useState(initialValues.title);
+  const [summary, setSummary] = useState(initialValues.summary);
+  const [description, setDescription] = useState(initialValues.description);
+  const [locationText, setLocationText] = useState(initialValues.locationText);
+  const [category, setCategory] = useState<"tour" | "stay">(initialValues.category);
+  const [bookingType] = useState<"online" | "walk-in">(initialValues.bookingType);
+  const [status, setStatus] = useState<"draft" | "published" | "archived">(initialValues.status);
+  const [inclusions, setInclusions] = useState(initialValues.inclusions);
+  const [policies, setPolicies] = useState(initialValues.policies);
+  const [featured, setFeatured] = useState(initialValues.featured);
+  const [contactEmail, setContactEmail] = useState(initialValues.contactEmail);
+  const [contactPhone, setContactPhone] = useState(initialValues.contactPhone);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
 
-  async function handleSubmit(formData: FormData) {
+  const hasChanges =
+    title !== initialValues.title ||
+    summary !== initialValues.summary ||
+    description !== initialValues.description ||
+    locationText !== initialValues.locationText ||
+    category !== initialValues.category ||
+    bookingType !== initialValues.bookingType ||
+    status !== initialValues.status ||
+    inclusions !== initialValues.inclusions ||
+    policies !== initialValues.policies ||
+    featured !== initialValues.featured ||
+    contactEmail !== initialValues.contactEmail ||
+    contactPhone !== initialValues.contactPhone;
+
+  function clearFeedback() {
     setError(null);
     setMessage(null);
+  }
+
+  async function handleSubmit() {
+    clearFeedback();
     setIsPending(true);
 
     const payload = {
-      title: String(formData.get("title") ?? ""),
-      summary: String(formData.get("summary") ?? ""),
-      description: String(formData.get("description") ?? ""),
-      locationText: String(formData.get("locationText") ?? ""),
+      title,
+      summary,
+      description,
+      locationText,
       staffId,
-      contactEmail: showContactFields ? String(formData.get("contactEmail") ?? "") : undefined,
-      contactPhone: showContactFields ? String(formData.get("contactPhone") ?? "") : undefined,
-      category: String(formData.get("category") ?? "tour"),
-      bookingType: String(formData.get("bookingType") ?? "online"),
-      status: String(formData.get("status") ?? "draft"),
-      inclusions: String(formData.get("inclusions") ?? ""),
-      policies: String(formData.get("policies") ?? ""),
-      featured: formData.get("featured") === "on"
+      contactEmail: showContactFields ? contactEmail : undefined,
+      contactPhone: showContactFields ? contactPhone : undefined,
+      category,
+      bookingType,
+      status,
+      inclusions,
+      policies,
+      featured
     };
 
     try {
@@ -112,24 +171,36 @@ export function ListingForm({
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            void handleSubmit(new FormData(event.currentTarget));
+            void handleSubmit();
           }}
           className="grid gap-4 md:grid-cols-2"
         >
           {canEditIdentity ? (
             <label className="space-y-2 md:col-span-2">
               <span className="text-sm font-medium">Title</span>
-              <Input name="title" defaultValue={defaultValues?.title} required />
+              <Input
+                name="title"
+                value={title}
+                onChange={(event) => {
+                  setTitle(event.target.value);
+                  clearFeedback();
+                }}
+                required
+              />
             </label>
           ) : (
-            <input name="title" defaultValue={defaultValues?.title ?? ""} type="hidden" />
+            <input name="title" value={title} type="hidden" readOnly />
           )}
 
           <label className="space-y-2 md:col-span-2">
             <span className="text-sm font-medium">Summary</span>
             <Textarea
               name="summary"
-              defaultValue={defaultValues?.summary}
+              value={summary}
+              onChange={(event) => {
+                setSummary(event.target.value);
+                clearFeedback();
+              }}
               className="min-h-24"
               minLength={10}
               placeholder="Short public summary for the destination"
@@ -144,7 +215,11 @@ export function ListingForm({
             <span className="text-sm font-medium">Description</span>
             <Textarea
               name="description"
-              defaultValue={defaultValues?.description}
+              value={description}
+              onChange={(event) => {
+                setDescription(event.target.value);
+                clearFeedback();
+              }}
               minLength={20}
               placeholder="Full destination details, inclusions, and visitor expectations"
               required
@@ -159,24 +234,28 @@ export function ListingForm({
               <span className="text-sm font-medium">Location</span>
               <Input
                 name="locationText"
-                defaultValue={defaultValues?.locationText}
+                value={locationText}
+                onChange={(event) => {
+                  setLocationText(event.target.value);
+                  clearFeedback();
+                }}
                 placeholder="Barangay, beach, resort, or landmark in Gonzaga"
                 required
               />
             </label>
           ) : (
-            <input
-              name="locationText"
-              defaultValue={defaultValues?.locationText ?? ""}
-              type="hidden"
-            />
+            <input name="locationText" value={locationText} type="hidden" readOnly />
           )}
 
           <label className="space-y-2">
             <span className="text-sm font-medium">Category</span>
             <select
               name="category"
-              defaultValue={defaultValues?.category ?? "tour"}
+              value={category}
+              onChange={(event) => {
+                setCategory(event.target.value as "tour" | "stay");
+                clearFeedback();
+              }}
               className="flex h-12 w-full rounded-2xl border border-input/90 bg-card px-4 py-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]"
             >
               <option value="tour">Tour</option>
@@ -188,7 +267,11 @@ export function ListingForm({
             <span className="text-sm font-medium">Status</span>
             <select
               name="status"
-              defaultValue={defaultValues?.status ?? "draft"}
+              value={status}
+              onChange={(event) => {
+                setStatus(event.target.value as "draft" | "published" | "archived");
+                clearFeedback();
+              }}
               className="flex h-12 w-full rounded-2xl border border-input/90 bg-card px-4 py-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]"
             >
               <option value="draft">Draft</option>
@@ -204,7 +287,11 @@ export function ListingForm({
                 <Input
                   name="contactEmail"
                   type="email"
-                  defaultValue={contactEmailDefault}
+                  value={contactEmail}
+                  onChange={(event) => {
+                    setContactEmail(event.target.value);
+                    clearFeedback();
+                  }}
                   placeholder="email@example.com"
                 />
                 <p className="text-xs text-muted-foreground">
@@ -217,7 +304,11 @@ export function ListingForm({
                 <span className="text-sm font-medium">Destination contact number</span>
                 <Input
                   name="contactPhone"
-                  defaultValue={contactPhoneDefault}
+                  value={contactPhone}
+                  onChange={(event) => {
+                    setContactPhone(event.target.value);
+                    clearFeedback();
+                  }}
                   placeholder="09XX XXX XXXX"
                 />
                 <p className="text-xs text-muted-foreground">
@@ -231,7 +322,11 @@ export function ListingForm({
             <span className="text-sm font-medium">Inclusions, one per line</span>
             <Textarea
               name="inclusions"
-              defaultValue={defaultValues?.inclusions}
+              value={inclusions}
+              onChange={(event) => {
+                setInclusions(event.target.value);
+                clearFeedback();
+              }}
               className="min-h-28"
             />
           </label>
@@ -240,14 +335,26 @@ export function ListingForm({
             <span className="text-sm font-medium">Policies, one per line</span>
             <Textarea
               name="policies"
-              defaultValue={defaultValues?.policies}
+              value={policies}
+              onChange={(event) => {
+                setPolicies(event.target.value);
+                clearFeedback();
+              }}
               className="min-h-28"
             />
           </label>
 
           {showFeaturedToggle ? (
             <label className="flex items-center gap-3 text-sm font-medium md:col-span-2">
-              <input name="featured" type="checkbox" defaultChecked={defaultValues?.featured} />
+              <input
+                name="featured"
+                type="checkbox"
+                checked={featured}
+                onChange={(event) => {
+                  setFeatured(event.target.checked);
+                  clearFeedback();
+                }}
+              />
               Feature on destinations
             </label>
           ) : null}
@@ -258,8 +365,14 @@ export function ListingForm({
           {message ? <p className="text-sm text-emerald-700 md:col-span-2">{message}</p> : null}
 
           <div className="border-t border-border/60 pt-4 md:col-span-2">
-            <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
-              {isPending ? "Saving..." : submitLabel ?? (destinationId ? "Save destination" : "Create destination")}
+            <Button
+              type="submit"
+              disabled={isPending || (Boolean(destinationId) && !hasChanges)}
+              className="w-full sm:w-auto"
+            >
+              {isPending
+                ? "Saving..."
+                : submitLabel ?? (destinationId ? "Save destination" : "Create destination")}
             </Button>
           </div>
         </form>

@@ -107,6 +107,7 @@ export const adminResetStaffPasswordSchema = z.object({
 });
 
 export const staffDestinationAssignmentSchema = z.object({
+  destinationTitle: z.string().min(4).max(140),
   locationText: z.string().min(3).max(160)
 });
 

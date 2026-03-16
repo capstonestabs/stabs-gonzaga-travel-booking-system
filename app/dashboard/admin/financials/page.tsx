@@ -1,6 +1,6 @@
 import type { Route } from "next";
 import Link from "next/link";
-import { ChevronDown, FolderClock, Landmark, ReceiptText, Wallet } from "lucide-react";
+import { ChevronDown, ChevronUp, FolderClock, Landmark, ReceiptText, Wallet } from "lucide-react";
 
 import { AdminBatchSettlementPanel } from "@/components/forms/admin-batch-settlement-panel";
 import { DashboardShell } from "@/components/site/dashboard-shell";
@@ -24,7 +24,7 @@ type ServiceGroup = {
 
 function FinancialMetricBlock({ metric }: { metric: DashboardMetric }) {
   return (
-    <div className="rounded-[0.95rem] border border-border/70 bg-muted/30 p-3.5 sm:p-4">
+    <div className="rounded-[0.95rem] border border-border/70 bg-muted/30 p-3 sm:p-3.5">
       <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
         {metric.label}
       </p>
@@ -149,11 +149,12 @@ export default async function AdminFinancialsPage() {
                 key={summary.destination_id}
                 className="group rounded-[0.95rem] border border-border/70 bg-card/90"
               >
-                <summary className="list-none cursor-pointer p-3.5">
-                  <div className="flex flex-col gap-2.5 xl:flex-row xl:items-start xl:justify-between">
+                <summary className="list-none cursor-pointer p-3 sm:p-3.5">
+                  <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
                     <div className="flex min-w-0 items-start gap-3">
-                      <span className="mt-1 rounded-full border border-border/70 bg-muted/35 p-2 text-muted-foreground transition-transform group-open:rotate-180">
-                        <ChevronDown className="h-4 w-4" />
+                      <span className="mt-1 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-muted/35 text-muted-foreground">
+                        <ChevronDown className="h-4 w-4 group-open:hidden" />
+                        <ChevronUp className="hidden h-4 w-4 group-open:block" />
                       </span>
                       <div className="min-w-0">
                         <p className="font-display text-[1.15rem] font-semibold tracking-tight text-foreground">
@@ -169,7 +170,7 @@ export default async function AdminFinancialsPage() {
                       </div>
                     </div>
 
-                    <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid gap-2 min-[520px]:grid-cols-2 xl:grid-cols-3">
                       <div className="rounded-[0.85rem] border border-border/70 bg-muted/22 px-3 py-2.5">
                         <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
                           Gross paid
@@ -185,7 +186,7 @@ export default async function AdminFinancialsPage() {
                         </p>
                         <p className="mt-1 font-medium">{formatCurrency(summary.settled_amount)}</p>
                         <p className="text-xs text-muted-foreground">
-                          Waiting {formatCurrency(summary.unsettled_amount)}
+                          Pending {formatCurrency(summary.unsettled_amount)}
                         </p>
                       </div>
                       <div className="rounded-[0.85rem] border border-border/70 bg-muted/22 px-3 py-2.5">
@@ -217,7 +218,7 @@ export default async function AdminFinancialsPage() {
                         subtitle={`${unsettledDestinationRecords.length} unsettled booking${
                           unsettledDestinationRecords.length === 1 ? "" : "s"
                         } across all services in ${summary.destination_title}`}
-                        toggleLabel="Show destination payout"
+                        toggleLabel="Settle destination payout"
                         submitLabel="Payout all services"
                         helperText="Record one payout for every unsettled booking under this destination. Once saved, all of those rows move to payout history automatically."
                       />
@@ -249,10 +250,11 @@ export default async function AdminFinancialsPage() {
                       >
                         <summary className="list-none cursor-pointer p-3">
                           <div className="flex min-w-0 items-start gap-3">
-                            <span className="mt-1 rounded-full border border-border/70 bg-card/75 p-2 text-muted-foreground transition-transform group-open:rotate-180">
-                              <ChevronDown className="h-4 w-4" />
+                            <span className="mt-1 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-card/75 text-muted-foreground">
+                              <ChevronDown className="h-4 w-4 group-open:hidden" />
+                              <ChevronUp className="hidden h-4 w-4 group-open:block" />
                             </span>
-                            <div className="grid min-w-0 gap-2.5 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.1fr),repeat(3,minmax(0,0.72fr))]">
+                            <div className="grid min-w-0 flex-1 gap-2 min-[520px]:grid-cols-2 xl:grid-cols-[minmax(0,1.1fr),repeat(3,minmax(0,0.72fr))]">
                               <div className="min-w-0">
                                 <p className="font-medium text-foreground">{serviceGroup.title}</p>
                                 <p className="text-sm text-muted-foreground">
@@ -270,25 +272,25 @@ export default async function AdminFinancialsPage() {
                               </div>
                               <div>
                                 <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
-                                  Bookings
+                                  Payout rows
                                 </p>
                                 <p className="mt-1 text-sm font-medium">
                                   {serviceGroup.records.length}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  Waiting payout
+                                  Ready to review
                                 </p>
                               </div>
                               <div>
                                 <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
-                                  Waiting
+                                  Pending payout
                                 </p>
                                 <p className="mt-1 text-sm font-medium">
                                   {formatCurrency(serviceGroup.unsettledGross)}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                   {serviceGroup.unsettledRecords.length} booking
-                                  {serviceGroup.unsettledRecords.length === 1 ? "" : "s"} waiting
+                                  {serviceGroup.unsettledRecords.length === 1 ? "" : "s"} pending
                                 </p>
                               </div>
                             </div>
@@ -306,8 +308,8 @@ export default async function AdminFinancialsPage() {
                                 (sum, record) => sum + record.amount,
                                 0
                               )}
-                              toggleLabel="Show service payout"
-                              submitLabel="Payout all service"
+                              toggleLabel="Settle service payout"
+                              submitLabel="Payout this service"
                             />
                           ) : (
                             <div className="rounded-[0.95rem] border border-border/70 bg-secondary/22 p-3">
@@ -323,67 +325,84 @@ export default async function AdminFinancialsPage() {
                             </div>
                           )}
 
-                          <div className="overflow-hidden rounded-[0.85rem] border border-border/70 bg-card/85">
-                            <div className="hidden grid-cols-[minmax(0,1.2fr),0.65fr,0.7fr,0.8fr,0.8fr,auto] gap-3 border-b border-border/70 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground 2xl:grid">
-                              <span>Booked by</span>
-                              <span>Guests</span>
-                              <span>Ticket</span>
-                              <span>Paid amount</span>
-                              <span>Paid</span>
-                              <span>Actions</span>
-                            </div>
+                          <div className="rounded-[0.85rem] border border-border/70 bg-card/85 p-2 sm:p-2.5">
                             <ProgressiveList
                               initialCount={6}
                               step={6}
                               maxHeightClass="max-h-[min(46vh,19rem)]"
-                              itemsClassName="divide-y divide-border/70"
+                              itemsClassName="space-y-2"
                               showMoreLabel="Show more bookings"
                               showLessLabel="Show fewer bookings"
                             >
                               {serviceGroup.records.map((record) => (
                                 <div
                                   key={record.id}
-                                  className="grid gap-3 px-3 py-3 2xl:grid-cols-[minmax(0,1.2fr),0.65fr,0.7fr,0.8fr,0.8fr,auto] 2xl:items-center"
+                                  className="rounded-[0.9rem] border border-border/70 bg-muted/15 p-3"
                                 >
-                                  <div className="min-w-0">
-                                    <p className="truncate font-medium">{record.tourist_name}</p>
-                                    <p className="text-sm text-muted-foreground">
-                                      {record.service_date} / {record.payment_method_type ?? "gcash"}
-                                    </p>
+                                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                    <div className="min-w-0 space-y-1">
+                                      <p className="truncate font-medium text-foreground">
+                                        {record.tourist_name}
+                                      </p>
+                                      <p className="text-sm text-muted-foreground">
+                                        {record.service_date} / {record.payment_method_type ?? "gcash"}
+                                      </p>
+                                    </div>
+                                    <div className="flex flex-col gap-2 sm:flex-row lg:flex-col lg:items-end">
+                                      <p className="text-lg font-semibold text-foreground">
+                                        {formatCurrency(record.amount)}
+                                      </p>
+                                      <Link href={`/admin/financials/${record.id}` as Route}>
+                                        <span className="inline-flex h-10 min-w-28 items-center justify-center rounded-[0.9rem] border border-border/80 px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted/50">
+                                          <ReceiptText className="mr-2 h-4 w-4" />
+                                          Review
+                                        </span>
+                                      </Link>
+                                    </div>
                                   </div>
-                                  <div className="text-sm text-muted-foreground">
-                                    {record.guest_count} guest{record.guest_count === 1 ? "" : "s"}
-                                  </div>
-                                  <div className="text-sm text-muted-foreground">
-                                    {record.ticket_code ?? "Pending"}
-                                  </div>
-                                  <div className="text-sm text-muted-foreground">
-                                    <p className="font-medium text-foreground">
-                                      {formatCurrency(record.amount)}
-                                    </p>
-                                  </div>
-                                  <div className="text-sm text-muted-foreground">
-                                    <p>{new Date(record.paid_at).toLocaleDateString()}</p>
-                                    <p
-                                      className={cn(
-                                        "text-xs",
-                                        record.settlement_status === "settled"
-                                          ? "text-emerald-700"
-                                          : "text-amber-700"
-                                      )}
-                                    >
-                                      {record.settlement_status === "settled"
-                                        ? "Payout settled"
-                                        : "Waiting payout"}
-                                    </p>
-                                  </div>
-                                  <div className="flex flex-col gap-2 2xl:items-end">
-                                    <Link href={`/admin/financials/${record.id}` as Route}>
-                                      <span className="inline-flex h-9 w-full items-center justify-center rounded-[0.9rem] border border-border/80 px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted/50 sm:w-auto">
-                                        <ReceiptText className="mr-2 h-4 w-4" />
-                                        Review
-                                      </span>
-                                    </Link>
+
+                                  <div className="grid gap-2 min-[540px]:grid-cols-2 xl:grid-cols-4">
+                                    <div className="rounded-[0.8rem] border border-border/65 bg-card/90 px-3 py-2.5">
+                                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                        Guests
+                                      </p>
+                                      <p className="mt-1 text-sm text-foreground">
+                                        {record.guest_count} guest{record.guest_count === 1 ? "" : "s"}
+                                      </p>
+                                    </div>
+                                    <div className="rounded-[0.8rem] border border-border/65 bg-card/90 px-3 py-2.5">
+                                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                        Ticket
+                                      </p>
+                                      <p className="mt-1 truncate text-sm text-foreground">
+                                        {record.ticket_code ?? "Pending"}
+                                      </p>
+                                    </div>
+                                    <div className="rounded-[0.8rem] border border-border/65 bg-card/90 px-3 py-2.5">
+                                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                        Paid
+                                      </p>
+                                      <p className="mt-1 text-sm text-foreground">
+                                        {new Date(record.paid_at).toLocaleDateString()}
+                                      </p>
+                                    </div>
+                                    <div className="rounded-[0.8rem] border border-border/65 bg-card/90 px-3 py-2.5">
+                                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                        Status
+                                      </p>
+                                      <p
+                                        className={cn(
+                                          "mt-1 text-sm font-medium",
+                                          record.settlement_status === "settled"
+                                            ? "text-emerald-700"
+                                            : "text-amber-700"
+                                        )}
+                                      >
+                                        {record.settlement_status === "settled"
+                                          ? "Payout settled"
+                                          : "Pending payout"}
+                                      </p>
+                                    </div>
                                   </div>
                                 </div>
                               ))}

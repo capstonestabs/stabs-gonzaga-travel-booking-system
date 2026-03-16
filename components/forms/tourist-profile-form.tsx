@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,9 +15,19 @@ interface TouristProfileFormProps {
 
 export function TouristProfileForm({ defaultValues }: TouristProfileFormProps) {
   const router = useRouter();
+  const initialValues = useMemo(
+    () => ({
+      fullName: defaultValues?.fullName ?? "",
+      phone: defaultValues?.phone ?? ""
+    }),
+    [defaultValues?.fullName, defaultValues?.phone]
+  );
+  const [fullName, setFullName] = useState(initialValues.fullName);
+  const [phone, setPhone] = useState(initialValues.phone);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
+  const hasChanges = fullName !== initialValues.fullName || phone !== initialValues.phone;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -25,10 +35,9 @@ export function TouristProfileForm({ defaultValues }: TouristProfileFormProps) {
     setMessage(null);
     setIsPending(true);
 
-    const formData = new FormData(event.currentTarget);
     const payload = {
-      fullName: String(formData.get("fullName") ?? ""),
-      phone: String(formData.get("phone") ?? "")
+      fullName,
+      phone
     };
 
     try {
@@ -59,17 +68,35 @@ export function TouristProfileForm({ defaultValues }: TouristProfileFormProps) {
         <form onSubmit={handleSubmit} className="grid gap-4">
           <label className="space-y-2">
             <span className="text-sm font-medium">Full Name</span>
-            <Input name="fullName" defaultValue={defaultValues?.fullName ?? ""} placeholder="Your full name" />
+            <Input
+              name="fullName"
+              value={fullName}
+              onChange={(event) => {
+                setFullName(event.target.value);
+                setError(null);
+                setMessage(null);
+              }}
+              placeholder="Your full name"
+            />
           </label>
           <label className="space-y-2">
             <span className="text-sm font-medium">Phone Number</span>
-            <Input name="phone" defaultValue={defaultValues?.phone ?? ""} placeholder="09XX XXX XXXX" />
+            <Input
+              name="phone"
+              value={phone}
+              onChange={(event) => {
+                setPhone(event.target.value);
+                setError(null);
+                setMessage(null);
+              }}
+              placeholder="09XX XXX XXXX"
+            />
           </label>
           
           {error && <p className="text-sm text-destructive">{error}</p>}
           {message && <p className="text-sm text-emerald-700">{message}</p>}
 
-          <Button type="submit" disabled={isPending} className="w-fit">
+          <Button type="submit" disabled={isPending || !hasChanges} className="w-fit">
             {isPending ? "Saving..." : "Save details"}
           </Button>
         </form>

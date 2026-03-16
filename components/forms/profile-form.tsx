@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,23 +26,48 @@ export function ProfileForm({
   endpoint: string;
 }) {
   const router = useRouter();
+  const initialValues = useMemo(
+    () => ({
+      fullName: initialUser.full_name ?? "",
+      phone: initialUser.phone ?? "",
+      avatarUrl: initialUser.avatar_url ?? "",
+      contactEmail: initialStaffProfile?.contact_email ?? email,
+      contactPhone: initialStaffProfile?.contact_phone ?? ""
+    }),
+    [
+      email,
+      initialStaffProfile?.contact_email,
+      initialStaffProfile?.contact_phone,
+      initialUser.avatar_url,
+      initialUser.full_name,
+      initialUser.phone
+    ]
+  );
+  const [fullName, setFullName] = useState(initialValues.fullName);
+  const [phone, setPhone] = useState(initialValues.phone);
+  const [contactEmail, setContactEmail] = useState(initialValues.contactEmail);
+  const [contactPhone, setContactPhone] = useState(initialValues.contactPhone);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
-
   const showStaffFields = role === "staff" || mode === "admin-staff";
+  const hasChanges =
+    fullName !== initialValues.fullName ||
+    phone !== initialValues.phone ||
+    (showStaffFields && contactEmail !== initialValues.contactEmail) ||
+    (showStaffFields && contactPhone !== initialValues.contactPhone);
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit() {
     setError(null);
     setMessage(null);
     setIsPending(true);
 
     const payload = {
-      fullName: String(formData.get("fullName") ?? ""),
-      phone: String(formData.get("phone") ?? ""),
-      avatarUrl: String(formData.get("avatarUrl") ?? ""),
-      contactEmail: String(formData.get("contactEmail") ?? ""),
-      contactPhone: String(formData.get("contactPhone") ?? "")
+      fullName,
+      phone,
+      avatarUrl: initialValues.avatarUrl,
+      contactEmail: showStaffFields ? contactEmail : "",
+      contactPhone: showStaffFields ? contactPhone : ""
     };
 
     try {
@@ -79,15 +104,24 @@ export function ProfileForm({
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            void handleSubmit(new FormData(event.currentTarget));
+            void handleSubmit();
           }}
           className="grid gap-3 md:grid-cols-2"
         >
-          <input name="avatarUrl" defaultValue={initialUser.avatar_url ?? ""} type="hidden" />
+          <input name="avatarUrl" value={initialValues.avatarUrl} type="hidden" readOnly />
 
           <label className="space-y-2">
             <span className="text-sm font-medium">Full name</span>
-            <Input name="fullName" defaultValue={initialUser.full_name ?? ""} required />
+            <Input
+              name="fullName"
+              value={fullName}
+              onChange={(event) => {
+                setFullName(event.target.value);
+                setError(null);
+                setMessage(null);
+              }}
+              required
+            />
           </label>
 
           <label className="space-y-2">
@@ -97,7 +131,15 @@ export function ProfileForm({
 
           <label className="space-y-2">
             <span className="text-sm font-medium">Phone</span>
-            <Input name="phone" defaultValue={initialUser.phone ?? ""} />
+            <Input
+              name="phone"
+              value={phone}
+              onChange={(event) => {
+                setPhone(event.target.value);
+                setError(null);
+                setMessage(null);
+              }}
+            />
           </label>
 
           {showStaffFields ? (
@@ -107,7 +149,12 @@ export function ProfileForm({
                 <Input
                   name="contactEmail"
                   type="email"
-                  defaultValue={initialStaffProfile?.contact_email ?? email}
+                  value={contactEmail}
+                  onChange={(event) => {
+                    setContactEmail(event.target.value);
+                    setError(null);
+                    setMessage(null);
+                  }}
                 />
               </label>
 
@@ -115,7 +162,12 @@ export function ProfileForm({
                 <span className="text-sm font-medium">Contact phone</span>
                 <Input
                   name="contactPhone"
-                  defaultValue={initialStaffProfile?.contact_phone ?? ""}
+                  value={contactPhone}
+                  onChange={(event) => {
+                    setContactPhone(event.target.value);
+                    setError(null);
+                    setMessage(null);
+                  }}
                 />
               </label>
             </>
@@ -125,7 +177,7 @@ export function ProfileForm({
           {message ? <p className="text-sm text-emerald-700 md:col-span-2">{message}</p> : null}
 
           <div className="md:col-span-2">
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending || !hasChanges}>
               {isPending ? "Saving..." : mode === "admin-staff" ? "Save staff account" : "Save account"}
             </Button>
           </div>

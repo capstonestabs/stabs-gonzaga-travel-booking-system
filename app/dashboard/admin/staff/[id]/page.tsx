@@ -64,7 +64,14 @@ export default async function AdminStaffProfilePage({
         </Card>
         <Card className="overflow-hidden">
           <CardHeader className="border-b border-border/70">
-            <CardTitle>Assigned destination</CardTitle>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle>Assigned destination</CardTitle>
+              <Link href={"#destination-assignment" as Route}>
+                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                  Edit destination
+                </Button>
+              </Link>
+            </div>
           </CardHeader>
           <CardContent className="grid gap-4 p-4 text-sm sm:grid-cols-3 sm:p-5">
             <div className="rounded-[1rem] bg-muted/45 px-3.5 py-3 sm:px-4">
@@ -96,6 +103,7 @@ export default async function AdminStaffProfilePage({
       <AdminDestinationAssignmentForm
         staffId={bundle.user.id}
         staffName={bundle.user.full_name ?? bundle.user.email}
+        defaultDestinationTitle={destination?.title ?? bundle.user.full_name ?? bundle.user.email}
         defaultLocationText={destination?.location_text ?? ""}
         hasDestination={Boolean(destination)}
       />

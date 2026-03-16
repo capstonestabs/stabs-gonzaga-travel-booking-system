@@ -58,7 +58,7 @@ export async function PUT(
       return NextResponse.json({ error: "Staff user not found." }, { status: 404 });
     }
 
-    const destinationTitle = staffUser.full_name?.trim() || staffUser.email;
+    const destinationTitle = payload.destinationTitle.trim();
 
     const { data: destination, error: destinationLookupError } = await supabase
       .from("destinations")

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,20 +10,35 @@ import { Input } from "@/components/ui/input";
 export function AdminDestinationAssignmentForm({
   staffId,
   staffName,
+  defaultDestinationTitle,
   defaultLocationText,
   hasDestination
 }: {
   staffId: string;
   staffName: string;
+  defaultDestinationTitle?: string;
   defaultLocationText?: string;
   hasDestination: boolean;
 }) {
   const router = useRouter();
+  const initialDestinationTitle = useMemo(
+    () => defaultDestinationTitle ?? staffName,
+    [defaultDestinationTitle, staffName]
+  );
+  const initialLocationText = useMemo(() => defaultLocationText ?? "", [defaultLocationText]);
+  const [destinationTitle, setDestinationTitle] = useState(initialDestinationTitle);
+  const [locationText, setLocationText] = useState(initialLocationText);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
+  const hasChanges =
+    destinationTitle !== initialDestinationTitle || locationText !== initialLocationText;
+  const canSubmit =
+    destinationTitle.trim().length >= 4 &&
+    locationText.trim().length >= 3 &&
+    (!hasDestination || hasChanges);
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit() {
     setError(null);
     setMessage(null);
     setIsPending(true);
@@ -35,7 +50,8 @@ export function AdminDestinationAssignmentForm({
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          locationText: String(formData.get("locationText") ?? "")
+          destinationTitle: destinationTitle.trim(),
+          locationText: locationText.trim()
         })
       });
 
@@ -58,32 +74,47 @@ export function AdminDestinationAssignmentForm({
   }
 
   return (
-    <Card className="overflow-hidden">
+    <Card id="destination-assignment" className="overflow-hidden">
       <CardHeader className="border-b border-border/70">
         <CardTitle>{hasDestination ? "Destination assignment" : "Assign destination"}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          The destination name follows the staff name. Admin sets the location here.
+          Admin can edit the assigned destination name and its location here.
         </p>
 
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            void handleSubmit(new FormData(event.currentTarget));
+            void handleSubmit();
           }}
           className="grid gap-4 md:grid-cols-2"
         >
           <label className="space-y-2 md:col-span-2">
             <span className="text-sm font-medium">Destination</span>
-            <Input value={staffName} disabled readOnly />
+            <Input
+              name="destinationTitle"
+              value={destinationTitle}
+              onChange={(event) => {
+                setDestinationTitle(event.target.value);
+                setError(null);
+                setMessage(null);
+              }}
+              placeholder="Assigned destination name"
+              required
+            />
           </label>
 
           <label className="space-y-2 md:col-span-2">
             <span className="text-sm font-medium">Location</span>
             <Input
               name="locationText"
-              defaultValue={defaultLocationText ?? ""}
+              value={locationText}
+              onChange={(event) => {
+                setLocationText(event.target.value);
+                setError(null);
+                setMessage(null);
+              }}
               placeholder="Barangay, beach, resort, or landmark in Gonzaga"
               required
             />
@@ -93,7 +124,7 @@ export function AdminDestinationAssignmentForm({
           {message ? <p className="text-sm text-emerald-700 md:col-span-2">{message}</p> : null}
 
           <div className="border-t border-border/60 pt-4 md:col-span-2">
-            <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+            <Button type="submit" disabled={isPending || !canSubmit} className="w-full sm:w-auto">
               {isPending
                 ? "Saving..."
                 : hasDestination

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -90,8 +90,8 @@ export function AdminBatchSettlementPanel({
   }
 
   return (
-    <div className="space-y-2.5 rounded-[0.9rem] border border-border/70 bg-card/75 p-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div className="space-y-2.5 rounded-[0.95rem] border border-border/70 bg-card/75 p-3 sm:p-3.5">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
             {title}
@@ -108,11 +108,11 @@ export function AdminBatchSettlementPanel({
           type="button"
           variant="outline"
           size="sm"
-          className="gap-2"
+          className="min-h-11 gap-2 self-start sm:self-auto"
           onClick={() => setIsOpen((currentValue) => !currentValue)}
         >
-          {isOpen ? "Hide payout" : toggleLabel}
-          <ChevronDown className={isOpen ? "h-4 w-4 rotate-180" : "h-4 w-4"} />
+          {isOpen ? "Hide settlement form" : toggleLabel}
+          {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </Button>
       </div>
 

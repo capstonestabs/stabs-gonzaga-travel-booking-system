@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,13 +44,19 @@ export function ServicesEditorForm({
   onSuccess?: () => void;
 }) {
   const router = useRouter();
-  const [rows, setRows] = useState(
-    services.length > 0 ? services.map((service) => createServiceRow(service)) : [createServiceRow()]
+  const initialRows = useMemo(
+    () =>
+      services.length > 0 ? services.map((service) => createServiceRow(service)) : [createServiceRow()],
+    [services]
   );
+  const [rows, setRows] = useState(initialRows);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [uploadingRowId, setUploadingRowId] = useState<string | null>(null);
+  const hasChanges =
+    JSON.stringify(rows.map(({ _uiId, ...row }) => row)) !==
+    JSON.stringify(initialRows.map(({ _uiId, ...row }) => row));
 
   function updateRow(index: number, next: Partial<ServiceRow>) {
     setRows((current) =>
@@ -397,7 +403,12 @@ export function ServicesEditorForm({
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
         {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
 
-        <Button type="button" disabled={isPending || uploadingRowId !== null} onClick={handleSave} className="w-full sm:w-auto">
+        <Button
+          type="button"
+          disabled={isPending || uploadingRowId !== null || !hasChanges}
+          onClick={handleSave}
+          className="w-full sm:w-auto"
+        >
           {isPending ? "Saving..." : hideAddRow ? "Update service" : "Create service package"}
         </Button>
       </CardContent>

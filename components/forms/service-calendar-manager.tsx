@@ -30,6 +30,7 @@ export function ServiceCalendarManager({
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState(services[0]?.id ?? "");
+  const [savedClosuresSnapshot, setSavedClosuresSnapshot] = useState("[]");
 
   useEffect(() => {
     async function fetchCalendar() {
@@ -46,7 +47,9 @@ export function ServiceCalendarManager({
           closures?: Closure[];
         };
 
-        setClosures(body.closures ?? []);
+        const nextClosures = body.closures ?? [];
+        setClosures(nextClosures);
+        setSavedClosuresSnapshot(JSON.stringify(nextClosures));
       } catch (_error) {
         setError("Unable to load closed dates.");
       } finally {
@@ -105,6 +108,7 @@ export function ServiceCalendarManager({
     () => new Set(closedDatesForSelectedService),
     [closedDatesForSelectedService]
   );
+  const hasChanges = JSON.stringify(closures) !== savedClosuresSnapshot;
 
   function toggleClosedDate(day: Date) {
     if (!selectedServiceId) {
@@ -152,6 +156,7 @@ export function ServiceCalendarManager({
       }
 
       setMessage(body.message ?? "Calendar settings saved securely.");
+      setSavedClosuresSnapshot(JSON.stringify(closures));
       router.refresh();
     } catch (submissionError) {
       setError(
@@ -300,7 +305,7 @@ export function ServiceCalendarManager({
         {message ? <p className="text-sm font-medium text-emerald-700">{message}</p> : null}
 
         <div className="flex flex-wrap items-center gap-3 pt-1">
-          <Button type="button" onClick={handleSave} disabled={isLoading || isSaving}>
+          <Button type="button" onClick={handleSave} disabled={isLoading || isSaving || !hasChanges}>
             {isSaving ? "Saving calendar..." : "Save calendar"}
           </Button>
           <p className="text-xs text-muted-foreground">
