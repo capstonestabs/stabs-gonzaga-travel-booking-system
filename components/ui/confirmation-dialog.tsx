@@ -56,7 +56,7 @@ export function ConfirmationDialog({
   }
 
   return createPortal(
-    <div className="dialog-overlay fixed inset-0 z-[120] flex min-h-[100dvh] items-center justify-center p-4 sm:p-5 lg:p-6">
+    <div className="dialog-overlay fixed inset-0 z-[160] flex min-h-[100dvh] items-center justify-center p-4 sm:p-5 lg:p-6">
       <button
         type="button"
         aria-label="Close confirmation"

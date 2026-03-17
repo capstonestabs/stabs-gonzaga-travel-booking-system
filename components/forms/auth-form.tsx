@@ -154,7 +154,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
         </CardTitle>
         <CardDescription>
           {isSignUp
-            ? "Browse first, then create your account when you are ready to reserve a trip or review your bookings."
+            ? "Use your account to reserve trips and manage your bookings."
             : "Use your email and password to open your bookings or your workspace."}
         </CardDescription>
       </CardHeader>

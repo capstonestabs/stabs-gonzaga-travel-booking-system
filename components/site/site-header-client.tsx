@@ -160,13 +160,30 @@ export function SiteHeaderClient({
             </Link>
 
             <div className="lg:hidden">
-              {role && account ? (
-                <HeaderAccountMenu
-                  name={account.name}
-                  email={account.email}
-                  avatarUrl={account.avatarUrl}
-                  scenic={isScenicPage}
-                />
+              {role ? (
+                account ? (
+                  <HeaderAccountMenu
+                    name={account.name}
+                    email={account.email}
+                    avatarUrl={account.avatarUrl}
+                    scenic={isScenicPage}
+                  />
+                ) : (
+                  <Link href={panelHref as Route} prefetch>
+                    <Button
+                      variant={isScenicPage ? "outline" : "secondary"}
+                      size="sm"
+                      className={cn(
+                        "min-h-11 px-3 text-sm",
+                        isScenicPage
+                          ? "border-white/16 bg-white/10 text-white hover:bg-white/16 hover:text-white"
+                          : "border-emerald-900/12 bg-white/84 text-emerald-950 hover:bg-white"
+                      )}
+                    >
+                      Dashboard
+                    </Button>
+                  </Link>
+                )
               ) : (
                 <Link href={"/sign-in" as Route} prefetch>
                   <Button
