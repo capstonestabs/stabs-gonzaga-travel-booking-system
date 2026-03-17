@@ -1,38 +1,10 @@
 import Link from "next/link";
 import { BriefcaseBusiness, KeyRound, ShieldCheck, UserRound } from "lucide-react";
 
-import { DashboardNav, type DashboardNavIconName } from "@/components/site/dashboard-nav";
+import { DashboardNav } from "@/components/site/dashboard-nav";
+import { workspaceNavByRole } from "@/components/site/workspace-nav-config";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-
-const navByRole = {
-  user: [
-    { href: "/account", label: "Overview", icon: "overview" },
-    { href: "/account/current", label: "Current bookings", icon: "bookings" },
-    { href: "/account/tickets", label: "Ticket wallet", icon: "tickets" },
-    { href: "/account/history", label: "Booking history", icon: "history" },
-    { href: "/profile", label: "Account settings", icon: "account", matchHrefs: ["/account/profile"] }
-  ],
-  staff: [
-    { href: "/staff", label: "Overview", icon: "overview" },
-    { href: "/staff/destination", label: "Destination", icon: "destination" },
-    { href: "/staff/services", label: "Services", icon: "services" },
-    { href: "/staff/bookings", label: "Bookings", icon: "bookings" },
-    { href: "/staff/feedback", label: "Feedback", icon: "feedback" },
-    { href: "/staff/account", label: "Account", icon: "account" }
-  ],
-  admin: [
-    { href: "/admin", label: "Overview", icon: "overview" },
-    { href: "/admin/financials", label: "Financials", icon: "financials" },
-    { href: "/admin/financials/history", label: "Payout history", icon: "history" },
-    { href: "/admin/staff", label: "Staff", icon: "staff" },
-    { href: "/admin/tourists", label: "Tourists", icon: "tourists" },
-    { href: "/admin/staff/create", label: "Create staff", icon: "create" }
-  ]
-} satisfies Record<
-  "user" | "staff" | "admin",
-  Array<{ href: string; label: string; icon: DashboardNavIconName; matchHrefs?: string[] }>
->;
 
 const roleLabelByRole = {
   user: "tourist",
@@ -51,7 +23,7 @@ export function DashboardShell({
   description: string;
   children: React.ReactNode;
 }) {
-  const nav = navByRole[role];
+  const nav = workspaceNavByRole[role];
   const RoleIcon =
     role === "admin" ? ShieldCheck : role === "staff" ? BriefcaseBusiness : UserRound;
   const roleLabel = roleLabelByRole[role];
@@ -80,7 +52,9 @@ export function DashboardShell({
             </div>
 
             <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:justify-end">
-              <DashboardNav items={nav} />
+              <div className="hidden lg:block">
+                <DashboardNav items={nav} />
+              </div>
               {role === "admin" ? (
                 <Link href="/auth/set-password" prefetch>
                   <Button variant="outline" size="sm" className="min-h-11 w-full sm:w-auto">

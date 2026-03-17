@@ -23,9 +23,10 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import type { DashboardNavIconName, WorkspaceNavItem } from "@/components/site/workspace-nav-config";
 import { cn } from "@/lib/utils";
 
-const iconByName = {
+const iconByName: Record<DashboardNavIconName, React.ComponentType<{ className?: string }>> = {
   overview: BarChart3,
   destination: BriefcaseBusiness,
   services: Package,
@@ -38,15 +39,6 @@ const iconByName = {
   financials: Landmark,
   history: History,
   tickets: Ticket
-} as const;
-
-export type DashboardNavIconName = keyof typeof iconByName;
-
-type NavItem = {
-  href: string;
-  label: string;
-  icon: DashboardNavIconName;
-  matchHrefs?: string[];
 };
 
 function getBaseHref(href: string) {
@@ -58,7 +50,7 @@ function matchesPath(pathname: string, href: string) {
   return pathname === baseHref || (baseHref !== "/" && pathname.startsWith(`${baseHref}/`));
 }
 
-export function DashboardNav({ items }: { items: NavItem[] }) {
+export function DashboardNav({ items }: { items: WorkspaceNavItem[] }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
