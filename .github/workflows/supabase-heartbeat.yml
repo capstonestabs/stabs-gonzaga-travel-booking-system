@@ -1,0 +1,26 @@
+name: Supabase Heartbeat
+
+on:
+  schedule:
+    - cron: "15 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  ping-supabase-through-app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Ping deployed destinations page
+        env:
+          HEARTBEAT_URL: https://stabs-sable.vercel.app/destinations
+        run: |
+          echo "Pinging $HEARTBEAT_URL"
+          status_code=$(curl -L -sS -o /tmp/heartbeat.html -w "%{http_code}" "$HEARTBEAT_URL")
+
+          if [ "$status_code" -lt 200 ] || [ "$status_code" -ge 400 ]; then
+            echo "Heartbeat failed with HTTP $status_code"
+            exit 1
+          fi
+
+          echo "Heartbeat succeeded with HTTP $status_code"
