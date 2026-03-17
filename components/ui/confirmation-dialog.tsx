@@ -12,6 +12,7 @@ export function ConfirmationDialog({
   description,
   icon,
   confirmLabel = "Confirm",
+  pendingConfirmLabel,
   cancelLabel = "Cancel",
   confirmVariant = "destructive",
   isPending = false,
@@ -23,6 +24,7 @@ export function ConfirmationDialog({
   description: string;
   icon?: React.ReactNode;
   confirmLabel?: string;
+  pendingConfirmLabel?: string;
   cancelLabel?: string;
   confirmVariant?: "default" | "secondary" | "outline" | "ghost" | "destructive";
   isPending?: boolean;
@@ -56,7 +58,10 @@ export function ConfirmationDialog({
   }
 
   return createPortal(
-    <div className="dialog-overlay fixed inset-0 z-[160] flex min-h-[100dvh] items-center justify-center p-4 sm:p-5 lg:p-6">
+    <div
+      data-confirmation-dialog="true"
+      className="dialog-overlay fixed inset-0 z-[160] flex min-h-[100dvh] items-center justify-center p-4 sm:p-5 lg:p-6"
+    >
       <button
         type="button"
         aria-label="Close confirmation"
@@ -70,6 +75,7 @@ export function ConfirmationDialog({
       <div
         role="dialog"
         aria-modal="true"
+        data-confirmation-dialog="true"
         className={cn(
           "dialog-pop-in relative mx-auto w-full max-w-[28rem] overflow-hidden rounded-[1.35rem] border border-border/80 bg-card shadow-[0_32px_90px_rgba(14,30,20,0.28)]"
         )}
@@ -109,7 +115,7 @@ export function ConfirmationDialog({
               disabled={isPending}
               className="w-full sm:w-auto"
             >
-              {isPending ? "Processing..." : confirmLabel}
+              {isPending ? pendingConfirmLabel ?? "Processing..." : confirmLabel}
             </Button>
           </div>
         </div>

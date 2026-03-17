@@ -58,12 +58,22 @@ export function HeaderAccountMenu({
 
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
+      const target = event.target as HTMLElement | null;
+
+      if (target?.closest("[data-confirmation-dialog='true']")) {
+        return;
+      }
+
       if (!containerRef.current?.contains(event.target as Node)) {
         setOpen(false);
       }
     }
 
     function handleKeyDown(event: KeyboardEvent) {
+      if (document.querySelector("[data-confirmation-dialog='true']")) {
+        return;
+      }
+
       if (event.key === "Escape") {
         setOpen(false);
       }

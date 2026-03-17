@@ -45,6 +45,7 @@ export function SignOutButton({ variant = "ghost", size = "sm", className }: But
         description="Your current session will end and you will be returned to the public homepage."
         icon={<LogOut className="h-5 w-5" />}
         confirmLabel="Sign out"
+        pendingConfirmLabel="Signing out..."
         confirmVariant="destructive"
         isPending={isPending}
         onClose={() => setIsDialogOpen(false)}
