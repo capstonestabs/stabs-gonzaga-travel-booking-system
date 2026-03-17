@@ -244,12 +244,12 @@ Reference guide:
 
 ## Deployment Notes
 
-- Production URL: `https://stabs.vercel.app`
+- Production URL: `https://stabs-sable.vercel.app`
 - Supabase redirect URLs:
   - `http://localhost:3000/auth/callback`
-  - `https://stabs.vercel.app/auth/callback`
+  - `https://stabs-sable.vercel.app/auth/callback`
 - PayMongo webhook endpoint:
-  - `https://stabs.vercel.app/api/payments/webhook`
+  - `https://stabs-sable.vercel.app/api/payments/webhook`
 
 ## Current Scope
 
