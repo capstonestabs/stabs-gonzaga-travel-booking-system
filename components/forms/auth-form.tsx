@@ -152,11 +152,11 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
         <CardTitle>
           {isSignUp ? "Create your account" : "Sign in to STABS"}
         </CardTitle>
-        <CardDescription>
-          {isSignUp
-            ? "Use your account to reserve trips and manage your bookings."
-            : "Use your email and password to open your bookings or your workspace."}
-        </CardDescription>
+        {isSignUp ? null : (
+          <CardDescription>
+            Use your email and password to open your bookings or your workspace.
+          </CardDescription>
+        )}
       </CardHeader>
       <CardContent>
         <form

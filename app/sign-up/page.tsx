@@ -9,7 +9,7 @@ export default function SignUpPage() {
         <div className="gradient-chip w-fit">Create account</div>
         <h1 className="page-title max-w-2xl">Create your tourist account.</h1>
         <p className="page-intro">
-          Reserve trips, confirm plans, and keep your booking history in one place.
+          Book Gonzaga trips more easily and keep your travel details in one place.
         </p>
       </div>
       <div className="flex justify-center lg:justify-end">
