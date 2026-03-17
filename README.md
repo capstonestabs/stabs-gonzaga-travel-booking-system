@@ -148,6 +148,90 @@ npm test
 npm run build
 ```
 
+## Working With Code Changes
+
+### If There Are New Code Changes
+
+Use this flow when the repository has already been updated and you want the latest code on your machine:
+
+```bash
+git pull origin main
+npm install
+npm run typecheck
+npm run build
+```
+
+Use `npm install` after pulling so any package changes in `package.json` or `package-lock.json` are applied locally.
+
+Recommended check after pulling:
+
+```bash
+git status
+```
+
+This helps confirm whether your working tree is clean before you start editing.
+
+### How to Commit and Push Changes
+
+After editing the code:
+
+```bash
+git status
+git add .
+git commit -m "Describe your changes here"
+git push origin main
+```
+
+Recommended commit message style:
+
+- `Fix sign-out confirmation flow`
+- `Refine tourist sign-up copy`
+- `Improve mobile workspace navigation`
+
+### How to Connect Your GitHub Account in VS Code Terminal
+
+Make sure Git uses the same GitHub account name and email that own the repository.
+
+Example:
+
+```bash
+git config user.name "capstonestabs"
+git config user.email "your_verified_github_email@example.com"
+```
+
+To check the current Git identity in the terminal:
+
+```bash
+git config user.name
+git config user.email
+```
+
+If you use VS Code:
+
+1. Sign in to GitHub in VS Code.
+2. Open the project folder.
+3. Open the integrated terminal.
+4. Set your Git name and Git email using the commands above.
+5. Push normally from the terminal.
+
+If GitHub asks you to choose an account, use the same GitHub account that owns this repository:
+
+- Repository owner: `capstonestabs`
+- Repository: `stabs-gonzaga-travel-booking-system`
+
+You can also verify the connected remote:
+
+```bash
+git remote -v
+```
+
+Expected remote:
+
+```bash
+origin  https://github.com/capstonestabs/stabs-gonzaga-travel-booking-system.git (fetch)
+origin  https://github.com/capstonestabs/stabs-gonzaga-travel-booking-system.git (push)
+```
+
 ## Supabase Setup
 
 The project now keeps one consolidated schema file:
