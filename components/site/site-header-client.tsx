@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Menu, Search, X } from "lucide-react";
 
-import { SignOutButton } from "@/components/site/sign-out-button";
+import { HeaderAccountMenu } from "@/components/site/header-account-menu";
 import { workspaceNavByRole, type WorkspaceNavItem } from "@/components/site/workspace-nav-config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +15,15 @@ import { blueprintLogo } from "@/lib/blueprint";
 import { cn } from "@/lib/utils";
 
 export function SiteHeaderClient({
-  role
+  role,
+  account
 }: {
   role: "user" | "staff" | "admin" | null;
+  account: {
+    name: string;
+    email: string;
+    avatarUrl: string | null;
+  } | null;
 }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -153,6 +159,33 @@ export function SiteHeaderClient({
               </div>
             </Link>
 
+            <div className="lg:hidden">
+              {role && account ? (
+                <HeaderAccountMenu
+                  name={account.name}
+                  email={account.email}
+                  avatarUrl={account.avatarUrl}
+                  panelHref={panelHref as Route}
+                  scenic={isScenicPage}
+                />
+              ) : (
+                <Link href={"/sign-in" as Route} prefetch>
+                  <Button
+                    variant={isScenicPage ? "outline" : "secondary"}
+                    size="sm"
+                    className={cn(
+                      "min-h-11 px-3 text-sm",
+                      isScenicPage
+                        ? "border-white/16 bg-white/10 text-white hover:bg-white/16 hover:text-white"
+                        : "border-emerald-900/12 bg-white/84 text-emerald-950 hover:bg-white"
+                    )}
+                  >
+                    Sign in
+                  </Button>
+                </Link>
+              )}
+            </div>
+
             <div className="hidden min-w-0 items-center justify-center gap-4 lg:flex">
               <nav
                 className={cn(
@@ -236,16 +269,15 @@ export function SiteHeaderClient({
                       {panelLabel}
                     </Button>
                   </Link>
-                  <SignOutButton
-                    variant={isScenicPage ? "outline" : "ghost"}
-                    size="sm"
-                    className={cn(
-                      "h-9 w-full min-w-0 px-3 text-xs sm:h-10 sm:w-auto sm:px-4 sm:text-sm",
-                      isScenicPage
-                        ? "border-white/16 bg-white/10 text-white hover:bg-white/16 hover:text-white"
-                        : "text-emerald-950 hover:bg-emerald-950/8"
-                    )}
-                  />
+                  {account ? (
+                    <HeaderAccountMenu
+                      name={account.name}
+                      email={account.email}
+                      avatarUrl={account.avatarUrl}
+                      panelHref={panelHref as Route}
+                      scenic={isScenicPage}
+                    />
+                  ) : null}
                 </>
               ) : (
                 <>
@@ -383,7 +415,20 @@ export function SiteHeaderClient({
 
                   <div className="grid gap-2 border-t border-border/70 pt-4">
                     {role ? (
-                      <SignOutButton variant="outline" className="min-h-11 w-full justify-center text-sm" />
+                      account ? (
+                        <div className="flex items-center gap-3 rounded-[1rem] border border-emerald-900/12 bg-white/84 px-3 py-3">
+                          <HeaderAccountMenu
+                            name={account.name}
+                            email={account.email}
+                            avatarUrl={account.avatarUrl}
+                            panelHref={panelHref as Route}
+                          />
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-foreground">{account.name}</p>
+                            <p className="truncate text-xs text-muted-foreground">{account.email}</p>
+                          </div>
+                        </div>
+                      ) : null
                     ) : (
                       <>
                         <Link href="/sign-in" prefetch>
