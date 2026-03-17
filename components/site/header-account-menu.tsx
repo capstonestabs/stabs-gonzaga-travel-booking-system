@@ -1,9 +1,7 @@
 "use client";
 
-import type { Route } from "next";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, LayoutDashboard, UserRound } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 import { SignOutButton } from "@/components/site/sign-out-button";
 import { Button } from "@/components/ui/button";
@@ -48,13 +46,11 @@ export function HeaderAccountMenu({
   name,
   email,
   avatarUrl,
-  panelHref,
   scenic = false
 }: {
   name: string;
   email: string;
   avatarUrl: string | null;
-  panelHref: Route;
   scenic?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -117,18 +113,6 @@ export function HeaderAccountMenu({
           </div>
 
           <div className="grid gap-1.5 p-2">
-            <Link href={panelHref} prefetch onClick={() => setOpen(false)}>
-              <span className="inline-flex min-h-11 w-full items-center gap-2 rounded-[0.95rem] border border-border/60 bg-card/90 px-3 text-sm font-medium text-foreground transition-[transform,background-color,border-color,color] duration-150 hover:-translate-y-[1px] hover:bg-muted/70">
-                <LayoutDashboard className="h-4 w-4 text-foreground/65" />
-                Dashboard
-              </span>
-            </Link>
-            <Link href="/profile" prefetch onClick={() => setOpen(false)}>
-              <span className="inline-flex min-h-11 w-full items-center gap-2 rounded-[0.95rem] border border-border/60 bg-card/90 px-3 text-sm font-medium text-foreground transition-[transform,background-color,border-color,color] duration-150 hover:-translate-y-[1px] hover:bg-muted/70">
-                <UserRound className="h-4 w-4 text-foreground/65" />
-                Account settings
-              </span>
-            </Link>
             <SignOutButton
               variant="outline"
               className="min-h-11 w-full justify-start rounded-[0.95rem] px-3 text-sm"

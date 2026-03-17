@@ -36,6 +36,7 @@ export function SignOutButton({ variant = "ghost", size = "sm", className }: But
         onClick={() => setIsDialogOpen(true)}
         disabled={isPending}
       >
+        <LogOut className="h-4 w-4" />
         {isPending ? "Signing out..." : "Sign out"}
       </Button>
       <ConfirmationDialog

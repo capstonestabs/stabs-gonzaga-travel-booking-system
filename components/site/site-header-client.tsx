@@ -165,7 +165,6 @@ export function SiteHeaderClient({
                   name={account.name}
                   email={account.email}
                   avatarUrl={account.avatarUrl}
-                  panelHref={panelHref as Route}
                   scenic={isScenicPage}
                 />
               ) : (
@@ -274,7 +273,6 @@ export function SiteHeaderClient({
                       name={account.name}
                       email={account.email}
                       avatarUrl={account.avatarUrl}
-                      panelHref={panelHref as Route}
                       scenic={isScenicPage}
                     />
                   ) : null}
@@ -421,7 +419,6 @@ export function SiteHeaderClient({
                             name={account.name}
                             email={account.email}
                             avatarUrl={account.avatarUrl}
-                            panelHref={panelHref as Route}
                           />
                           <div className="min-w-0">
                             <p className="truncate text-sm font-medium text-foreground">{account.name}</p>

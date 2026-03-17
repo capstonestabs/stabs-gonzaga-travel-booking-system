@@ -1,6 +1,31 @@
+import Image from "next/image";
+
+import FrenelynMaltizo from "@/Assets/DeveloperPictures/FrenelynMaltizo.jpg";
+import KicyJoyTorresSegundo from "@/Assets/DeveloperPictures/KicyJoyTorresSegundo.jpg";
+import KrizelBuscasPerucho from "@/Assets/DeveloperPictures/KrizelBuscasPerucho.jpg";
+import SophiaJoyCummiting from "@/Assets/DeveloperPictures/SophiaJoyCummiting.jpg";
 import { ScenicPageHero } from "@/components/site/scenic-page-hero";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+
+const developers = [
+  {
+    name: "Frenelyn Maltizo",
+    image: FrenelynMaltizo
+  },
+  {
+    name: "Sophia Joy A. Cummiting",
+    image: SophiaJoyCummiting
+  },
+  {
+    name: "Krizel Buscas Perucho",
+    image: KrizelBuscasPerucho
+  },
+  {
+    name: "Segundo Torres Kicy Joy",
+    image: KicyJoyTorresSegundo
+  }
+] as const;
 
 export default function AboutPage() {
   return (
@@ -68,18 +93,26 @@ export default function AboutPage() {
             <Card>
               <CardContent className="space-y-3 p-6">
                 <Badge variant="muted">Developers</Badge>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {[
-                    "Frenelyn Maltizo",
-                    "Sophia Joy A. Cummiting",
-                    "Krizel Buscas Perucho",
-                    "Segundo Torres Kicy Joy"
-                  ].map((developer) => (
+                <div className="grid gap-3 min-[420px]:grid-cols-2">
+                  {developers.map((developer) => (
                     <div
-                      key={developer}
-                      className="rounded-[1rem] border border-border/70 bg-muted/35 px-4 py-3 text-sm font-medium leading-6 text-foreground/88"
+                      key={developer.name}
+                      className="overflow-hidden rounded-[1rem] border border-border/70 bg-muted/35"
                     >
-                      {developer}
+                      <div className="relative aspect-[4/4.4] overflow-hidden bg-muted/45">
+                        <Image
+                          src={developer.image}
+                          alt={developer.name}
+                          fill
+                          sizes="(max-width: 419px) 100vw, (max-width: 767px) 50vw, 240px"
+                          className="object-cover object-center"
+                        />
+                      </div>
+                      <div className="px-4 py-3">
+                        <p className="text-sm font-medium leading-6 text-foreground/88">
+                          {developer.name}
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
