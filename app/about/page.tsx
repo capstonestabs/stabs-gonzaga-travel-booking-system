@@ -48,7 +48,7 @@ export default function AboutPage() {
                 <p className="page-intro">
                   STABS was designed to help visitors explore local destinations, compare service
                   packages, reserve online when available, and contact walk-in destinations with
-                  less confusion example.
+                  less confusion.
                 </p>
               </div>
 
