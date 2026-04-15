@@ -48,30 +48,44 @@ export function ServiceImagePreview({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          setIsOpen(true);
-        }}
-        className={cn(
-          "group relative overflow-hidden rounded-[0.85rem] border border-border/70 bg-muted/40",
-          buttonClassName
-        )}
-        aria-label={`Open ${title} image`}
-      >
-        <img
-          src={imageUrl}
-          alt={title}
-          className={cn("h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]", imageClassName)}
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,36,24,0.03),rgba(7,36,24,0.4))]" />
-        <span className="absolute bottom-1.5 right-1.5 inline-flex items-center gap-1 rounded-full border border-white/30 bg-black/35 px-2 py-1 text-[10px] font-medium text-white">
-          View
-          <Expand className="h-3 w-3" />
-        </span>
-      </button>
+      <div className="flex shrink-0 items-stretch gap-2">
+        <button
+          type="button"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setIsOpen(true);
+          }}
+          className={cn(
+            "group overflow-hidden rounded-[0.85rem] border border-border/70 bg-muted/40",
+            buttonClassName
+          )}
+          aria-label={`Open ${title} image`}
+        >
+          <img
+            src={imageUrl}
+            alt={title}
+            className={cn(
+              "h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]",
+              imageClassName
+            )}
+          />
+        </button>
+
+        <button
+          type="button"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setIsOpen(true);
+          }}
+          className="inline-flex min-w-11 flex-col items-center justify-center gap-1 rounded-[0.85rem] border border-border/70 bg-background px-2 text-[10px] font-medium text-foreground transition hover:bg-muted/40"
+          aria-label={`View ${title} image`}
+        >
+          <Expand className="h-3.5 w-3.5" />
+          <span>View</span>
+        </button>
+      </div>
 
       {isOpen && isMounted
         ? createPortal(
