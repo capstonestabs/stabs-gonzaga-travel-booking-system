@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { AvailabilityCalendarPanel } from "@/components/forms/availability-calendar-panel";
+import { ServiceImagePreview } from "@/components/site/service-image-preview";
 import { Button } from "@/components/ui/button";
 import { ExpandableText } from "@/components/ui/expandable-text";
 import { Input } from "@/components/ui/input";
@@ -229,13 +230,11 @@ export function BookingForm({
                     }}
                   />
                   {service.image_url ? (
-                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-[0.85rem] border border-border/70 bg-muted/40 sm:h-16 sm:w-16">
-                      <img
-                        src={service.image_url}
-                        alt={service.title}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
+                    <ServiceImagePreview
+                      imageUrl={service.image_url}
+                      title={service.title}
+                      buttonClassName="h-14 w-14 shrink-0 sm:h-16 sm:w-16"
+                    />
                   ) : null}
                   <div className="grid min-w-0 gap-1">
                     <span className="text-sm font-medium text-foreground">
