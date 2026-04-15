@@ -9,15 +9,23 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { optimizeImageToWebp } from "@/lib/browser-image";
 import { formatServiceWindowLabel } from "@/lib/booking-state";
-import type { DestinationService, ServiceType } from "@/lib/types";
+import {
+  formatServiceTypeLabel,
+  normalizeServiceTypeLabel,
+  SERVICE_TYPE_MAX_LENGTH
+} from "@/lib/service-types";
+import type { DestinationService, ListingCategory } from "@/lib/types";
 
-function createServiceRow(source?: Partial<DestinationService>) {
+function createServiceRow(
+  source?: Partial<DestinationService>,
+  destinationCategory?: ListingCategory
+) {
   return {
     id: source?.id ?? "",
     title: source?.title ?? "",
     description: source?.description ?? "",
     priceAmount: (source?.price_amount ?? 0) as number | string,
-    serviceType: source?.service_type ?? "standard",
+    serviceType: normalizeServiceTypeLabel(source?.service_type, destinationCategory),
     dailyCapacity: source?.daily_capacity ?? 10,
     imagePath: source?.image_path ?? "",
     imageUrl: source?.image_url ?? "",
@@ -32,12 +40,14 @@ type ServiceRow = ReturnType<typeof createServiceRow>;
 
 export function ServicesEditorForm({
   destinationId,
+  destinationCategory,
   services,
   currency = "PHP",
   hideAddRow = false,
   onSuccess
 }: {
   destinationId: string;
+  destinationCategory: ListingCategory;
   services: DestinationService[];
   currency?: string;
   hideAddRow?: boolean;
@@ -46,8 +56,10 @@ export function ServicesEditorForm({
   const router = useRouter();
   const initialRows = useMemo(
     () =>
-      services.length > 0 ? services.map((service) => createServiceRow(service)) : [createServiceRow()],
-    [services]
+      services.length > 0
+        ? services.map((service) => createServiceRow(service, destinationCategory))
+        : [createServiceRow(undefined, destinationCategory)],
+    [destinationCategory, services]
   );
   const [rows, setRows] = useState(initialRows);
   const [error, setError] = useState<string | null>(null);
@@ -130,6 +142,10 @@ export function ServicesEditorForm({
           throw new Error("All active services must have a valid title.");
         }
 
+        if (!row.serviceType.trim().replace(/^\/+/, "")) {
+          throw new Error("All services must have a service type label.");
+        }
+
         if (
           row.availabilityStartDate &&
           row.availabilityEndDate &&
@@ -149,7 +165,7 @@ export function ServicesEditorForm({
             description: row.description.trim(),
             priceAmount: Number(row.priceAmount || 0),
             dailyCapacity: Number(row.dailyCapacity || 10),
-            serviceType: row.serviceType,
+            serviceType: normalizeServiceTypeLabel(row.serviceType, destinationCategory),
             imagePath: row.imagePath || null,
             imageUrl: row.imageUrl || null,
             availabilityStartDate: row.availabilityStartDate || null,
@@ -197,7 +213,9 @@ export function ServicesEditorForm({
               type="button"
               variant="secondary"
               size="sm"
-              onClick={() => setRows((current) => [...current, createServiceRow()])}
+              onClick={() =>
+                setRows((current) => [...current, createServiceRow(undefined, destinationCategory)])
+              }
             >
               Add service row
             </Button>
@@ -278,17 +296,20 @@ export function ServicesEditorForm({
 
                     <label className="space-y-2">
                       <span className="text-sm font-medium">Service type</span>
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
+                      <Input
+                        maxLength={SERVICE_TYPE_MAX_LENGTH}
+                        placeholder="person"
                         value={row.serviceType}
-                        onChange={(event) =>
-                          updateRow(index, { serviceType: event.target.value as ServiceType })
-                        }
-                      >
-                        <option value="standard">Standard</option>
-                        <option value="package">Bulk Package</option>
-                        <option value="discounted">Discounted</option>
-                      </select>
+                        onChange={(event) => updateRow(index, { serviceType: event.target.value })}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Displayed beside the price as{" "}
+                        {formatServiceTypeLabel(row.serviceType, {
+                          category: destinationCategory,
+                          includeSlash: true
+                        })}
+                        .
+                      </p>
                     </label>
 
                     <label className="space-y-2">

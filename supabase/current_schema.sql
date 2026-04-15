@@ -120,7 +120,7 @@ create table if not exists public.destination_services (
   title text not null,
   description text,
   price_amount numeric(10, 2) not null check (price_amount >= 0),
-  service_type text not null default 'standard' check (service_type in ('standard', 'package', 'discounted')),
+  service_type text not null default 'person' check (char_length(btrim(service_type)) between 1 and 40),
   daily_capacity integer not null default 10 check (daily_capacity >= 0),
   is_active boolean not null default true,
   image_path text,
@@ -277,6 +277,50 @@ alter table public.destination_services
   add column if not exists image_url text,
   add column if not exists availability_start_date date,
   add column if not exists availability_end_date date;
+
+alter table public.destination_services
+  alter column service_type set default 'person';
+
+alter table public.destination_services
+  drop constraint if exists destination_services_service_type_check;
+
+alter table public.destination_services
+  add constraint destination_services_service_type_check
+  check (char_length(btrim(service_type)) between 1 and 40);
+
+update public.destination_services as service
+set service_type = case
+  when destination.category = 'stay' then 'stay'
+  else 'person'
+end
+from public.destinations as destination
+where service.destination_id = destination.id
+  and (
+    service.service_type is null
+    or btrim(service.service_type) = ''
+    or lower(service.service_type) in ('standard', 'package', 'discounted')
+  );
+
+update public.bookings as booking
+set service_snapshot = jsonb_set(
+  booking.service_snapshot,
+  '{service_type}',
+  to_jsonb(
+    case
+      when destination.category = 'stay' then 'stay'
+      else 'person'
+    end
+  ),
+  true
+)
+from public.destinations as destination
+where booking.destination_id = destination.id
+  and booking.service_snapshot is not null
+  and (
+    booking.service_snapshot ->> 'service_type' is null
+    or btrim(booking.service_snapshot ->> 'service_type') = ''
+    or lower(booking.service_snapshot ->> 'service_type') in ('standard', 'package', 'discounted')
+  );
 
 alter table public.destination_services
   drop constraint if exists destination_services_availability_window_check;

@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { getAvailabilityState } from "@/lib/availability";
 import { formatServiceWindowLabel } from "@/lib/booking-state";
 import { writeCheckoutDraft } from "@/lib/checkout-draft";
+import { formatServiceTypeLabel, normalizeServiceTypeLabel } from "@/lib/service-types";
 import type { AvailabilitySnapshot, DestinationService, ListingCategory, UserRole } from "@/lib/types";
 import { formatCurrency, formatPesoCurrency, pesoAmountToCentavos } from "@/lib/utils";
 import Link from "next/link";
@@ -160,7 +161,7 @@ export function BookingForm({
           title: selectedService.title,
           description: selectedService.description,
           price_amount: selectedService.price_amount,
-          service_type: selectedService.service_type
+          service_type: normalizeServiceTypeLabel(selectedService.service_type, category)
         }
       });
       router.push("/checkout/continue" as Route);
@@ -268,7 +269,10 @@ export function BookingForm({
                     </span>
                   </div>
                   <p className="text-[10px] tracking-[0.14em] text-muted-foreground">
-                    {category === "stay" ? "/ stay" : "/ person"}
+                    {formatServiceTypeLabel(service.service_type, {
+                      category,
+                      includeSlash: true
+                    })}
                   </p>
                 </div>
               </label>

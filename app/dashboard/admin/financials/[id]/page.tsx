@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireRole } from "@/lib/auth";
 import { getAdminFinancialRecordById } from "@/lib/repositories";
+import { formatServiceTypeLabel } from "@/lib/service-types";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function AdminFinancialRecordDetailPage({
@@ -75,7 +76,9 @@ export default async function AdminFinancialRecordDetailPage({
                 {record.service_snapshot?.title ?? "Standard service"}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {record.service_snapshot?.service_type ?? "standard"}
+                {formatServiceTypeLabel(record.service_snapshot?.service_type, {
+                  category: record.destination_category
+                })}
               </p>
             </div>
             <div className="rounded-[0.95rem] border border-border/70 bg-muted/30 p-4">

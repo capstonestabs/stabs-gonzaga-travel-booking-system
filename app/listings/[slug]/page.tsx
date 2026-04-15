@@ -11,6 +11,7 @@ import { ExpandableText } from "@/components/ui/expandable-text";
 import { getCurrentUserContext } from "@/lib/auth";
 import { getBlueprintSceneBySeed } from "@/lib/blueprint";
 import { getDestinationBySlug } from "@/lib/repositories";
+import { formatServiceTypeLabel } from "@/lib/service-types";
 import { formatPesoCurrency } from "@/lib/utils";
 
 export default async function ListingPage({
@@ -377,7 +378,10 @@ export default async function ListingPage({
                                   </span>
                                 </div>
                                 <p className="text-[10px] tracking-[0.14em] text-muted-foreground">
-                                  {destination.category === "stay" ? "/ stay" : "/ person"}
+                                  {formatServiceTypeLabel(service.service_type, {
+                                    category: destination.category,
+                                    includeSlash: true
+                                  })}
                                 </p>
                               </div>
                             </div>

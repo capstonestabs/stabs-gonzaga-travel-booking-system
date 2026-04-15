@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { SERVICE_TYPE_MAX_LENGTH } from "@/lib/service-types";
+
 export const signInSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8)
@@ -18,6 +20,15 @@ export const forgotPasswordSchema = z.object({
 export const resendConfirmationSchema = z.object({
   email: z.string().email()
 });
+
+export const serviceTypeLabelSchema = z
+  .string()
+  .trim()
+  .min(1, "Service type must not be empty.")
+  .max(
+    SERVICE_TYPE_MAX_LENGTH,
+    `Service type must be ${SERVICE_TYPE_MAX_LENGTH} characters or less.`
+  );
 
 export const setPasswordSchema = z
   .object({
@@ -55,7 +66,7 @@ export const checkoutDraftSchema = z.object({
     title: z.string(),
     description: z.string().nullable().optional(),
     price_amount: z.number(),
-    service_type: z.enum(["standard", "package", "discounted"])
+    service_type: serviceTypeLabelSchema
   }),
   contactName: z.string().min(2),
   contactEmail: z.string().email(),
@@ -68,7 +79,7 @@ export const destinationServiceSchema = z.object({
   title: z.string().min(2, "Service title must be at least 2 characters").max(70),
   description: z.string().max(280, "Description must be less than 280 characters").nullable().optional(),
   priceAmount: z.number().min(0, "Price cannot be negative"),
-  serviceType: z.enum(["standard", "package", "discounted"]),
+  serviceType: serviceTypeLabelSchema,
   imagePath: z.string().max(500).nullable().optional(),
   imageUrl: z.string().max(1000).nullable().optional(),
   availabilityStartDate: z.string().optional().nullable(),

@@ -12,6 +12,7 @@ import {
   getBookingTicketState,
   isBookingTicketExpired
 } from "@/lib/booking-state";
+import { formatServiceTypeLabel } from "@/lib/service-types";
 import type { Booking } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 
@@ -78,7 +79,9 @@ export function TouristBookingRecordCard({
               {booking.service_snapshot?.title ?? "Standard service"}
             </p>
             <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-              {booking.service_snapshot?.service_type ?? "standard"}
+              {formatServiceTypeLabel(booking.service_snapshot?.service_type, {
+                category: booking.destination_snapshot.category
+              })}
             </p>
           </div>
           <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3">

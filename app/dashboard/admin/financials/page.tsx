@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressiveList } from "@/components/ui/progressive-list";
 import { requireRole } from "@/lib/auth";
 import { getAdminDashboardData } from "@/lib/repositories";
+import { formatServiceTypeLabel } from "@/lib/service-types";
 import type { DashboardMetric, FinancialRecord } from "@/lib/types";
 import { cn, formatCurrency } from "@/lib/utils";
 
@@ -41,7 +42,9 @@ function buildServiceGroups(records: FinancialRecord[]) {
 
   for (const record of records) {
     const serviceTitle = record.service_snapshot?.title ?? "Standard service";
-    const serviceType = record.service_snapshot?.service_type ?? "standard";
+    const serviceType = formatServiceTypeLabel(record.service_snapshot?.service_type, {
+      category: record.destination_category
+    });
     const key = `${record.service_snapshot?.id ?? serviceTitle}:${serviceType}`;
     const existingGroup = groups.get(key);
 
