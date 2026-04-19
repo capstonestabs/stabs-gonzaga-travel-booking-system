@@ -30,7 +30,7 @@ export function SiteFooter() {
             <p className="font-display text-[1.55rem] font-semibold tracking-tight sm:text-[1.7rem]">STABS</p>
             <p className="max-w-xl text-sm leading-6 text-primary-foreground/84">
               Discover Gonzaga escapes, compare destination details, and plan the kind of trip you
-              want with ease sophia.
+              want with ease.
             </p>
           </div>
 
