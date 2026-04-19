@@ -17,7 +17,7 @@ export interface CheckoutDraft {
     title: string;
     description: string | null;
     price_amount: number;
-    service_type: import("@/lib/types").ServiceType;
+    service_type: string;
   };
   contactName: string;
   contactEmail: string;

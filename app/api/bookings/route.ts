@@ -8,6 +8,7 @@ import { getDestinationById } from "@/lib/repositories";
 import { createCheckoutSession } from "@/lib/paymongo";
 import { createBookingReturnToken } from "@/lib/booking-return-token";
 import { getSiteUrl, hasPayMongoEnv, hasSupabaseServiceEnv } from "@/lib/env";
+import { normalizeServiceTypeLabel } from "@/lib/service-types";
 import { pesoAmountToCentavos } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
@@ -116,7 +117,7 @@ export async function POST(request: NextRequest) {
           title: service.title,
           description: service.description,
           price_amount: service.price_amount,
-          service_type: service.service_type
+          service_type: normalizeServiceTypeLabel(service.service_type, destination.category)
         },
         destination_snapshot: {
           title: destination.title,

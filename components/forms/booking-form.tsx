@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { AvailabilityCalendarPanel } from "@/components/forms/availability-calendar-panel";
+import { ServiceImagePreview } from "@/components/site/service-image-preview";
 import { Button } from "@/components/ui/button";
 import { ExpandableText } from "@/components/ui/expandable-text";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { getAvailabilityState } from "@/lib/availability";
 import { formatServiceWindowLabel } from "@/lib/booking-state";
 import { writeCheckoutDraft } from "@/lib/checkout-draft";
+import { formatServiceTypeLabel, normalizeServiceTypeLabel } from "@/lib/service-types";
 import type { AvailabilitySnapshot, DestinationService, ListingCategory, UserRole } from "@/lib/types";
 import { formatCurrency, formatPesoCurrency, pesoAmountToCentavos } from "@/lib/utils";
 import Link from "next/link";
@@ -160,7 +162,7 @@ export function BookingForm({
           title: selectedService.title,
           description: selectedService.description,
           price_amount: selectedService.price_amount,
-          service_type: selectedService.service_type
+          service_type: normalizeServiceTypeLabel(selectedService.service_type, category)
         }
       });
       router.push("/checkout/continue" as Route);
@@ -228,13 +230,11 @@ export function BookingForm({
                     }}
                   />
                   {service.image_url ? (
-                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-[0.85rem] border border-border/70 bg-muted/40 sm:h-16 sm:w-16">
-                      <img
-                        src={service.image_url}
-                        alt={service.title}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
+                    <ServiceImagePreview
+                      imageUrl={service.image_url}
+                      title={service.title}
+                      buttonClassName="h-14 w-14 shrink-0 sm:h-16 sm:w-16"
+                    />
                   ) : null}
                   <div className="grid min-w-0 gap-1">
                     <span className="text-sm font-medium text-foreground">
@@ -268,7 +268,10 @@ export function BookingForm({
                     </span>
                   </div>
                   <p className="text-[10px] tracking-[0.14em] text-muted-foreground">
-                    {category === "stay" ? "/ stay" : "/ person"}
+                    {formatServiceTypeLabel(service.service_type, {
+                      category,
+                      includeSlash: true
+                    })}
                   </p>
                 </div>
               </label>

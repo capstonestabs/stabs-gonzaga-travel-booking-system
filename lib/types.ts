@@ -1,7 +1,7 @@
 export type UserRole = "user" | "staff" | "admin";
 export type ListingCategory = "tour" | "stay";
 export type BookingType = "online" | "walk-in";
-export type ServiceType = "standard" | "package" | "discounted";
+export type ServiceType = string;
 export type ListingStatus = "draft" | "published" | "archived";
 export type BookingStatus =
   | "pending_payment"

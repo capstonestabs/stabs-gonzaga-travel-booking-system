@@ -9,6 +9,7 @@ import { ServicesEditorForm } from "@/components/forms/services-editor-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatServiceTypeLabel } from "@/lib/service-types";
 import type { Destination, DestinationService } from "@/lib/types";
 import { formatPesoCurrency } from "@/lib/utils";
 
@@ -145,9 +146,12 @@ export function ServicesManagerShell({
                           </Badge>
                           <Badge
                             variant="muted"
-                            className="h-4 bg-muted/40 text-[10px] uppercase"
+                            className="h-4 bg-muted/40 text-[10px]"
                           >
-                            {service.service_type}
+                            {formatServiceTypeLabel(service.service_type, {
+                              category: destination.category,
+                              includeSlash: true
+                            })}
                           </Badge>
                         </div>
                         {service.description ? (
@@ -224,6 +228,7 @@ export function ServicesManagerShell({
 
           <ServicesEditorForm
             destinationId={destination.id}
+            destinationCategory={destination.category}
             services={servicesInEditor}
             hideAddRow={editingServiceId !== "new"}
             onSuccess={handleBack}

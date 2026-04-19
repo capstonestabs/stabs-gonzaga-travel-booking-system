@@ -5,12 +5,14 @@ import { MapPin, ShieldCheck, Users } from "lucide-react";
 
 import { BookingForm } from "@/components/forms/booking-form";
 import { DestinationGalleryLightbox } from "@/components/site/destination-gallery-lightbox";
+import { ServiceImagePreview } from "@/components/site/service-image-preview";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ExpandableText } from "@/components/ui/expandable-text";
 import { getCurrentUserContext } from "@/lib/auth";
 import { getBlueprintSceneBySeed } from "@/lib/blueprint";
 import { getDestinationBySlug } from "@/lib/repositories";
+import { formatServiceTypeLabel } from "@/lib/service-types";
 import { formatPesoCurrency } from "@/lib/utils";
 
 export default async function ListingPage({
@@ -341,13 +343,11 @@ export default async function ListingPage({
                           >
                             <div className="grid grid-cols-[auto,minmax(0,1fr)] gap-3">
                               {service.image_url ? (
-                                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-[0.85rem] border border-border/70 bg-muted/40">
-                                  <img
-                                    src={service.image_url}
-                                    alt={service.title}
-                                    className="h-full w-full object-cover"
-                                  />
-                                </div>
+                                <ServiceImagePreview
+                                  imageUrl={service.image_url}
+                                  title={service.title}
+                                  buttonClassName="h-16 w-16 shrink-0"
+                                />
                               ) : null}
                               <div className="min-w-0 flex-1 space-y-1">
                                 <p className="text-sm font-semibold text-foreground">{service.title}</p>
@@ -377,7 +377,10 @@ export default async function ListingPage({
                                   </span>
                                 </div>
                                 <p className="text-[10px] tracking-[0.14em] text-muted-foreground">
-                                  {destination.category === "stay" ? "/ stay" : "/ person"}
+                                  {formatServiceTypeLabel(service.service_type, {
+                                    category: destination.category,
+                                    includeSlash: true
+                                  })}
                                 </p>
                               </div>
                             </div>

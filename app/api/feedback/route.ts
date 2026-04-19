@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ZodError } from "zod";
 
 import { hasSupabaseServiceEnv } from "@/lib/env";
 import { getDestinationById } from "@/lib/repositories";
 import { feedbackSchema } from "@/lib/schemas";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { formatZodError } from "@/lib/validation";
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,6 +38,20 @@ export async function POST(request: NextRequest) {
       message: "Thanks for the feedback."
     });
   } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          error: formatZodError(error, {
+            destinationId: "Destination",
+            name: "Your name",
+            email: "Email address",
+            message: "Feedback"
+          })
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : "Unable to submit feedback."

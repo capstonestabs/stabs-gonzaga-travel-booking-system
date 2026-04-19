@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getCurrentUserContext } from "@/lib/auth";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { getDestinationById } from "@/lib/repositories";
+import { normalizeServiceTypeLabel, SERVICE_TYPE_MAX_LENGTH } from "@/lib/service-types";
 import { removePublicAsset } from "@/lib/storage";
 
 function normalizeDateOrNull(value?: string | null) {
@@ -17,7 +18,7 @@ const payloadSchema = z.object({
       title: z.string().min(2).max(100),
       description: z.string().max(400).optional().or(z.literal("")),
       priceAmount: z.number().min(0),
-      serviceType: z.enum(["standard", "package", "discounted"]),
+      serviceType: z.string().trim().min(1).max(SERVICE_TYPE_MAX_LENGTH),
       dailyCapacity: z.number().int().min(1),
       imagePath: z.string().max(500).nullable().optional(),
       imageUrl: z.string().max(1000).nullable().optional(),
@@ -99,7 +100,7 @@ export async function PUT(
       image_url: service.imageUrl ?? null,
       availability_start_date: normalizeDateOrNull(service.availabilityStartDate),
       availability_end_date: normalizeDateOrNull(service.availabilityEndDate),
-      service_type: service.serviceType,
+      service_type: normalizeServiceTypeLabel(service.serviceType, destination.category),
       is_active: service.isActive,
     }));
 
