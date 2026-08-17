@@ -1,0 +1,14 @@
+diff --git a/app/sign-in/page.tsx b/app/sign-in/page.tsx
+--- app/sign-in/page.tsx
++++ app/sign-in/page.tsx
+@@ -5,9 +5,9 @@
+ export default function SignInPage() {
+   return (
+     <div className="page-shell grid gap-6 py-10 lg:grid-cols-[0.92fr,1.08fr]">
+       <div className="space-y-4 lg:pt-6">
+
++        
+         <h1 className="page-title max-w-2xl">
+           Sign in when you are ready to continue.
+         </h1>
+         <p className="page-intro">

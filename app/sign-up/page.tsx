@@ -1,0 +1,37 @@
+import type { Route } from "next";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
+
+import { AuthForm } from "@/components/forms/auth-form";
+import { getCurrentUserContext } from "@/lib/auth";
+
+export default async function SignUpPage() {
+  const user = await getCurrentUserContext();
+
+  if (user) {
+    if (user.role === "admin") {
+      redirect("/admin" as Route);
+    }
+    if (user.role === "staff") {
+      redirect("/staff" as Route);
+    }
+    redirect("/account" as Route);
+  }
+
+  return (
+    <div className="page-shell grid gap-6 py-10 lg:grid-cols-[0.92fr,1.08fr]">
+      <div className="space-y-4 lg:pt-6">
+        <div className="gradient-chip w-fit">Create account</div>
+        <h1 className="page-title max-w-2xl">Create your tourist account.</h1>
+        <p className="page-intro">
+          Book Gonzaga trips more easily and keep your travel details in one place.
+        </p>
+      </div>
+      <div className="flex justify-center lg:justify-end">
+        <Suspense fallback={null}>
+          <AuthForm mode="sign-up" />
+        </Suspense>
+      </div>
+    </div>
+  );
+}
