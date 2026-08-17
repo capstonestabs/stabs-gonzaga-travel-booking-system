@@ -43,7 +43,7 @@ export default async function StaffFinancialsPage() {
       <div className="space-y-6">
         {/* Top Summary Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Card className="overflow-hidden border-slate-200/90 shadow-sm">
+          <Card className="overflow-hidden border-2 border-slate-200/90 shadow-sm">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -62,7 +62,7 @@ export default async function StaffFinancialsPage() {
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden border-slate-200/90 shadow-sm">
+          <Card className="overflow-hidden border-2 border-slate-200/90 shadow-sm">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -81,7 +81,7 @@ export default async function StaffFinancialsPage() {
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden border-slate-200/90 shadow-sm sm:col-span-2 lg:col-span-1">
+          <Card className="overflow-hidden border-2 border-slate-200/90 shadow-sm sm:col-span-2 lg:col-span-1">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -102,7 +102,7 @@ export default async function StaffFinancialsPage() {
         </div>
 
         {/* Transaction & Booking Table */}
-        <Card className="overflow-hidden border-slate-200/90 shadow-sm">
+        <Card className="overflow-hidden border-2 border-slate-200/90 shadow-sm">
           <CardHeader className="border-b border-slate-100 bg-slate-50/60 py-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>

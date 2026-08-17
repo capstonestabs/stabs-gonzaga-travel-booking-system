@@ -39,27 +39,27 @@ function StabsActionCard({
       iconShadow: "shadow-[0_8px_20px_rgba(5,150,105,0.32)]",
       valueColor: "text-[#059669]",
       btnBg: "bg-[#059669] hover:bg-[#047857] shadow-[0_4px_14px_rgba(5,150,105,0.28)] hover:shadow-[0_6px_20px_rgba(5,150,105,0.38)]",
-      borderHover: "hover:border-[#059669]/30"
+      borderHover: "hover:border-[#059669]/60 hover:shadow-[0_16px_36px_rgba(5,150,105,0.12)]"
     },
     blue: {
       iconBg: "bg-gradient-to-br from-[#4a85ff] to-[#2563eb]",
       iconShadow: "shadow-[0_8px_20px_rgba(37,99,235,0.32)]",
       valueColor: "text-[#2563eb]",
       btnBg: "bg-[#2563eb] hover:bg-[#1d4ed8] shadow-[0_4px_14px_rgba(37,99,235,0.28)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.38)]",
-      borderHover: "hover:border-[#2563eb]/30"
+      borderHover: "hover:border-[#2563eb]/60 hover:shadow-[0_16px_36px_rgba(37,99,235,0.12)]"
     },
     orange: {
       iconBg: "bg-gradient-to-br from-[#ff9500] to-[#ea580c]",
       iconShadow: "shadow-[0_8px_20px_rgba(234,88,12,0.32)]",
       valueColor: "text-[#ea580c]",
       btnBg: "bg-[#ea580c] hover:bg-[#c2410c] shadow-[0_4px_14px_rgba(234,88,12,0.28)] hover:shadow-[0_6px_20px_rgba(234,88,12,0.38)]",
-      borderHover: "hover:border-[#ea580c]/30"
+      borderHover: "hover:border-[#ea580c]/60 hover:shadow-[0_16px_36px_rgba(234,88,12,0.12)]"
     }
   }[colorScheme];
 
   return (
     <article
-      className={`group flex h-full flex-col justify-between rounded-[1.35rem] border border-slate-200/80 bg-white p-6 shadow-[0_10px_30px_rgba(3,34,63,0.06)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(3,34,63,0.1)] ${styles.borderHover}`}
+      className={`group flex h-full flex-col justify-between rounded-[1.35rem] border-2 border-slate-200/95 bg-white p-6 shadow-[0_10px_30px_rgba(3,34,63,0.06)] transition-all duration-200 hover:-translate-y-1 ${styles.borderHover}`}
     >
       <div className="space-y-4">
         {/* Rounded Glowing Icon */}
@@ -81,7 +81,7 @@ function StabsActionCard({
       </div>
 
       {/* Card Footer: Current Count & Pill Action Button */}
-      <div className="mt-6 flex items-end justify-between border-t border-slate-100 pt-4">
+      <div className="mt-6 flex items-end justify-between border-t-2 border-slate-100 pt-4">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
             CURRENT
@@ -192,7 +192,7 @@ export default async function StaffDashboardPage() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           {data.metrics.map((metric) => (
-            <Card key={metric.label} className="overflow-hidden border-slate-200/80 shadow-sm">
+            <Card key={metric.label} className="overflow-hidden border-2 border-slate-200/90 shadow-sm">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">

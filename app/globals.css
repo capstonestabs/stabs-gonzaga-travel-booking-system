@@ -101,9 +101,9 @@ fieldset {
 }
 
 .panel {
-  @apply min-w-0 overflow-hidden rounded-[1.05rem] border border-border/75;
+  @apply min-w-0 overflow-hidden rounded-[1.05rem] border-2 border-slate-200/90;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(249, 251, 249, 0.98));
-  box-shadow: 0 10px 24px rgba(22, 74, 47, 0.045);
+  box-shadow: 0 4px 20px rgba(22, 74, 47, 0.05), 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .stack-safe {
