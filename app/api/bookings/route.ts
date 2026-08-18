@@ -125,6 +125,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const { data: duplicateBookings, error: duplicateCheckError } = await supabase
+      .from("bookings")
+      .select("id")
+      .eq("user_id", user.authUserId)
+      .eq("service_id", service.id)
+      .eq("service_date", payload.serviceDate)
+      .neq("status", "cancelled")
+      .limit(1);
+
+    if (duplicateCheckError) {
+      throw new Error("Unable to verify your existing reservations. Please try again.");
+    }
+
+    if (duplicateBookings && duplicateBookings.length > 0) {
+      return NextResponse.json(
+        {
+          error: `You already have a reservation for "${service.title}" on ${payload.serviceDate}. Check your current bookings in your account, or cancel the existing one first, before booking this same date again.`
+        },
+        { status: 409 }
+      );
+    }
+
+    // Empty filler chunk since we moved the service definition up
+
     // Empty filler chunk since we moved the service definition up
 
     const adultGuestCount = guestTypes?.filter((guestType) => guestType === "adult").length ?? 0;
@@ -190,6 +214,8 @@ export async function POST(request: NextRequest) {
         staff_id: destination.staff_id,
         status: "pending_payment",
         service_date: payload.serviceDate,
+        check_out_date: payload.checkOutDate,
+        check_out_time: payload.checkOutTime,
         guest_count: payload.guestCount,
         contact_name: payload.contactName,
         contact_email: payload.contactEmail,

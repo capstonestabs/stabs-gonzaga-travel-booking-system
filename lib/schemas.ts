@@ -53,6 +53,8 @@ export const bookingSchema = z
   .object({
     destinationId: z.string().uuid(),
     serviceDate: z.string().min(1),
+    checkOutDate: z.string().min(1),
+    checkOutTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
     guestCount: z.coerce.number().int().min(1).max(200),
     guestTypes: z.array(guestTypeSchema).min(1).max(200).optional(),
     guestDetails: z.array(bookingGuestSchema).min(1).max(200).optional(),
@@ -72,6 +74,13 @@ export const bookingSchema = z
       .optional()
   })
   .superRefine((value, context) => {
+    if (value.checkOutDate < value.serviceDate) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["checkOutDate"],
+        message: "Check-out date cannot be earlier than the selected date."
+      });
+    }
     if (value.guestTypes && value.guestTypes.length !== value.guestCount) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -96,6 +105,8 @@ export const checkoutDraftSchema = z.object({
   category: z.enum(["tour", "stay"]),
   priceAmount: z.number().min(0),
   serviceDate: z.string().min(1),
+  checkOutDate: z.string().min(1),
+  checkOutTime: z.string().min(1),
   guestCount: z.number().int().min(1),
   guestTypes: z.array(guestTypeSchema).min(1).optional(),
   guestDetails: z.array(bookingGuestSchema).min(1).optional(),

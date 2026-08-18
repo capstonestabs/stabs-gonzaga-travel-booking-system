@@ -401,6 +401,14 @@ export default async function ListingPage({
                               </div>
                             ) : null}
 
+                            {service.description ? (
+                              <details className="group mt-3 rounded-[0.9rem] bg-muted/35 px-3.5 py-3">
+                                <summary className="cursor-pointer list-none text-sm font-semibold text-primary marker:hidden">
+                                  See package description
+                                </summary>
+                                <p className="mt-2 text-sm leading-6 text-muted-foreground">{service.description}</p>
+                              </details>
+                            ) : null}
                             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 border-b border-border/70 pb-3 text-xs font-medium text-muted-foreground">
                               <span className="inline-flex items-center gap-1.5">
                                 <Users className="h-3.5 w-3.5 text-primary" /> Up to {service.daily_capacity} guest{service.daily_capacity === 1 ? "" : "s"}
@@ -413,14 +421,21 @@ export default async function ListingPage({
                               </span>
                             </div>
 
-                            {service.description ? (
-                              <details className="group mt-3 rounded-[0.9rem] bg-muted/35 px-3.5 py-3">
-                                <summary className="cursor-pointer list-none text-sm font-semibold text-primary marker:hidden">
-                                  See package details
-                                </summary>
-                                <p className="mt-2 text-sm leading-6 text-muted-foreground">{service.description}</p>
-                              </details>
+                            {service.unit_count || service.unit_label || service.features?.length ? (
+                              <div className="mt-3 flex flex-wrap items-center gap-2 border-b border-border/70 pb-3">
+                                {service.unit_count || service.unit_label ? (
+                                  <Badge variant="accent">
+                                    {service.unit_count ?? ""} {service.unit_label ?? "Units"}
+                                  </Badge>
+                                ) : null}
+                                {service.features?.map((feature) => (
+                                  <Badge key={feature} variant="muted">
+                                    {feature}
+                                  </Badge>
+                                ))}
+                              </div>
                             ) : null}
+
                           </div>
 
                           <div className="overflow-hidden rounded-[1rem] border border-primary/25 bg-background">

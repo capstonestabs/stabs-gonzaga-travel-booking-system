@@ -74,9 +74,13 @@ export interface DestinationService {
   closing_time?: string | null;
   open_weekdays?: number[];
   operating_remarks?: string | null;
+  unit_count?: number | null;
+  unit_label?: string | null;
+  features?: string[];
   is_active: boolean;
   created_at: string;
   updated_at: string;
+
 }
 
 export interface DestinationAvailabilityWindow {
@@ -142,6 +146,8 @@ export interface Booking {
   status: BookingStatus;
   ticket_code: string | null;
   service_date: string;
+  check_out_date: string | null;
+  check_out_time: string | null;
   guest_count: number;
   contact_name: string;
   contact_email: string;

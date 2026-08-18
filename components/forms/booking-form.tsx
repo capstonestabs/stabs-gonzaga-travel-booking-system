@@ -53,6 +53,8 @@ export function BookingForm({
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [serviceDate, setServiceDate] = useState("");
+  const [checkOutDate, setCheckOutDate] = useState("");
+  const [checkOutTime, setCheckOutTime] = useState("12:00");
   const [guestCount, setGuestCount] = useState(1);
   const [guestNames, setGuestNames] = useState<string[]>([defaultContactName ?? ""]);
   const bookableServices = services.filter((service) => service.is_active);
@@ -92,10 +94,26 @@ export function BookingForm({
     ) {
       setSelectedServiceId(initialServiceId);
       setServiceDate("");
+      setCheckOutDate("");
+      setCheckOutTime("12:00");
       setAvailability(null);
       setError(null);
     }
   }, [initialServiceId]);
+
+  useEffect(() => {
+    if (!serviceDate) {
+      setCheckOutDate("");
+      return;
+    }
+
+    setCheckOutDate((current) => {
+      if (!current) {
+        return serviceDate;
+      }
+      return current < serviceDate ? serviceDate : current;
+    });
+  }, [serviceDate]);
 
   useEffect(() => {
     if (!serviceDate || !selectedServiceId) {
@@ -166,6 +184,10 @@ export function BookingForm({
         throw new Error("Choose a service date before continuing.");
       }
 
+      if (!checkOutDate || !checkOutTime) {
+        throw new Error("Select a check-out date and time before continuing.");
+      }
+
       if (!availabilityState.canBook) {
         throw new Error(availabilityState.message);
       }
@@ -190,6 +212,8 @@ export function BookingForm({
         category,
         priceAmount: pesoAmountToCentavos(selectedService.price_amount),
         serviceDate,
+        checkOutDate,
+        checkOutTime,
         guestCount,
         guestDetails,
         contactName: String(formData.get("contactName") ?? ""),
@@ -363,18 +387,53 @@ export function BookingForm({
           <div className="space-y-3.5">
             <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr),8rem] xl:grid-cols-[minmax(0,1fr),7.5rem]">
               <div className="rounded-[1rem] border border-border/70 bg-muted/30 px-3.5 py-3">
-            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-              Selected date
-            </p>
-            <p className="mt-1 text-sm font-medium text-foreground">
-              {serviceDate || "Choose a date from the calendar above"}
-            </p>
-            <p className="mt-2 text-xs text-muted-foreground">
-              {`Bookable window: ${formatServiceWindowLabel({
-                availabilityStartDate: selectedService.availability_start_date,
-                availabilityEndDate: selectedService.availability_end_date
-              })}.`}
-            </p>
+                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                  Selected date
+                </p>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {serviceDate || "Choose a date from the calendar above"}
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {`Bookable window: ${formatServiceWindowLabel({
+                    availabilityStartDate: selectedService.availability_start_date,
+                    availabilityEndDate: selectedService.availability_end_date
+                  })}.`}
+                </p>
+
+                {serviceDate ? (
+                  <div className="mt-3 space-y-2.5 rounded-[0.9rem] border border-border/70 bg-background px-3 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
+                      Select check-out date & time
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <label className="block space-y-1.5">
+                        <span className="text-xs font-medium text-muted-foreground">Check-out date</span>
+                        <Input
+                          type="date"
+                          value={checkOutDate}
+                          min={serviceDate}
+                          onChange={(event) => {
+                            setError(null);
+                            setCheckOutDate(event.target.value);
+                          }}
+                          required
+                        />
+                      </label>
+                      <label className="block space-y-1.5">
+                        <span className="text-xs font-medium text-muted-foreground">Check-out time</span>
+                        <Input
+                          type="time"
+                          value={checkOutTime}
+                          onChange={(event) => {
+                            setError(null);
+                            setCheckOutTime(event.target.value);
+                          }}
+                          required
+                        />
+                      </label>
+                    </div>
+                  </div>
+                ) : null}
               </div>
 
               <label className="block space-y-2">
@@ -492,7 +551,14 @@ export function BookingForm({
                   <Button
                     className="h-full min-h-11 w-full"
                     type="submit"
-                    disabled={isPending || !availabilityState.canBook || isAvailabilityLoading}
+                    disabled={
+                      isPending ||
+                      !availabilityState.canBook ||
+                      isAvailabilityLoading ||
+                      !serviceDate ||
+                      !checkOutDate ||
+                      !checkOutTime
+                    }
                   >
                     {isPending ? "Saving checkout..." : "Continue to checkout"}
                   </Button>

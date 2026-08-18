@@ -52,7 +52,7 @@ export function TouristBookingRecordCard({
         <div>
           <CardTitle>{booking.destination_snapshot.title}</CardTitle>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            {booking.destination_snapshot.location_text} - {booking.service_date}
+            {booking.destination_snapshot.location_text}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -72,7 +72,7 @@ export function TouristBookingRecordCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid gap-2.5 text-sm sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+        <div className="grid gap-2.5 text-sm sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3">
             <p className="text-muted-foreground">Package</p>
             <p className="mt-1 font-medium">
@@ -87,6 +87,18 @@ export function TouristBookingRecordCard({
           <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3">
             <p className="text-muted-foreground">Guests</p>
             <p className="mt-1 font-medium">{booking.guest_count}</p>
+          </div>
+          <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3">
+            <p className="text-muted-foreground">Check-in</p>
+            <p className="mt-1 font-medium">{booking.service_date}</p>
+          </div>
+          <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3">
+            <p className="text-muted-foreground">Check-out</p>
+            <p className="mt-1 font-medium">
+              {booking.check_out_date
+                ? `${booking.check_out_date}${booking.check_out_time ? ` · ${booking.check_out_time}` : ""}`
+                : "Not set"}
+            </p>
           </div>
           <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3">
             <p className="text-muted-foreground">Total amount</p>

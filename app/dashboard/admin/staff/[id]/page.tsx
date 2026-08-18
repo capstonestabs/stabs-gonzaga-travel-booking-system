@@ -5,6 +5,7 @@ import { ArrowLeft, MapPin, Package, TentTree } from "lucide-react";
 
 import { AdminDeleteStaffForm } from "@/components/forms/admin-delete-staff-form";
 import { AdminDestinationAssignmentForm } from "@/components/forms/admin-destination-assignment-form";
+import { DestinationStatusActions } from "@/components/forms/destination-status-actions";
 import { AdminStaffPasswordForm } from "@/components/forms/admin-staff-password-form";
 import { DashboardShell } from "@/components/site/dashboard-shell";
 import { ProfileSummaryCard } from "@/components/site/profile-summary-card";
@@ -78,6 +79,24 @@ export default async function AdminStaffProfilePage({
                 </div>
               ))}
             </CardContent>
+            {destination ? (
+              <CardContent className="border-t border-border/70 p-4">
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">
+                      Listing status
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Keep the destination in draft, publish it for tourists, or archive it when it is no longer active.
+                    </p>
+                  </div>
+                  <DestinationStatusActions
+                    destinationId={destination.id}
+                    currentStatus={destination.status}
+                  />
+                </div>
+              </CardContent>
+            ) : null}
           </Card>
 
           <AdminDestinationAssignmentForm

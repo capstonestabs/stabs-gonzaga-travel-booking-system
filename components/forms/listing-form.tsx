@@ -1,7 +1,7 @@
 "use client";
 
+import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,7 +83,7 @@ export function ListingForm({
   const [locationText, setLocationText] = useState(initialValues.locationText);
   const [category, setCategory] = useState<"tour" | "stay">(initialValues.category);
   const [bookingType] = useState<"online" | "walk-in">(initialValues.bookingType);
-  const [status, setStatus] = useState<"draft" | "published" | "archived">(initialValues.status);
+  const [status] = useState<"draft" | "published" | "archived">(initialValues.status);
   const [inclusions, setInclusions] = useState(initialValues.inclusions);
   const [policies, setPolicies] = useState(initialValues.policies);
   const [featured, setFeatured] = useState(initialValues.featured);
@@ -100,7 +100,6 @@ export function ListingForm({
     locationText !== initialValues.locationText ||
     category !== initialValues.category ||
     bookingType !== initialValues.bookingType ||
-    status !== initialValues.status ||
     inclusions !== initialValues.inclusions ||
     policies !== initialValues.policies ||
     featured !== initialValues.featured ||
@@ -260,23 +259,6 @@ export function ListingForm({
             >
               <option value="tour">Tour</option>
               <option value="stay">Stay</option>
-            </select>
-          </label>
-
-          <label className="space-y-2">
-            <span className="text-sm font-medium">Status</span>
-            <select
-              name="status"
-              value={status}
-              onChange={(event) => {
-                setStatus(event.target.value as "draft" | "published" | "archived");
-                clearFeedback();
-              }}
-              className="flex h-12 w-full rounded-2xl border border-input/90 bg-card px-4 py-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]"
-            >
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-              <option value="archived">Archived</option>
             </select>
           </label>
 

@@ -47,6 +47,9 @@ function createServiceRow(
     openWeekdays: source?.open_weekdays?.length ? source.open_weekdays : DEFAULT_OPEN_WEEKDAYS,
     operatingRemarks: source?.operating_remarks ?? "",
     isActive: source?.is_active ?? true,
+    unitCount: (source?.unit_count ?? "") as number | string,
+    unitLabel: source?.unit_label ?? "",
+    features: source?.features?.length ? source.features : ([] as string[]),
     _uiId: crypto.randomUUID()
   };
 }
@@ -81,6 +84,32 @@ export function ServicesEditorForm({
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [uploadingRowId, setUploadingRowId] = useState<string | null>(null);
+  const [featureDrafts, setFeatureDrafts] = useState<Record<string, string>>({});
+
+  function addFeatureTag(index: number, uiId: string) {
+    const draftValue = (featureDrafts[uiId] ?? "").trim();
+    if (!draftValue) return;
+    const newTags = draftValue.split(",").map((tag) => tag.trim()).filter(Boolean);
+    setRows((current) =>
+      current.map((entry, currentIndex) =>
+        currentIndex === index
+          ? { ...entry, features: Array.from(new Set([...entry.features, ...newTags])) }
+          : entry
+      )
+    );
+    setFeatureDrafts((current) => ({ ...current, [uiId]: "" }));
+  }
+
+  function removeFeatureTag(index: number, tag: string) {
+    setRows((current) =>
+      current.map((entry, currentIndex) =>
+        currentIndex === index
+          ? { ...entry, features: entry.features.filter((existing) => existing !== tag) }
+          : entry
+      )
+    );
+  }
+
   const hasChanges =
     JSON.stringify(rows.map(({ _uiId, ...row }) => row)) !==
     JSON.stringify(initialRows.map(({ _uiId, ...row }) => row));
@@ -204,6 +233,9 @@ export function ServicesEditorForm({
             availabilityEndDate: row.availabilityEndDate || null,
             openingTime: row.openingTime || null,
             closingTime: row.closingTime || null,
+            unitCount: row.unitCount === "" ? null : Number(row.unitCount),
+            unitLabel: row.unitLabel.trim() || null,
+            features: row.features,
             openWeekdays: row.openWeekdays,
             operatingRemarks: row.operatingRemarks.trim(),
             isActive: row.isActive
@@ -389,6 +421,82 @@ export function ServicesEditorForm({
                       value={row.description}
                       onChange={(event) => updateRow(index, { description: event.target.value })}
                     />
+                  </label>
+
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium">Unit / room count (optional)</span>
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder="e.g. 8"
+                        value={row.unitCount}
+                        onChange={(event) =>
+                          updateRow(index, {
+                            unitCount: event.target.value === "" ? "" : Number(event.target.value)
+                          })
+                        }
+                      />
+                    </label>
+
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium">Unit label (optional)</span>
+                      <Input
+                        placeholder="e.g. Rooms, Boats, Slots"
+                        value={row.unitLabel}
+                        onChange={(event) => updateRow(index, { unitLabel: event.target.value })}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Shown as &quot;{row.unitCount || "8"} {row.unitLabel || "Rooms"}&quot;. Leave both
+                        blank for scenery-only packages with nothing to count.
+                      </p>
+                    </label>
+                  </div>
+
+                  <label className="space-y-2">
+                    <span className="text-sm font-medium">Features (optional)</span>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="e.g. WiFi, Aircon, Pool access"
+                        value={featureDrafts[row._uiId] ?? ""}
+                        onChange={(event) =>
+                          setFeatureDrafts((current) => ({ ...current, [row._uiId]: event.target.value }))
+                        }
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            addFeatureTag(index, row._uiId);
+                          }
+                        }}
+                      />
+                      <Button type="button" variant="secondary" onClick={() => addFeatureTag(index, row._uiId)}>
+                        Add
+                      </Button>
+                    </div>
+                    {row.features.length > 0 ? (
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {row.features.map((tag) => (
+                          <span
+                            key={tag}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/50 px-3 py-1 text-xs font-medium"
+                          >
+                            {tag}
+                            <button
+                              type="button"
+                              aria-label={`Remove ${tag}`}
+                              className="text-muted-foreground hover:text-destructive"
+                              onClick={() => removeFeatureTag(index, tag)}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        Type a feature and press Enter or Add. Separate multiple with commas.
+                      </p>
+                    )}
                   </label>
 
                   <div className="grid gap-4 sm:grid-cols-2">

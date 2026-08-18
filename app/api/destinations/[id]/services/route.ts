@@ -31,6 +31,9 @@ const payloadSchema = z.object({
       closingTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().optional(),
       openWeekdays: z.array(z.number().int().min(1).max(7)).min(1).max(7).default(DEFAULT_OPEN_WEEKDAYS),
       operatingRemarks: z.string().max(300).optional().or(z.literal("")),
+      unitCount: z.number().int().min(0).nullable().optional(),
+      unitLabel: z.string().max(60).nullable().optional(),
+      features: z.array(z.string().max(60)).max(20).default([]),
       isActive: z.boolean(),
     }).superRefine((service, ctx) => {
       if (
@@ -138,6 +141,9 @@ export async function PUT(
         closing_time: service.closingTime ?? null,
         open_weekdays: normalizeOpenWeekdays(service.openWeekdays),
         operating_remarks: service.operatingRemarks || null,
+        unit_count: service.unitCount ?? null,
+        unit_label: service.unitLabel ?? null,
+        features: service.features ?? [],
         service_type: normalizeServiceTypeLabel(service.serviceType, destination.category),
         is_active: service.isActive,
       };

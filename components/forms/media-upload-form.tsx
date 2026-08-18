@@ -141,22 +141,6 @@ export function MediaUploadForm({
 
           {isCover ? (
             <div className="space-y-3">
-              <div className="rounded-[1.15rem] border border-border/70 bg-muted/30 p-3">
-                <div className="aspect-[16/10] overflow-hidden rounded-[0.9rem] bg-muted/50">
-                  {currentImageUrl ? (
-                    <img
-                      src={currentImageUrl}
-                      alt="Current destination cover"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center px-4 text-center text-sm text-muted-foreground">
-                      No cover photo uploaded yet.
-                    </div>
-                  )}
-                </div>
-              </div>
-
               <div className="flex flex-wrap gap-3">
                 <Button
                   type="button"
