@@ -72,6 +72,8 @@ export function AbramBookingWizard({
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [serviceDate, setServiceDate] = useState("");
+  const [checkOutDate, setCheckOutDate] = useState("");
+  const [checkOutTime, setCheckOutTime] = useState("12:00");
   const [availability, setAvailability] = useState<AvailabilitySnapshot | null>(null);
   const [guests, setGuests] = useState<GuestEntry[]>([
     { id: 1, type: "adult", name: defaultContactName ?? "" }
@@ -97,6 +99,11 @@ export function AbramBookingWizard({
   async function checkSelectedDate() {
     if (!serviceDate) {
       setError("Select your preferred booking date first.");
+      return;
+    }
+
+    if (!checkOutDate || !checkOutTime) {
+      setError("Select a check-out date and time before continuing.");
       return;
     }
 
@@ -221,6 +228,8 @@ export function AbramBookingWizard({
         category,
         priceAmount: pesoAmountToCentavos(ratePlan.adult.priceAmount),
         serviceDate,
+        checkOutDate,
+        checkOutTime,
         guestCount: guests.length,
         guestTypes,
         guestDetails,
@@ -317,6 +326,12 @@ export function AbramBookingWizard({
             selectedDate={serviceDate}
             onSelectDate={(nextDate) => {
                 setServiceDate(nextDate);
+                setCheckOutDate((current) => {
+                  if (!current) {
+                    return nextDate;
+                  }
+                  return current < nextDate ? nextDate : current;
+                });
                 setAvailability(null);
                 setError(null);
             }}
@@ -324,9 +339,48 @@ export function AbramBookingWizard({
           <div className="rounded-[0.9rem] border border-border/70 bg-muted/30 px-3.5 py-3 text-sm">
             <span className="text-muted-foreground">Selected date: </span>
             <span className="font-semibold">{serviceDate || "Choose a date from the calendar"}</span>
+
+            {serviceDate ? (
+              <div className="mt-3 space-y-2.5 rounded-[0.85rem] border border-border/70 bg-background px-3 py-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
+                  Select check-out date & time
+                </p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <label className="block space-y-1.5">
+                    <span className="text-xs font-medium text-muted-foreground">Check-out date</span>
+                    <Input
+                      type="date"
+                      value={checkOutDate}
+                      min={serviceDate}
+                      onChange={(event) => {
+                        setError(null);
+                        setCheckOutDate(event.target.value);
+                      }}
+                      required
+                    />
+                  </label>
+                  <label className="block space-y-1.5">
+                    <span className="text-xs font-medium text-muted-foreground">Check-out time</span>
+                    <Input
+                      type="time"
+                      value={checkOutTime}
+                      onChange={(event) => {
+                        setError(null);
+                        setCheckOutTime(event.target.value);
+                      }}
+                      required
+                    />
+                  </label>
+                </div>
+              </div>
+            ) : null}
           </div>
           {error ? <p role="alert" className="rounded-[0.9rem] border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">{error}</p> : null}
-          <Button className="w-full justify-between" disabled={isChecking || !serviceDate} onClick={() => void checkSelectedDate()}>
+          <Button
+            className="w-full justify-between"
+            disabled={isChecking || !serviceDate || !checkOutDate || !checkOutTime}
+            onClick={() => void checkSelectedDate()}
+          >
             {isChecking ? "Checking selected date..." : "Check date and continue"}
             <ArrowRight className="h-4 w-4" />
           </Button>

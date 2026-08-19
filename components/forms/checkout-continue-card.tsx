@@ -3,15 +3,14 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, CalendarDays, CreditCard, MapPin, ShieldCheck, Smartphone, Users, WalletCards } from "lucide-react";
-
+import { AlertTriangle, ArrowRight, CalendarDays, CreditCard, MapPin, ShieldCheck, Smartphone, Users, WalletCards } from "lucide-react";
 import { clearCheckoutDraft, readCheckoutDraft, type CheckoutDraft } from "@/lib/checkout-draft";
 import type { UserRole } from "@/lib/types";
 import { formatCurrency, pesoAmountToCentavos } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 export function CheckoutContinueCard({
   viewerRole,
   viewerEmail,
@@ -84,6 +83,8 @@ export function CheckoutContinueCard({
           destinationId: draft.destinationId,
           serviceId: draft.serviceId,
           serviceDate: draft.serviceDate,
+          checkOutDate: draft.checkOutDate,
+          checkOutTime: draft.checkOutTime,
           guestCount: draft.guestCount,
           guestTypes: draft.guestTypes,
           guestDetails: draft.guestDetails,
@@ -245,7 +246,11 @@ export function CheckoutContinueCard({
               </span>
               <span className="inline-flex items-center gap-2">
                 <CalendarDays className="h-4 w-4" />
-                {draft.serviceDate}
+                Check-in {draft.serviceDate}
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <CalendarDays className="h-4 w-4" />
+                Check-out {draft.checkOutDate} at {draft.checkOutTime}
               </span>
               <span className="inline-flex items-center gap-2">
                 <Users className="h-4 w-4" />
@@ -448,9 +453,20 @@ export function CheckoutContinueCard({
             </div>
           ) : null}
 
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
-        </CardContent>
+                  </CardContent>
       </Card>
+
+      <ConfirmationDialog
+        open={Boolean(error)}
+        title="This booking can't go through"
+        description={error ?? ""}
+        icon={<AlertTriangle className="h-5 w-5" />}
+        confirmLabel="Got it"
+        cancelLabel="Close"
+        confirmVariant="default"
+        onConfirm={() => setError(null)}
+        onClose={() => setError(null)}
+      />
     </div>
   );
 }

@@ -2,8 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, LogIn, LogOut, ChevronDown, ChevronUp } from "lucide-react";
-
+import { Search, LogIn, LogOut, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import { CompleteBookingButton } from "@/components/forms/complete-booking-button";
 import { DeleteBookingButton } from "@/components/forms/delete-booking-button";
 import { ProgressiveList } from "@/components/ui/progressive-list";
@@ -68,9 +67,23 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
       );
     });
   }, [bookings, query]);
-
   const allBookingIds = useMemo(() => filteredBookings.map((booking) => booking.id), [filteredBookings]);
 
+  const duplicateBookingIds = useMemo(() => {
+    const groups = new Map<string, string[]>();
+    for (const booking of bookings) {
+      if (booking.status === "cancelled") continue;
+      const key = `${booking.user_id}::${booking.service_id}::${booking.service_date}`;
+      groups.set(key, [...(groups.get(key) ?? []), booking.id]);
+    }
+    const flagged = new Set<string>();
+    for (const ids of groups.values()) {
+      if (ids.length > 1) {
+        ids.forEach((id) => flagged.add(id));
+      }
+    }
+    return flagged;
+  }, [bookings]);
   const completeEligibleIds = useMemo(
     () =>
       filteredBookings
@@ -411,9 +424,16 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
                   </div>
 
                   <div className="rounded-[0.9rem] bg-muted/45 px-3 py-3 sm:px-3.5">
-                    <p className="text-sm text-muted-foreground">Service date</p>
+                    <p className="text-sm text-muted-foreground">Service Date</p>
+                    <p className="text-sm text-muted-foreground">Check-in</p>
                     <p className="mt-1 font-medium">{booking.service_date}</p>
-                    <p className="text-sm text-muted-foreground">{booking.guest_count} guests</p>
+                    <p className="mt-1.5 text-sm text-muted-foreground">Check-out</p>
+                    <p className="mt-1 font-medium">
+                      {booking.check_out_date
+                        ? `${booking.check_out_date}${booking.check_out_time ? ` · ${booking.check_out_time}` : ""}`
+                        : "Not set"}
+                    </p>
+                    <p className="mt-1.5 text-sm text-muted-foreground">{booking.guest_count} guests</p>
                   </div>
 
                   <div className="rounded-[0.9rem] bg-muted/45 px-3 py-3 sm:px-3.5">
@@ -430,6 +450,11 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
                       {booking.status.replace("_", " ")}
                     </Badge>
                     {expired ? <Badge variant="warning">expired / no-show</Badge> : null}
+                    {duplicateBookingIds.has(booking.id) ? (
+                      <Badge variant="destructive" className="inline-flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" /> Duplicate booking
+                      </Badge>
+                    ) : null}
                     <div className="space-y-1 text-xs text-muted-foreground">
                       {canComplete ? <p>Ready for bulk complete</p> : null}
                       {canDelete ? <p>Ready for bulk delete</p> : null}
