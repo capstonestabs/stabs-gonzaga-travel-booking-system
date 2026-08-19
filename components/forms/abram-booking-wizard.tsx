@@ -345,33 +345,35 @@ export function AbramBookingWizard({
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
                   Select check-out date & time
                 </p>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <label className="block space-y-1.5">
-                    <span className="text-xs font-medium text-muted-foreground">Check-out date</span>
-                    <Input
-                      type="date"
-                      value={checkOutDate}
-                      min={serviceDate}
-                      onChange={(event) => {
-                        setError(null);
-                        setCheckOutDate(event.target.value);
-                      }}
-                      required
-                    />
-                  </label>
-                  <label className="block space-y-1.5">
-                    <span className="text-xs font-medium text-muted-foreground">Check-out time</span>
-                    <Input
-                      type="time"
-                      value={checkOutTime}
-                      onChange={(event) => {
-                        setError(null);
-                        setCheckOutTime(event.target.value);
-                      }}
-                      required
-                    />
-                  </label>
-                </div>
+                  <div className="grid grid-cols-2 gap-2 min-w-0">
+                    <label className="block min-w-0 space-y-1.5">
+                      <span className="text-xs font-medium text-muted-foreground">Check-out date</span>
+                      <Input
+                        type="date"
+                        className="min-w-0 w-full"
+                        value={checkOutDate}
+                        min={serviceDate}
+                        onChange={(event) => {
+                          setError(null);
+                          setCheckOutDate(event.target.value);
+                        }}
+                        required
+                      />
+                    </label>
+                    <label className="block min-w-0 space-y-1.5">
+                      <span className="text-xs font-medium text-muted-foreground">Check-out time</span>
+                      <Input
+                        type="time"
+                        className="min-w-0 w-full"
+                        value={checkOutTime}
+                        onChange={(event) => {
+                          setError(null);
+                          setCheckOutTime(event.target.value);
+                        }}
+                        required
+                      />
+                    </label>
+                  </div>
               </div>
             ) : null}
           </div>

@@ -19,7 +19,7 @@ import { getAbramMergedGuestRatePlan } from "@/lib/guest-pricing";
 import type { AvailabilitySnapshot, DestinationService, ListingCategory, UserRole } from "@/lib/types";
 import { formatCurrency, formatPesoCurrency, pesoAmountToCentavos } from "@/lib/utils";
 import Link from "next/link";
-
+import { Plus, Minus, /* ...whatever else was already there */ } from "lucide-react";
 export function BookingForm({
   destinationId,
   destinationSlug,
@@ -385,8 +385,8 @@ export function BookingForm({
           />
 
           <div className="space-y-3.5">
-            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr),8rem] xl:grid-cols-[minmax(0,1fr),7.5rem]">
-              <div className="rounded-[1rem] border border-border/70 bg-muted/30 px-3.5 py-3">
+            <div className="space-y-3.5 rounded-[1rem] border border-border/70 bg-muted/30 px-3.5 py-3">
+              <div>
                 <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
                   Selected date
                 </p>
@@ -399,65 +399,86 @@ export function BookingForm({
                     availabilityEndDate: selectedService.availability_end_date
                   })}.`}
                 </p>
-
-                {serviceDate ? (
-                  <div className="mt-3 space-y-2.5 rounded-[0.9rem] border border-border/70 bg-background px-3 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
-                      Select check-out date & time
-                    </p>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      <label className="block space-y-1.5">
-                        <span className="text-xs font-medium text-muted-foreground">Check-out date</span>
-                        <Input
-                          type="date"
-                          value={checkOutDate}
-                          min={serviceDate}
-                          onChange={(event) => {
-                            setError(null);
-                            setCheckOutDate(event.target.value);
-                          }}
-                          required
-                        />
-                      </label>
-                      <label className="block space-y-1.5">
-                        <span className="text-xs font-medium text-muted-foreground">Check-out time</span>
-                        <Input
-                          type="time"
-                          value={checkOutTime}
-                          onChange={(event) => {
-                            setError(null);
-                            setCheckOutTime(event.target.value);
-                          }}
-                          required
-                        />
-                      </label>
-                    </div>
-                  </div>
-                ) : null}
               </div>
 
-              <label className="block space-y-2">
-                <span className="text-sm font-medium">Guests</span>
-                <Input
-                  name="guestCount"
-                  type="number"
-                  min={1}
-                  max={selectedService.daily_capacity ?? 200}
-                  value={guestCount}
-                  onChange={(event) => {
-                    setError(null);
-                    const nextCount = Math.max(1, Number(event.target.value || 1));
-                    setGuestCount(nextCount);
-                    setGuestNames((current) =>
-                      Array.from(
-                        { length: nextCount },
-                        (_, index) => current[index] ?? (index === 0 ? defaultContactName ?? "" : "")
-                      )
-                    );
-                  }}
-                  required
-                />
+              <label className="block space-y-1.5">
+                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">Guests</span>
+                <div className="flex h-11 items-center justify-between rounded-[0.85rem] border border-input/90 bg-card px-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError(null);
+                      const nextCount = Math.max(1, guestCount - 1);
+                      setGuestCount(nextCount);
+                      setGuestNames((current) => current.slice(0, nextCount));
+                    }}
+                    disabled={guestCount <= 1}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted disabled:opacity-40"
+                    aria-label="Decrease guests"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </button>
+                  <span className="text-sm font-semibold tabular-nums">
+                    {guestCount} {guestCount === 1 ? "guest" : "guests"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError(null);
+                      const max = selectedService.daily_capacity ?? 200;
+                      const nextCount = Math.min(max, guestCount + 1);
+                      setGuestCount(nextCount);
+                      setGuestNames((current) =>
+                        Array.from(
+                          { length: nextCount },
+                          (_, index) => current[index] ?? (index === 0 ? defaultContactName ?? "" : "")
+                        )
+                      );
+                    }}
+                    disabled={guestCount >= (selectedService.daily_capacity ?? 200)}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted disabled:opacity-40"
+                    aria-label="Increase guests"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+                <input type="hidden" name="guestCount" value={guestCount} />
               </label>
+
+              {serviceDate ? (
+                <div className="space-y-2.5 rounded-[0.9rem] border border-border/70 bg-background px-3 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
+                    Select check-out date & time
+                  </p>
+                  <div className="space-y-2">
+                    <label className="block space-y-1.5">
+                      <span className="text-xs font-medium text-muted-foreground">Check-out date</span>
+                      <Input
+                        type="date"
+                        value={checkOutDate}
+                        min={serviceDate}
+                        onChange={(event) => {
+                          setError(null);
+                          setCheckOutDate(event.target.value);
+                        }}
+                        required
+                      />
+                    </label>
+                    <label className="block space-y-1.5">
+                      <span className="text-xs font-medium text-muted-foreground">Check-out time</span>
+                      <Input
+                        type="time"
+                        value={checkOutTime}
+                        onChange={(event) => {
+                          setError(null);
+                          setCheckOutTime(event.target.value);
+                        }}
+                        required
+                      />
+                    </label>
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <div className={`rounded-[1rem] border px-3.5 py-3 text-sm ${availabilityToneClass}`}>
