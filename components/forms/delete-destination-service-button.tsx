@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
@@ -15,7 +16,8 @@ export function DeleteDestinationServiceButton({
   description,
   deleteAll = false,
   className,
-  variant = "destructive"
+  variant = "destructive",
+  iconOnly = false
 }: {
   destinationId: string;
   serviceId?: string;
@@ -25,6 +27,7 @@ export function DeleteDestinationServiceButton({
   deleteAll?: boolean;
   className?: string;
   variant?: "destructive" | "outline";
+  iconOnly?: boolean;
 }) {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
@@ -65,17 +68,33 @@ export function DeleteDestinationServiceButton({
 
   return (
     <>
-      <div className="space-y-2">
-        <Button
-          type="button"
-          variant={variant}
-          size="sm"
-          className={cn("w-full sm:w-auto", className)}
-          disabled={isPending}
-          onClick={() => setIsDialogOpen(true)}
-        >
-          {isPending ? "Deleting..." : label}
-        </Button>
+      <div className={iconOnly ? "inline-flex flex-col items-center gap-1" : "space-y-2"}>
+        {iconOnly ? (
+          <button
+            type="button"
+            title={label}
+            aria-label={label}
+            disabled={isPending}
+            onClick={() => setIsDialogOpen(true)}
+            className={cn(
+              "flex h-8 w-8 items-center justify-center rounded-full border border-destructive/25 text-destructive hover:bg-destructive/8 disabled:opacity-50",
+              className
+            )}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        ) : (
+          <Button
+            type="button"
+            variant={variant}
+            size="sm"
+            className={cn("w-full sm:w-auto", className)}
+            disabled={isPending}
+            onClick={() => setIsDialogOpen(true)}
+          >
+            {isPending ? "Deleting..." : label}
+          </Button>
+        )}
         {error ? <p className="text-xs text-destructive">{error}</p> : null}
       </div>
       <ConfirmationDialog

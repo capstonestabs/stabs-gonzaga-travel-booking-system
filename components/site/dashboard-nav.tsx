@@ -11,11 +11,15 @@ import {
   CalendarCheck2,
   ChevronRight,
   CirclePlus,
+  ClipboardList,
   History,
+  Home,
   Landmark,
+  MapPin,
   Menu,
   MessageSquareText,
   Package,
+  Settings,
   Ticket,
   UserRound,
   Users,
@@ -24,12 +28,14 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import type { DashboardNavIconName, WorkspaceNavItem } from "@/components/site/workspace-nav-config";
+import type { AdminNavSection, DashboardNavIconName, WorkspaceNavItem } from "@/components/site/workspace-nav-config";
 import { cn } from "@/lib/utils";
 
 const iconByName: Record<DashboardNavIconName, React.ComponentType<{ className?: string }>> = {
   overview: BarChart3,
+  home: Home,
   destination: BriefcaseBusiness,
+  pin: MapPin,
   services: Package,
   bookings: CalendarCheck2,
   feedback: MessageSquareText,
@@ -39,7 +45,10 @@ const iconByName: Record<DashboardNavIconName, React.ComponentType<{ className?:
   create: CirclePlus,
   financials: Landmark,
   history: History,
-  tickets: Ticket
+  tickets: Ticket,
+  reports: BarChart3,
+  settings: Settings,
+  activity: ClipboardList
 };
 
 function getBaseHref(href: string) {
@@ -53,10 +62,14 @@ function matchesPath(pathname: string, href: string) {
 
 export function DashboardNav({
   items,
-  variant = "drawer"
+  sections,
+  variant = "drawer",
+  collapsed = false
 }: {
   items: WorkspaceNavItem[];
+  sections?: AdminNavSection[];
   variant?: "drawer" | "sidebar";
+  collapsed?: boolean;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -102,30 +115,42 @@ export function DashboardNav({
 
   if (variant === "sidebar") {
     return (
-      <nav aria-label="Admin workspace" className="grid gap-1.5">
-        {items.map((item) => {
-          const Icon = iconByName[item.icon];
-          const active = activeHref === item.href;
+      <nav aria-label="Admin workspace" className="space-y-4">
+        {sections?.map((section) => (
+          <div key={section.title} className="space-y-1.5">
+            {!collapsed ? (
+                     <p className="px-3 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80">
+                {section.title}
+              </p>
+            ) : null}
+            <div className="grid gap-1">
+              {section.items.map((item) => {
+                const Icon = iconByName[item.icon];
+                const active = activeHref === item.href;
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href as Route}
-              prefetch
-              className={cn(
-                "group flex min-h-11 items-center gap-3 rounded-[0.9rem] border px-3 py-2.5 text-sm font-medium transition-[background-color,border-color,color,transform] hover:translate-x-0.5",
-                active
-                  ? "border-primary/15 bg-primary text-primary-foreground shadow-[0_8px_18px_rgba(22,74,47,0.14)]"
-                  : "border-transparent text-foreground/72 hover:border-border/70 hover:bg-muted/55 hover:text-foreground"
-              )}
-              aria-current={active ? "page" : undefined}
-            >
-              <Icon className={cn("h-4 w-4 shrink-0", active ? "text-primary-foreground" : "text-primary")} />
-              <span className="min-w-0 flex-1 truncate">{item.label}</span>
-              <ChevronRight className={cn("h-3.5 w-3.5 shrink-0", active ? "text-primary-foreground/75" : "text-muted-foreground/45")} />
-            </Link>
-          );
-        })}
+                return (
+                   <Link
+                     key={item.href}
+                     href={item.href as Route}
+                     prefetch
+                     title={collapsed ? item.label : undefined}
+                     className={cn(
+                       "group flex min-h-10 items-center gap-2.5 rounded-[0.7rem] px-3 py-2 text-sm font-medium transition-colors",
+                       collapsed && "justify-center px-0",
+                       active
+                         ? "bg-primary/10 text-primary"
+                         : "text-foreground/70 hover:bg-muted/60 hover:text-foreground"
+                     )}
+                     aria-current={active ? "page" : undefined}
+                   >
+                     <Icon className={cn("h-4 w-4 shrink-0", active ? "text-primary" : "text-muted-foreground")} />
+                     {!collapsed ? <span className="min-w-0 flex-1 truncate">{item.label}</span> : null}
+                   </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
     );
   }

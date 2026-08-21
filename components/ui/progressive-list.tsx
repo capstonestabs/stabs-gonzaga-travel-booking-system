@@ -43,7 +43,7 @@ export function ProgressiveList({
       <div
         className={cn(
           shouldCollapse
-            ? `${maxHeightClass} overflow-y-auto overscroll-contain rounded-[0.95rem] px-0.5 pr-1`
+            ? `${maxHeightClass} overflow-y-auto overscroll-y-auto rounded-[0.95rem] px-0.5 pr-1`
             : "",
           "min-w-0 [scrollbar-gutter:stable]",
           itemsClassName

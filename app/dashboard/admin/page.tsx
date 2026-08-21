@@ -4,7 +4,6 @@ import type { LucideIcon } from "lucide-react";
 import {
   ArrowUpRight,
   CalendarCheck2,
-  CircleDollarSign,
   Clock3,
   Landmark,
   PlusCircle,
@@ -12,13 +11,18 @@ import {
   UsersRound,
   Wallet
 } from "lucide-react";
-
+import { TrendingUp, Trophy } from "lucide-react";
+import { BookingOverviewChart } from "@/components/site/booking-overview-chart";
+import { TopDestinationsList } from "@/components/site/top-destinations-list";
 import { DashboardShell } from "@/components/site/dashboard-shell";
+import { DateRangePicker } from "@/components/site/date-range-picker";
+import { MetricCard } from "@/components/site/metric-card";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireRole } from "@/lib/auth";
-import { getAdminDashboardData } from "@/lib/repositories";
+import { getAdminDashboardData, getAdminOverviewMetrics } from "@/lib/repositories";
 import type { DashboardMetric } from "@/lib/types";
+import { formatDateKey } from "@/lib/utils";
 
 function MetricTile({ metric, icon: Icon }: { metric: DashboardMetric; icon: LucideIcon }) {
   return (
@@ -48,51 +52,96 @@ const quickActions = [
   { href: "/admin/financials", label: "Financials", helper: "Record destination payouts", icon: Landmark }
 ] as const;
 
-const EXCLUDED_METRIC_PATTERN = /destination|feedback/i;
-
-function iconForHeadlineMetric(label: string): LucideIcon {
-  if (/staff/i.test(label)) return Users;
-  if (/tourist|traveler|user/i.test(label)) return UsersRound;
-  if (/booking/i.test(label)) return CalendarCheck2;
-  return CircleDollarSign;
-}
-
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({
+  searchParams
+}: {
+  searchParams: Promise<{ from?: string; to?: string }>;
+}) {
   await requireRole(["admin"]);
 
-  const data = await getAdminDashboardData();
+  const params = await searchParams;
+  const today = new Date();
+  const defaultTo = formatDateKey(today);
+  const defaultFrom = formatDateKey(new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()));
+  const from = params.from ?? defaultFrom;
+  const to = params.to ?? defaultTo;
+
+  const [data, overviewMetrics] = await Promise.all([
+    getAdminDashboardData(),
+    getAdminOverviewMetrics({ from: params.from, to: params.to })
+  ]);
+
   const unsettledRecords = data.financialRecords.filter(
     (record) => record.settlement_status !== "settled"
-  );
-  const headlineMetrics = [
-    ...data.metrics,
-    data.financialMetrics[0]
-  ].filter(
-    (metric): metric is DashboardMetric => Boolean(metric) && !EXCLUDED_METRIC_PATTERN.test(metric.label)
   );
 
   return (
     <DashboardShell
       role="admin"
       title="Overview"
-      description="Monitor the platform, resolve items that need attention, and open the right workspace quickly."
+      description=""
     >
       <section aria-labelledby="admin-overview-metrics" className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">Today&apos;s snapshot</p>
-            <h2 id="admin-overview-metrics" className="mt-1 font-display text-xl font-semibold">Platform at a glance</h2>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">Welcome back, Admin!👋🏼</p>
+            <h2 id="admin-overview-metrics" className="mt-1 font-display text-xl font-semibold">Monitor the overall performance of STABS.</h2>
           </div>
-          <Badge variant="muted">Live data</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="muted">Live data</Badge>
+            <DateRangePicker defaultFrom={from} defaultTo={to} />
+          </div>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
-          {headlineMetrics.map((metric) => (
-            <MetricTile key={metric.label} metric={metric} icon={iconForHeadlineMetric(metric.label)} />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+          {overviewMetrics.map((metric) => (
+            <MetricCard key={metric.label} metric={metric} />
           ))}
         </div>
       </section>
 
-      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr),21rem]">
+      <div className="grid gap-4 2xl:grid-cols-2">
+        <Card className="flex h-full flex-col overflow-hidden">
+          <CardHeader className="border-b border-border/70 py-4">
+            <CardTitle className="inline-flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Booking Overview
+            </CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Reservation trends by status over the last 30 days.
+            </p>
+          </CardHeader>
+
+          <CardContent className="flex-1 p-4">
+            <BookingOverviewChart data={data.bookingActivitySeries} />
+          </CardContent>
+        </Card>
+
+        <Card className="flex h-full flex-col overflow-hidden">
+          <CardHeader className="border-b border-border/70 py-4">
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle className="inline-flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-primary" />
+                Top Destinations
+              </CardTitle>
+
+              <Link
+                href={"/admin/destination-financials" as Route}
+                className="text-xs font-semibold text-primary hover:underline"
+              >
+                View all
+              </Link>
+            </div>
+          </CardHeader>
+
+          <CardContent className="flex-1 p-4">
+            <TopDestinationsList destinations={data.destinationRevenue} />
+          </CardContent>
+        </Card>
+      </div>
+
+
+      {/* commented for future purposes huhu */}
+      {/* <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr),21rem]">
         <Card className="overflow-hidden">
           <CardHeader className="border-b border-border/70 py-4">
             <div className="flex items-center justify-between gap-3">
@@ -153,7 +202,7 @@ export default async function AdminDashboardPage() {
             </Link>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       <section aria-labelledby="admin-quick-actions" className="space-y-3">
         <div>

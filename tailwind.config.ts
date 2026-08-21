@@ -61,6 +61,11 @@ const config: Config = {
           "\"Book Antiqua\"",
           "Georgia",
           "serif"
+        ],
+        admin: [
+          "var(--font-plus-jakarta)",
+          "ui-sans-serif",
+          "sans-serif"
         ]
       },
       boxShadow: {

@@ -5,8 +5,8 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { Menu, X } from "lucide-react";
-
+import { Menu, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
+import { useSidebar } from "@/components/site/sidebar-context";
 import { HeaderAccountMenu } from "@/components/site/header-account-menu";
 import { workspaceNavByRole, type WorkspaceNavItem } from "@/components/site/workspace-nav-config";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,9 @@ export function SiteHeaderClient({
     avatarUrl: string | null;
   } | null;
 }) {
+  
   const pathname = usePathname();
+  const { collapsed, toggleCollapsed } = useSidebar();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const scenicPaths = new Set(["/", "/destinations", "/feedback"]);
@@ -88,24 +90,49 @@ export function SiteHeaderClient({
           : "sticky top-0 border-b border-emerald-950/10 bg-[linear-gradient(135deg,rgba(244,250,246,0.98),rgba(224,239,229,0.96))] shadow-[0_14px_30px_rgba(19,69,45,0.08)] backdrop-blur"
       )}
     >
-      <div className={cn(isScenicPage ? "page-shell pt-3.5 sm:pt-5 lg:pt-6" : "page-shell py-2.5")}>
-        <div className="flex min-h-[3.5rem] w-full items-center justify-between gap-3">
+        <div className={cn( isScenicPage ? "page-shell pt-3.5 sm:pt-5 lg:pt-6" : role === "admin" ? "w-full px-4 py-2.5 sm:px-5" : "page-shell py-2.5" )} >
+          <div className="flex min-h-[3.5rem] w-full items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className={cn(
-                "h-11 w-11 shrink-0 px-0",
-                isScenicPage
-                  ? "border-white/18 bg-white/10 text-white hover:bg-white/16 hover:text-white"
-                  : "border-emerald-900/12 bg-white/82 text-emerald-950 hover:bg-white"
-              )}
-              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-              onClick={() => setIsMobileMenuOpen((current) => !current)}
-            >
-              {isMobileMenuOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
-            </Button>
+                       {role === "admin" ? (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="hidden h-11 w-11 shrink-0 border-emerald-900/12 bg-white/82 px-0 text-emerald-950 hover:bg-white xl:inline-flex"
+                  aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                  onClick={toggleCollapsed}
+                >
+                  {collapsed ? <PanelLeftOpen className="h-4.5 w-4.5" /> : <PanelLeftClose className="h-4.5 w-4.5" />}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-11 w-11 shrink-0 border-emerald-900/12 bg-white/82 px-0 text-emerald-950 hover:bg-white xl:hidden"
+                  aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+                  onClick={() => setIsMobileMenuOpen((current) => !current)}
+                >
+                  {isMobileMenuOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
+                </Button>
+              </>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "h-11 w-11 shrink-0 px-0",
+                  isScenicPage
+                    ? "border-white/18 bg-white/10 text-white hover:bg-white/16 hover:text-white"
+                    : "border-emerald-900/12 bg-white/82 text-emerald-950 hover:bg-white"
+                )}
+                aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+                onClick={() => setIsMobileMenuOpen((current) => !current)}
+              >
+                {isMobileMenuOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
+              </Button>
+            )}
 
             <Link
               href={logoHref as Route}
@@ -125,7 +152,7 @@ export function SiteHeaderClient({
                   )}
                   style={isScenicPage ? { textShadow: "0 4px 18px rgba(0,0,0,0.48)" } : undefined}
                 >
-                  STABS
+                  STABSasdasd
                 </p>
                 <p
                   className={cn(

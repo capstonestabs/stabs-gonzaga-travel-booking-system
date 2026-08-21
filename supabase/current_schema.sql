@@ -117,6 +117,8 @@ create table if not exists public.destination_images (
 create table if not exists public.destination_services (
   id uuid primary key default gen_random_uuid(),
   destination_id uuid not null references public.destinations (id) on delete cascade,
+  service_category text not null default 'core'
+    check (service_category in ('core', 'additional')),
   title text not null,
   description text,
   price_amount numeric(10, 2) not null check (price_amount >= 0),
@@ -133,6 +135,9 @@ create table if not exists public.destination_services (
   closing_time time,
   open_weekdays smallint[] not null default array[1, 2, 3, 4, 5, 6, 7]::smallint[],
   operating_remarks text,
+  unit_count integer,
+  unit_label text,
+  features text[] not null default '{}'::text[],
   created_at timestamptz not null default timezone('utc'::text, now()),
   updated_at timestamptz not null default timezone('utc'::text, now()),
   constraint destination_services_availability_window_check

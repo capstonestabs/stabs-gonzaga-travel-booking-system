@@ -1,20 +1,32 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CalendarDays, Clock3, MessageSquareText, Plus } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarRange,
+  ChevronLeft,
+  ChevronRight,
+  Home,
+  Pencil,
+  Plus,
+  Sparkles
+} from "lucide-react";
+import { splitServicesByCategory } from "@/lib/service-categories";
 
 import { DeleteDestinationServiceButton } from "@/components/forms/delete-destination-service-button";
 import { ServiceCalendarManager } from "@/components/forms/service-calendar-manager";
 import { ServicesEditorForm } from "@/components/forms/services-editor-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { optimizeImageToWebp } from "@/lib/browser-image";
 import { formatServiceTypeLabel } from "@/lib/service-types";
 import type { Destination, DestinationService } from "@/lib/types";
 import { formatPesoCurrency } from "@/lib/utils";
 import { formatOpenWeekdays, formatOperatingTime } from "@/lib/service-schedule";
+
+const ITEMS_PER_PAGE = 5;
 
 export function ServicesManagerShell({
   destination,
@@ -31,10 +43,23 @@ export function ServicesManagerShell({
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [coverError, setCoverError] = useState<string | null>(null);
   const [selectedCoverFileName, setSelectedCoverFileName] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"core" | "additional">("core");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false);
+const { core, additional } = splitServicesByCategory(destination.destination_services);
 
   const services = initialServices;
-  const activeServices = services.filter((service) => service.is_active);
-  const inactiveServices = services.filter((service) => !service.is_active);
+
+  const totalPages = Math.max(1, Math.ceil(services.length / ITEMS_PER_PAGE));
+  const paginatedServices = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return services.slice(start, start + ITEMS_PER_PAGE);
+  }, [services, currentPage]);
+
+  function switchTab(tab: "core" | "additional") {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  }
 
   const handleAdd = () => {
     setEditingServiceId("new");
@@ -107,63 +132,53 @@ export function ServicesManagerShell({
 
   return (
     <section className="space-y-5">
-      {/* <Card className="overflow-hidden border-border/70 shadow-sm">
-        <CardHeader className="border-b border-border/60 bg-muted/20 px-5 py-4 sm:px-6">
-          <div className="gradient-chip w-fit">Cover photo</div>
-        </CardHeader>
-        <CardContent className="space-y-3 p-5 sm:p-6">
-          <button
-            type="button"
-            onClick={() => {
-              setCoverError(null);
-              setIsCoverModalOpen(true);
-            }}
-            className="mx-auto block w-full max-w-[12rem] overflow-hidden rounded-[0.8rem] border border-border/70 bg-muted text-left transition hover:border-primary/40"
-          >
-            {destination.cover_url ? (
-              <img
-                src={destination.cover_url}
-                alt={`${destination.title} cover photo`}
-                className="aspect-[16/9] w-full object-cover"
-              />
-            ) : (
-              <div className="flex aspect-[16/9] w-full items-center justify-center px-3 text-center text-xs text-muted-foreground">
-                No cover photo set
-              </div>
-            )}
-          </button>
-          <p className="text-center text-xs text-muted-foreground">Click the cover photo to update it.</p>
-        </CardContent>
-      </Card> */}
-
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <div className="gradient-chip w-fit">Service management</div>
-          <p className="text-sm text-muted-foreground">
-            Manage your destination packages, optional service photos, and visually open or close future dates.
-            Package slots stay as the configured daily total while live availability adjusts automatically as tourists book.
-          </p>
-        </div>
-        {!showEditor ? (
-          <div className="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
-            {services.length > 0 ? (
-              <DeleteDestinationServiceButton
-                destinationId={destination.id}
-                deleteAll
-                label="Delete all services"
-                title="Delete all services?"
-                description="Delete every service under this destination? Existing booking snapshots stay on file, but this destination will no longer have any bookable services."
-                variant="outline"
-                className="border-destructive/25 text-destructive hover:bg-destructive/8 hover:text-destructive"
-              />
-            ) : null}
-            <Button onClick={handleAdd} className="w-full sm:w-auto">
-              <Plus className="mr-2 h-4 w-4" />
-              Add service
-            </Button>
+      {!showEditor ? (
+        <>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <h1 className="font-display text-2xl font-bold tracking-tight">Services Management</h1>
+              <p className="text-sm text-muted-foreground">
+                Manage core services and additional service details separately.
+              </p>
+            </div>
+            <div className="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
+              <Button variant="outline" onClick={() => setIsAvailabilityModalOpen(true)} className="w-full sm:w-auto">
+                <CalendarRange className="mr-2 h-4 w-4" />
+                Manage availability
+              </Button>
+              <Button onClick={handleAdd} className="w-full sm:w-auto">
+                <Plus className="mr-2 h-4 w-4" />
+                Add service
+              </Button>
+            </div>
           </div>
-        ) : null}
-      </div>
+
+          <div className="flex gap-6 border-b border-border/60">
+            <button
+              type="button"
+              onClick={() => switchTab("core")}
+              className={`-mb-px border-b-2 pb-2.5 text-sm font-semibold transition-colors ${
+                activeTab === "core"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Core Services
+            </button>
+            <button
+              type="button"
+              onClick={() => switchTab("additional")}
+              className={`-mb-px border-b-2 pb-2.5 text-sm font-semibold transition-colors ${
+                activeTab === "additional"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Additional Services
+            </button>
+          </div>
+        </>
+      ) : null}
 
       {isCoverModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 py-6">
@@ -245,42 +260,49 @@ export function ServicesManagerShell({
         </div>
       ) : null}
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Card>
-          <CardContent className="p-4 text-center sm:p-5 sm:text-left">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Total services
-            </p>
-            <p className="mt-1 text-2xl font-bold">{services.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center sm:p-5 sm:text-left">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Active
-            </p>
-            <p className="mt-1 text-2xl font-bold text-emerald-700">{activeServices.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center sm:p-5 sm:text-left">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Inactive
-            </p>
-            <p className="mt-1 text-2xl font-bold text-muted-foreground">{inactiveServices.length}</p>
-          </CardContent>
-        </Card>
-      </div>
+      {isAvailabilityModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/55 px-4 py-6 sm:items-center">
+          <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-[1.25rem] bg-background shadow-xl">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border/70 bg-background/95 px-5 py-3 backdrop-blur-sm">
+              <p className="text-sm font-semibold text-foreground">Manage availability</p>
+              <Button variant="outline" size="sm" onClick={() => setIsAvailabilityModalOpen(false)}>
+                Close
+              </Button>
+            </div>
+            <div className="p-0">
+              <ServiceCalendarManager destinationId={destination.id} services={services} />
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {!showEditor ? (
         <Card className="overflow-hidden border-border/70 shadow-sm">
-          <CardHeader className="border-b border-border/60 bg-muted/20 px-5 py-4 sm:px-6">
-            <CardTitle className="text-base font-semibold">Your services</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              The packages currently available for booking.
-            </p>
-          </CardHeader>
           <CardContent className="p-0">
+            <div className="flex items-center justify-between gap-3 border-b border-border/60 bg-muted/20 px-5 py-4 sm:px-6">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
+                  {activeTab === "core" ? <Home className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+                </span>
+                <div>
+                  <p className="font-semibold text-foreground">
+                    {activeTab === "core" ? "Core Services" : "Additional Services"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {activeTab === "core"
+                      ? "These are the main services or packages that guests can book."
+                      : "Optional details attached to each core service."}
+                  </p>
+                </div>
+              </div>
+              <div className="hidden shrink-0 items-center gap-2 sm:flex">
+                <span className="text-xs text-muted-foreground">
+                  {activeTab === "core" ? "Total Core Services" : "Total Additional Services"}
+                </span>
+                <Badge variant="success">{services.length}</Badge>
+              </div>
+            </div>
+
             {services.length === 0 ? (
               <div className="px-5 py-12 text-center text-sm text-muted-foreground sm:px-6">
                 <p className="font-semibold text-foreground/80">No services created yet</p>
@@ -289,125 +311,213 @@ export function ServicesManagerShell({
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-border/50">
-                {services.map((service) => (
-                  <div
-                    key={service.id}
-                    className={`group px-4 py-4 transition-all hover:bg-muted/10 sm:px-5 sm:py-5 lg:px-6 ${
-                      service.is_active ? "bg-background" : "bg-muted/15"
-                    }`}
-                  >
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                      {service.image_url ? (
-                        <img
-                          src={service.image_url}
-                          alt={service.title}
-                          className="aspect-[4/3] w-full rounded-[0.9rem] object-cover sm:w-40"
-                        />
-                      ) : null}
-                      <div className="flex-1 space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-semibold tracking-tight text-foreground">
-                            {service.title}
-                          </p>
-                          <Badge
-                            variant={service.is_active ? "success" : "muted"}
-                            className="h-4 text-[10px] uppercase tracking-[0.05em]"
-                          >
-                            {service.is_active ? "Active" : "Disabled"}
-                          </Badge>
-                          <Badge
-                            variant="muted"
-                            className="h-4 bg-muted/40 text-[10px]"
-                          >
-                            {formatServiceTypeLabel(service.service_type, {
-                              category: destination.category,
-                              includeSlash: true
-                            })}
-                          </Badge>
-                        </div>
-                        {service.description ? (
-                          <p className="line-clamp-1 max-w-md text-xs text-muted-foreground">
-                            {service.description}
-                          </p>
-                        ) : null}
-                        <div className="flex flex-wrap items-center gap-3 pt-0.5 text-xs text-muted-foreground">
-                          <span className="font-medium text-foreground">
-                            {formatPesoCurrency(service.price_amount)}
-                          </span>
-                          <span className="opacity-40">|</span>
-                          <span>{service.daily_capacity} configured slots/day</span>
-                          {service.availability_start_date || service.availability_end_date ? (
-                            <>
-                              <span className="opacity-40">|</span>
-                              <span>
-                                {service.availability_start_date ?? "Now"} to{" "}
-                                {service.availability_end_date ?? "Open-ended"}
-                              </span>
-                            </>
-                          ) : null}
-                        </div>
-                      </div>
-
-                      <div className="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
-                        <DeleteDestinationServiceButton
-                          destinationId={destination.id}
-                          serviceId={service.id}
-                          label="Delete"
-                          title={`Delete ${service.title}?`}
-                          description="Delete this service from the destination? Existing booking snapshots stay on file, but the service will no longer appear in the staff workspace or public booking list."
-                          variant="outline"
-                          className="border-destructive/25 text-destructive hover:bg-destructive/8 hover:text-destructive"
-                        />
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          className="h-8 w-full px-4 text-xs font-semibold sm:w-auto"
-                          onClick={() => handleEdit(service.id)}
-                        >
-                          Edit service
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 grid gap-3 rounded-[0.9rem] border border-border/60 bg-muted/20 p-3 text-xs sm:grid-cols-3">
-                      <div className="flex items-start gap-2">
-                        <Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                        <div>
-                          <p className="font-semibold text-foreground">Operating hours</p>
-                          <p className="mt-0.5 text-muted-foreground">
-                            {service.opening_time && service.closing_time
-                              ? `${formatOperatingTime(service.opening_time)} – ${formatOperatingTime(service.closing_time)}`
-                              : "Hours not specified"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                        <div>
-                          <p className="font-semibold text-foreground">Open days</p>
-                          <p className="mt-0.5 text-muted-foreground">{formatOpenWeekdays(service.open_weekdays)}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <MessageSquareText className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                        <div>
-                          <p className="font-semibold text-foreground">Remarks</p>
-                          <p className="mt-0.5 text-muted-foreground">{service.operating_remarks || "No operating remarks"}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {(service.image_urls?.length ?? 0) > 1 ? (
-                      <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-                        {service.image_urls?.map((url, photoIndex) => (
-                          <img key={`${url}-${photoIndex}`} src={url} alt={`${service.title} photo ${photoIndex + 1}`} className="h-16 w-24 shrink-0 rounded-[0.7rem] object-cover" />
+              <>
+                <div className="overflow-x-auto">
+                  {activeTab === "core" ? (
+                    <table className="w-full min-w-[720px] text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-400">
+                          <th className="px-5 py-3 font-medium">Service name</th>
+                          <th className="px-3 py-3 font-medium">Description</th>
+                          <th className="px-3 py-3 font-medium">Price</th>
+                          <th className="px-3 py-3 font-medium">Slots</th>
+                          <th className="px-3 py-3 font-medium">Status</th>
+                          <th className="px-5 py-3 font-medium">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paginatedServices.map((service) => (
+                          <tr key={service.id} className="border-b border-slate-50 last:border-0">
+                            <td className="px-5 py-3">
+                              <div className="flex items-center gap-3">
+                                {service.image_url ? (
+                                  <img
+                                    src={service.image_url}
+                                    alt={service.title}
+                                    className="h-16 w-16 shrink-0 rounded-sm object-cover"
+                                  />
+                                ) : (
+                                  <div className="h-16 w-16 shrink-0 rounded-lg bg-slate-100" />
+                                )}
+                                <div>
+                                  <p className="font-semibold text-slate-800">{service.title}</p>
+                                  <p className="text-xs text-slate-400">
+                                    {formatServiceTypeLabel(service.service_type, {
+                                      category: destination.category,
+                                      includeSlash: true
+                                    })}
+                                    {" · "}
+                                    {service.opening_time && service.closing_time
+                                      ? `${formatOperatingTime(service.opening_time)} – ${formatOperatingTime(service.closing_time)}`
+                                      : "Hours not set"}
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="max-w-[220px] px-3 py-3 text-slate-600">
+                              <p className="line-clamp-2">{service.description || "No description"}</p>
+                            </td>
+                            <td className="px-3 py-3 font-medium text-slate-800">
+                              {formatPesoCurrency(service.price_amount)}
+                            </td>
+                            <td className="px-3 py-3 text-slate-600">{service.daily_capacity}</td>
+                            <td className="px-3 py-3">
+                              <Badge variant={service.is_active ? "success" : "muted"}>
+                                {service.is_active ? "Active" : "Disabled"}
+                              </Badge>
+                            </td>
+                            <td className="px-5 py-3">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  title="Edit service"
+                                  aria-label="Edit service"
+                                  onClick={() => handleEdit(service.id)}
+                                  className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </button>
+                              <DeleteDestinationServiceButton
+                                  destinationId={destination.id}
+                                  serviceId={service.id}
+                                  label="Delete service"
+                                  title={`Delete ${service.title}?`}
+                                  description="Delete this service from the destination? Existing booking snapshots stay on file, but the service will no longer appear in the staff workspace or public booking list."
+                                  iconOnly
+                                />
+                              </div>
+                            </td>
+                          </tr>
                         ))}
-                      </div>
-                    ) : null}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <table className="w-full min-w-[720px] text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-400">
+                          <th className="px-5 py-3 font-medium">Service name</th>
+                          <th className="px-3 py-3 font-medium">Description</th>
+                          <th className="px-3 py-3 font-medium">Units</th>
+                          <th className="px-3 py-3 font-medium">Features</th>
+                          <th className="px-3 py-3 font-medium">Status</th>
+                          <th className="px-5 py-3 font-medium">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paginatedServices.map((service) => (
+                          <tr key={service.id} className="border-b border-slate-50 last:border-0">
+                            <td className="px-5 py-3">
+                                                           <div className="flex items-center gap-3">
+                                {service.image_url ? (
+                                  <img
+                                    src={service.image_url}
+                                    alt={service.title}
+                                    className="h-16 w-16 shrink-0 rounded-sm object-cover"
+                                  />
+                                ) : (
+                                  <div className="h-16 w-16 shrink-0 rounded-lg bg-slate-100" />
+                                )}
+                                <p className="font-semibold text-slate-800">{service.title}</p>
+                              </div>
+                            </td>
+                            <td className="max-w-[220px] px-3 py-3 text-slate-600">
+                              <p className="line-clamp-2">{service.description || "No description"}</p>
+                            </td>
+                            <td className="px-3 py-3 text-slate-600">
+                              {service.unit_count
+                                ? `${service.unit_count} ${service.unit_label || "units"}`
+                                : "Not set"}
+                            </td>
+                            <td className="max-w-[220px] px-3 py-3">
+                              {service.features?.length ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {service.features.map((tag) => (
+                                    <span
+                                      key={tag}
+                                      className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs text-slate-600"
+                                    >
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-slate-400">None</span>
+                              )}
+                            </td>
+                            <td className="px-3 py-3">
+                              <Badge variant={service.is_active ? "success" : "muted"}>
+                                {service.is_active ? "Active" : "Disabled"}
+                              </Badge>
+                            </td>
+                            <td className="px-5 py-3">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  title="Edit service"
+                                  aria-label="Edit service"
+                                  onClick={() => handleEdit(service.id)}
+                                  className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </button>
+                                <DeleteDestinationServiceButton
+                                  destinationId={destination.id}
+                                  serviceId={service.id}
+                                  label="Delete service"
+                                  title={`Delete ${service.title}?`}
+                                  description="Delete this service from the destination? Existing booking snapshots stay on file, but the service will no longer appear in the staff workspace or public booking list."
+                                  iconOnly
+                                />
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between border-t border-slate-100 px-5 py-3 sm:px-6">
+                  <p className="text-xs text-slate-400">
+                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
+                    {Math.min(currentPage * ITEMS_PER_PAGE, services.length)} of {services.length}{" "}
+                    {activeTab === "core" ? "core service" : "additional service"}
+                    {services.length === 1 ? "" : "s"}
+                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40"
+                    >
+                      <ChevronLeft className="h-3.5 w-3.5" />
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        type="button"
+                        onClick={() => setCurrentPage(page)}
+                        className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${
+                          page === currentPage
+                            ? "bg-emerald-700 text-white"
+                            : "border border-slate-200 text-slate-500 hover:bg-slate-50"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40"
+                    >
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
                   </div>
-                ))}
-              </div>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
@@ -441,10 +551,6 @@ export function ServicesManagerShell({
             hideAddRow={editingServiceId !== "new"}
             onSuccess={handleBack}
           />
-
-          {editingServiceId !== "new" ? (
-            <ServiceCalendarManager destinationId={destination.id} services={servicesInEditor} />
-          ) : null}
         </div>
       )}
     </section>

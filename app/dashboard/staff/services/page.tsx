@@ -17,15 +17,15 @@ export default async function StaffServicesPage() {
     return (
       <DashboardShell
         role="staff"
-        title="Services & packages"
-        description="Create, manage, and schedule the service packages that tourists can book for your destination."
+        title=" "
+        description=" "
       >
         <Card>
           <CardContent className="p-6 text-sm text-muted-foreground">
-            <p>No destination is linked to this staff account yet.</p>
+            {/* <p>No destination is linked to this staff account yet.</p>
             <p className="mt-2">
               Ask the admin to create a destination for you first.
-            </p>
+            </p> */}
           </CardContent>
         </Card>
       </DashboardShell>
@@ -37,19 +37,9 @@ export default async function StaffServicesPage() {
   return (
     <DashboardShell
       role="staff"
-      title="Services & packages"
-      description="Create bookable services, add optional service photos, define their date window, and manage monthly availability with a visual calendar."
+      title=" "
+      description=" "
     >
-      <div className="flex flex-wrap gap-2.5">
-        <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted/45 px-3 py-1.5 text-sm text-foreground/82">
-          <PackageSearch className="h-4 w-4 text-primary" />
-          Manage package details
-        </span>
-        <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted/45 px-3 py-1.5 text-sm text-foreground/82">
-          <CalendarRange className="h-4 w-4 text-primary" />
-          Control monthly availability
-        </span>
-      </div>
       <ServicesManagerShell
         destination={destination}
         initialServices={services}

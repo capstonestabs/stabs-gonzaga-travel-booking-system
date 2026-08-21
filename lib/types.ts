@@ -1,3 +1,5 @@
+import type { Route } from "next";
+
 export type UserRole = "user" | "staff" | "admin";
 export type ListingCategory = "tour" | "stay";
 export type BookingType = "online" | "walk-in";
@@ -15,6 +17,7 @@ export type PaymentStatus =
   | "expired"
   | "cancelled";
 export type FinancialSettlementStatus = "unsettled" | "settled";
+export type ServiceCategory = "core" | "additional";
 
 export interface AppUser {
   id: string;
@@ -64,6 +67,7 @@ export interface DestinationService {
   price_amount: number;
   service_type: ServiceType;
   daily_capacity: number;
+  service_category: ServiceCategory;
   image_path?: string | null;
   image_url?: string | null;
   image_paths?: string[];
@@ -80,7 +84,6 @@ export interface DestinationService {
   is_active: boolean;
   created_at: string;
   updated_at: string;
-
 }
 
 export interface DestinationAvailabilityWindow {
@@ -257,18 +260,68 @@ export interface AvailabilityCalendarDay {
   date: string;
   status: AvailabilityDayStatus;
 }
+export interface DashboardMetricTrend {
+  direction: "up" | "down" | "neutral";
+  label: string;
+}
+
+export interface DashboardMetric {
+  label: string;
+  value: string;
+  helper: string;
+  trend?: DashboardMetricTrend;
+}
 
 export interface DashboardMetric {
   label: string;
   value: string;
   helper: string;
 }
+export interface BookingStatusBreakdown {
+  confirmed: number;
+  pending: number;
+  cancelled: number;
+  total: number;
+}
 
+export interface MonthlyRevenuePoint {
+  key: string;
+  label: string;
+  revenue: number;
+}
+
+export type ActivityType = "booking" | "tourist" | "service";
+
+export interface ActivityItem {
+  id: string;
+  type: ActivityType;
+  title: string;
+  subtitle: string;
+  timestamp: string;
+}
 export interface StaffDashboardData {
   metrics: DashboardMetric[];
   listings: Destination[];
   recentBookings: Booking[];
   feedbackEntries: FeedbackEntry[];
+  overview: {
+  collectedAmount: number;
+  pendingPayoutAmount: number;
+  pendingPayoutCount: number;
+  touristsCount: number;
+  bookingsTotal: number;
+  bookingsPending: number;
+  bookingsConfirmed: number;
+  bookingsCancelled: number;
+  servicesTotal: number;
+};
+todaySummary: {
+  newBookings: number;
+  confirmed: number;
+  pending: number;
+  declined: number;
+};
+tasks?: StaffTaskReminder[];
 }
 
 export interface FinancialRecord {
@@ -315,7 +368,13 @@ export interface FinancialRecord {
   created_at: string;
   updated_at: string;
 }
-
+export interface StaffTaskReminder {
+  id: "pending_bookings" | "new_feedback" | "unsettled_payouts";
+  title: string;
+  description: string;
+  href: Route;
+  icon: "calendar" | "inquiry" | "bell";
+}
 export interface AdminFinancialDestinationOption {
   id: string;
   title: string;
@@ -339,8 +398,15 @@ export interface DestinationRevenueSummary {
   total_paid_amount: number;
   settled_amount: number;
   unsettled_amount: number;
+  cover_url: string | null;
 }
-
+export interface BookingActivityPoint {
+  date: string;   // ISO yyyy-mm-dd
+  label: string;  // e.g. "May 12"
+  confirmed: number;
+  pending: number;
+  cancelled: number;
+}
 export interface AdminDashboardData {
   metrics: DashboardMetric[];
   financialMetrics: DashboardMetric[];
@@ -352,6 +418,7 @@ export interface AdminDashboardData {
   destinationRevenue: DestinationRevenueSummary[];
   financialRecords: FinancialRecord[];
   archivedFinancialRecordCount: number;
+  bookingActivitySeries: BookingActivityPoint[];
 }
 
 export interface ProfileBundle {

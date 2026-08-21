@@ -16,11 +16,12 @@ const payloadSchema = z.object({
   services: z.array(
     z.object({
       id: z.string().uuid().optional(),
+      serviceCategory: z.enum(["core", "additional"]).default("core"),
       title: z.string().min(2).max(100),
       description: z.string().max(400).optional().or(z.literal("")),
       priceAmount: z.number().min(0),
-      serviceType: z.string().trim().min(1).max(SERVICE_TYPE_MAX_LENGTH),
-      dailyCapacity: z.number().int().min(1),
+      serviceType: z.string().trim().max(SERVICE_TYPE_MAX_LENGTH).optional().or(z.literal("")),
+      dailyCapacity: z.number().int().min(1).optional(),
       imagePath: z.string().max(500).nullable().optional(),
       imageUrl: z.string().max(1000).nullable().optional(),
       imagePaths: z.array(z.string().max(500)).max(5).default([]),
@@ -36,6 +37,15 @@ const payloadSchema = z.object({
       features: z.array(z.string().max(60)).max(20).default([]),
       isActive: z.boolean(),
     }).superRefine((service, ctx) => {
+      if (service.serviceCategory === "core") {
+        if (!service.dailyCapacity) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["dailyCapacity"],
+            message: "Core services require a daily capacity."
+          });
+        }
+      }
       if (
         service.availabilityStartDate &&
         service.availabilityEndDate &&
@@ -68,7 +78,8 @@ const payloadSchema = z.object({
 const deletePayloadSchema = z
   .object({
     serviceId: z.string().uuid().optional(),
-    deleteAll: z.boolean().optional()
+    deleteAll: z.boolean().optional(),
+    serviceCategory: z.enum(["core", "additional"]).optional()
   })
   .refine((value) => value.deleteAll === true || Boolean(value.serviceId), {
     message: "Select a service to delete or choose delete all."
@@ -97,9 +108,6 @@ export async function PUT(
 
     const supabase = createAdminSupabaseClient();
 
-    // Only upsert the submitted services here. Existing services that are not part of
-    // the current edit request must stay untouched so staff can add or edit one
-    // package without wiping the rest of the destination's services.
     const { data: currentServices } = await supabase
       .from("destination_services")
       .select("id, image_path, image_paths")
@@ -115,8 +123,7 @@ export async function PUT(
       ])
     );
 
-    // Upsert the remaining
-    const rowsToUpsert = payload.services.map((service) => {
+    const rowsToUpsert = payload.services.map((service, serviceIndex) => {
       const imagePaths = service.imagePaths.length > 0
         ? service.imagePaths
         : service.imagePath ? [service.imagePath] : [];
@@ -124,30 +131,55 @@ export async function PUT(
         ? service.imageUrls
         : service.imageUrl ? [service.imageUrl] : [];
 
-      return {
+      const isAdditional = service.serviceCategory === "additional";
+
+      const row: Record<string, unknown> = {
         id: service.id || crypto.randomUUID(),
         destination_id: destinationId,
         title: service.title,
         description: service.description || null,
         price_amount: service.priceAmount,
-        daily_capacity: service.dailyCapacity,
+        daily_capacity: isAdditional ? (service.dailyCapacity ?? 10) : (service.dailyCapacity as number),
         image_path: imagePaths[0] ?? null,
         image_url: imageUrls[0] ?? null,
         image_paths: imagePaths,
         image_urls: imageUrls,
-        availability_start_date: normalizeDateOrNull(service.availabilityStartDate),
-        availability_end_date: normalizeDateOrNull(service.availabilityEndDate),
-        opening_time: service.openingTime ?? null,
-        closing_time: service.closingTime ?? null,
+        availability_start_date: isAdditional ? null : normalizeDateOrNull(service.availabilityStartDate),
+        availability_end_date: isAdditional ? null : normalizeDateOrNull(service.availabilityEndDate),
+        opening_time: isAdditional ? null : (service.openingTime ?? null),
+        closing_time: isAdditional ? null : (service.closingTime ?? null),
         open_weekdays: normalizeOpenWeekdays(service.openWeekdays),
-        operating_remarks: service.operatingRemarks || null,
-        unit_count: service.unitCount ?? null,
-        unit_label: service.unitLabel ?? null,
-        features: service.features ?? [],
+        operating_remarks: isAdditional ? null : (service.operatingRemarks || null),
+        unit_count: isAdditional ? null : (service.unitCount ?? null),
+        unit_label: isAdditional ? null : (service.unitLabel ?? null),
+        features: isAdditional ? [] : (service.features ?? []),
         service_type: normalizeServiceTypeLabel(service.serviceType, destination.category),
         is_active: service.isActive,
+        _serviceIndex: serviceIndex,
       };
+
+      return row;
     });
+
+    const { data: categoryColumns } = await supabase
+      .from("information_schema.columns")
+      .select("column_name")
+      .eq("table_name", "destination_services")
+      .eq("table_schema", "public")
+      .in("column_name", ["service_category", "unit_count", "unit_label", "features"]);
+
+    const availableColumns = new Set((categoryColumns ?? []).map((col) => col.column_name));
+
+    for (const row of rowsToUpsert) {
+      const service = payload.services[row._serviceIndex as number];
+      if (availableColumns.has("service_category")) {
+        row.service_category = service.serviceCategory;
+      }
+      if (!availableColumns.has("unit_count")) delete row.unit_count;
+      if (!availableColumns.has("unit_label")) delete row.unit_label;
+      if (!availableColumns.has("features")) delete row.features;
+      delete row._serviceIndex;
+    }
 
     if (rowsToUpsert.length > 0) {
       const { error: upsertError } = await supabase
@@ -215,10 +247,24 @@ export async function DELETE(
     }
 
     const supabase = createAdminSupabaseClient();
-    const { data: currentServices, error: currentServicesError } = await supabase
+    let query = supabase
       .from("destination_services")
       .select("id, image_path, image_paths")
       .eq("destination_id", destinationId);
+
+    const { data: deleteColumnCheck } = await supabase
+      .from("information_schema.columns")
+      .select("column_name")
+      .eq("table_name", "destination_services")
+      .eq("table_schema", "public")
+      .eq("column_name", "service_category")
+      .maybeSingle();
+
+    if (payload.serviceCategory && deleteColumnCheck?.column_name === "service_category") {
+      query = query.eq("service_category", payload.serviceCategory);
+    }
+
+    const { data: currentServices, error: currentServicesError } = await query;
 
     if (currentServicesError) {
       throw new Error(currentServicesError.message);

@@ -6,8 +6,9 @@ import { LogOut } from "lucide-react";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { createClientSupabaseBrowserClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 
-export function SignOutButton({ variant = "ghost", size = "sm", className }: ButtonProps) {
+export function SignOutButton({ variant = "ghost", size = "sm", className, collapsed }: ButtonProps & { collapsed?: boolean }) {
   const [isPending, setIsPending] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -32,12 +33,12 @@ export function SignOutButton({ variant = "ghost", size = "sm", className }: But
       <Button
         variant={variant}
         size={size}
-        className={className}
+        className={cn(className, "text-sm")}
         onClick={() => setIsDialogOpen(true)}
         disabled={isPending}
       >
-        <LogOut className="h-4 w-4" />
-        {isPending ? "Signing out..." : "Sign out"}
+        <LogOut className="h-4 w-4 shrink-0" />
+        {!collapsed && (isPending ? "Signing out..." : "Sign out")}
       </Button>
       <ConfirmationDialog
         open={isDialogOpen}

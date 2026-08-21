@@ -3,8 +3,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowRight, MapPin, Search, UserRound } from "lucide-react";
-
+import { ArrowRight, ImageOff, MapPin, Search, UserRound } from "lucide-react";
 import { AdminDeleteStaffForm } from "@/components/forms/admin-delete-staff-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -87,8 +86,18 @@ export function AdminStaffList({
             className="grid gap-3 rounded-[1rem] border border-border/70 bg-card/85 p-3.5 transition hover:border-primary/15 hover:bg-card md:grid-cols-[minmax(0,1fr),minmax(0,1fr),auto] md:items-center"
           >
             <div className="flex min-w-0 items-center gap-3">
-              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.85rem] bg-secondary text-primary">
-                <UserRound className="h-4 w-4" />
+              <span className="h-10 w-10 shrink-0 overflow-hidden rounded-[0.85rem] bg-secondary">
+                {staffMember.avatar_url ? (
+                  <img
+                    src={staffMember.avatar_url}
+                    alt={staffMember.full_name ?? staffMember.email}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center text-primary">
+                    <UserRound className="h-4 w-4" />
+                  </span>
+                )}
               </span>
               <div className="min-w-0">
                 <p className="truncate font-medium">{staffMember.full_name ?? staffMember.email}</p>
@@ -96,7 +105,21 @@ export function AdminStaffList({
               </div>
             </div>
 
-            <div className="min-w-0 space-y-1.5">
+                     <div className="flex min-w-0 items-center gap-3">
+              <div className="h-10 w-10 shrink-0 overflow-hidden rounded-[0.85rem] bg-muted">
+                {assignedDestination?.cover_url ? (
+                  <img
+                    src={assignedDestination.cover_url}
+                    alt={assignedDestination.title}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                    <ImageOff className="h-4 w-4" />
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0 flex-1 space-y-1.5">
                 <p className="truncate text-sm font-medium">
                   {assignedDestination?.title ?? "Destination not assigned"}
                 </p>
@@ -112,13 +135,14 @@ export function AdminStaffList({
                   >
                     {assignedDestination?.status ?? "unassigned"}
                   </Badge>
-                  {assignedDestination ? (
+                                   {assignedDestination ? (
                     <Badge variant="muted">
                       {assignedDestination.destination_services?.length ?? 0} service
                       {(assignedDestination.destination_services?.length ?? 0) === 1 ? "" : "s"}
                     </Badge>
                   ) : null}
                 </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2 md:flex md:items-center md:justify-end">

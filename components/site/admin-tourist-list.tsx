@@ -81,8 +81,18 @@ export function AdminTouristList({
             className="grid gap-3 rounded-[1rem] border border-border/70 bg-card/85 p-3.5 transition hover:border-primary/15 hover:bg-card md:grid-cols-[minmax(0,1fr),minmax(0,1fr),auto] md:items-center"
           >
             <div className="flex min-w-0 items-center gap-3">
-              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.85rem] bg-secondary text-primary">
-                <UserRound className="h-4 w-4" />
+              <span className="h-10 w-10 shrink-0 overflow-hidden rounded-[0.85rem] bg-secondary">
+                {tourist.avatar_url ? (
+                  <img
+                    src={tourist.avatar_url}
+                    alt={tourist.full_name ?? tourist.email}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center text-primary">
+                    <UserRound className="h-4 w-4" />
+                  </span>
+                )}
               </span>
               <div className="min-w-0">
                 <p className="truncate font-medium">{tourist.full_name ?? tourist.email}</p>

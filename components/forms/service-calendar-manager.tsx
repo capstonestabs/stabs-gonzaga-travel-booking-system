@@ -179,17 +179,17 @@ export function ServiceCalendarManager({
   }
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="border-b border-border/70">
-        <CardTitle>Service calendar</CardTitle>
-        <p className="text-sm text-muted-foreground">
+    <Card className="overflow-hidden border-0 shadow-none">
+      <CardHeader className="border-b border-border/70 px-5 py-3">
+        <CardTitle className="text-sm">Service calendar</CardTitle>
+        <p className="text-xs text-muted-foreground">
           Select a service, then click any future day to mark it closed or reopen it.
           This calendar affects date availability only and does not reduce the saved package slot count.
         </p>
       </CardHeader>
-      <CardContent className="space-y-5 p-5">
-        <div className="grid gap-4 lg:grid-cols-[0.9fr,1.1fr]">
-          <div className="space-y-4 rounded-[1rem] border border-border/70 bg-muted/15 p-4">
+      <CardContent className="space-y-4 p-4 sm:p-5">
+        <div className="grid gap-4 lg:grid-cols-[0.75fr,1.25fr]">
+          <div className="space-y-3 rounded-[1rem] border border-border/70 bg-muted/15 p-3">
             <label className="block space-y-1.5">
               <span className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
                 Selected service

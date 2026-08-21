@@ -1,8 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, LogIn, LogOut, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
+import {
+  Search,
+  LogIn,
+  LogOut,
+  ChevronDown,
+  ChevronUp,
+  AlertTriangle,
+  Check,
+  ImageOff,
+  UserRound
+} from "lucide-react";
 import { CompleteBookingButton } from "@/components/forms/complete-booking-button";
 import { DeleteBookingButton } from "@/components/forms/delete-booking-button";
 import { ProgressiveList } from "@/components/ui/progressive-list";
@@ -41,33 +51,137 @@ function getBookingBadgeVariant(status: string) {
   }
 }
 
-export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
+type StatusFilter = "all" | "pending_payment" | "confirmed" | "completed" | "cancelled" | "duplicate";
+
+const statusFilterOptions: { value: StatusFilter; label: string }[] = [
+  { value: "all", label: "All statuses" },
+  { value: "pending_payment", label: "Pending payment" },
+  { value: "confirmed", label: "Confirmed" },
+  { value: "completed", label: "Completed" },
+  { value: "cancelled", label: "Cancelled" },
+  { value: "duplicate", label: "Duplicate bookings" }
+];
+
+type SelectAction = "all-shown" | "ready-to-complete" | "deletable";
+
+const selectActionOptions: { value: SelectAction; label: string }[] = [
+  { value: "all-shown", label: "Select all shown" },
+  { value: "ready-to-complete", label: "Select ready to complete" },
+  { value: "deletable", label: "Select deletable" }
+];
+
+/** Small reusable dropdown: shows the active label, a floating option list, closes on outside click / Escape. */
+function InlineDropdown<T extends string>({
+  label,
+  activeLabel,
+  options,
+  value,
+  onSelect
+}: {
+  label: string;
+  activeLabel: string;
+  options: { value: T; label: string }[];
+  value?: T;
+  onSelect: (next: T) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={containerRef} className="relative inline-block">
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        className={cn(
+          "inline-flex min-h-11 items-center gap-2 rounded-[0.9rem] border px-3.5 py-2 text-xs font-medium transition-colors",
+          open
+            ? "border-primary bg-primary/10 text-primary"
+            : "border-border/70 bg-card text-muted-foreground hover:bg-muted/50"
+        )}
+      >
+        <span className="text-muted-foreground">{label}</span>
+        <span className="text-foreground">{activeLabel}</span>
+        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-200", open ? "rotate-180" : "")} />
+      </button>
+
+      <div
+        role="listbox"
+        className={cn(
+          "absolute left-0 top-[calc(100%+0.4rem)] z-20 w-52 origin-top-left overflow-hidden rounded-[0.85rem] border border-border/70 bg-card shadow-[0_18px_40px_rgba(22,74,47,0.14)] transition-all duration-150 ease-out",
+          open
+            ? "translate-y-0 opacity-100 scale-100 pointer-events-auto"
+            : "-translate-y-1 opacity-0 scale-95 pointer-events-none"
+        )}
+      >
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            role="option"
+            aria-selected={value === option.value}
+            onClick={() => {
+              onSelect(option.value);
+              setOpen(false);
+            }}
+            className={cn(
+              "flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-left text-sm transition-colors",
+              value === option.value
+                ? "bg-primary/10 font-medium text-primary"
+                : "text-foreground hover:bg-muted/50"
+            )}
+          >
+            {option.label}
+            {value === option.value ? <Check className="h-3.5 w-3.5" /> : null}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function StaffBookingsManager({
+  bookings,
+  destinationCoverByDestinationId = {},
+  serviceImagesByServiceId = {},
+  touristAvatarsByUserId = {}
+}: {
+  bookings: Booking[];
+  destinationCoverByDestinationId?: Record<string, string | null>;
+  serviceImagesByServiceId?: Record<string, string | null>;
+  touristAvatarsByUserId?: Record<string, string | null>;
+}) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<"complete" | "delete" | null>(null);
   const [dialogMode, setDialogMode] = useState<"complete" | "delete" | null>(null);
   const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [expandedBookingIds, setExpandedBookingIds] = useState<string[]>([]);
   const [visitPending, setVisitPending] = useState<Record<string, "check_in" | "check_out" | null>>({});
   const [visitError, setVisitError] = useState<Record<string, string | null>>({});
-
-  const filteredBookings = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    if (!normalized) return bookings;
-    return bookings.filter((booking) => {
-      const guestTickets = getBookingGuestTickets(booking);
-      const guestNames = guestTickets.map((t) => t.name.toLowerCase());
-      return (
-        booking.contact_name.toLowerCase().includes(normalized) ||
-        booking.contact_email.toLowerCase().includes(normalized) ||
-        booking.contact_phone.toLowerCase().includes(normalized) ||
-        booking.ticket_code?.toLowerCase().includes(normalized) ||
-        guestNames.some((name) => name.includes(normalized))
-      );
-    });
-  }, [bookings, query]);
-  const allBookingIds = useMemo(() => filteredBookings.map((booking) => booking.id), [filteredBookings]);
 
   const duplicateBookingIds = useMemo(() => {
     const groups = new Map<string, string[]>();
@@ -84,6 +198,32 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
     }
     return flagged;
   }, [bookings]);
+
+  const filteredBookings = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+
+    return bookings.filter((booking) => {
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "duplicate" ? duplicateBookingIds.has(booking.id) : booking.status === statusFilter);
+
+      if (!matchesStatus) return false;
+      if (!normalized) return true;
+
+      const guestTickets = getBookingGuestTickets(booking);
+      const guestNames = guestTickets.map((t) => t.name.toLowerCase());
+      return (
+        booking.contact_name.toLowerCase().includes(normalized) ||
+        booking.contact_email.toLowerCase().includes(normalized) ||
+        booking.contact_phone.toLowerCase().includes(normalized) ||
+        booking.ticket_code?.toLowerCase().includes(normalized) ||
+        guestNames.some((name) => name.includes(normalized))
+      );
+    });
+  }, [bookings, query, statusFilter, duplicateBookingIds]);
+
+  const allBookingIds = useMemo(() => filteredBookings.map((booking) => booking.id), [filteredBookings]);
+
   const completeEligibleIds = useMemo(
     () =>
       filteredBookings
@@ -106,6 +246,13 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
   const selectedCompleteIds = selectedIds.filter((id) => completeEligibleIds.includes(id));
   const selectedDeleteIds = selectedIds.filter((id) => deleteEligibleIds.includes(id));
 
+  function handleSelectAction(action: SelectAction) {
+    setError(null);
+    if (action === "all-shown") setSelectedIds(allBookingIds);
+    if (action === "ready-to-complete") setSelectedIds(completeEligibleIds);
+    if (action === "deletable") setSelectedIds(deleteEligibleIds);
+  }
+
   function toggleSelection(bookingId: string) {
     setError(null);
     setSelectedIds((current) =>
@@ -127,7 +274,7 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
     const key = `${bookingId}-${guestNumber}`;
     setVisitPending((prev) => ({ ...prev, [key]: action }));
     setVisitError((prev) => ({ ...prev, [key]: null }));
-    
+
     try {
       const response = await fetch(`/api/staff/bookings/${bookingId}/guests/${guestNumber}/visit`, {
         method: "POST",
@@ -212,6 +359,8 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
     }
   }
 
+  const activeStatusLabel = statusFilterOptions.find((option) => option.value === statusFilter)?.label ?? "All statuses";
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="border-b border-border/70">
@@ -242,53 +391,27 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0">
                   <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
-                    Bulk actions
+                    Filter &amp; bulk actions
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Selected: <span className="font-medium text-foreground">{selectedIds.length}</span>
-                    {" / "}Ready to complete:{" "}
-                    <span className="font-medium text-foreground">{completeEligibleIds.length}</span>
-                    {" / "}Ready to delete:{" "}
-                    <span className="font-medium text-foreground">{deleteEligibleIds.length}</span>
+                    Showing: <span className="font-medium text-foreground">{filteredBookings.length}</span>
+                    {" / "}Selected: <span className="font-medium text-foreground">{selectedIds.length}</span>
                   </p>
                 </div>
-                <div className="grid gap-2 sm:grid-cols-2 xl:flex xl:flex-wrap xl:justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="min-h-11"
-                    onClick={() => {
-                      setError(null);
-                      setSelectedIds(allBookingIds);
-                    }}
-                  >
-                    Select all shown
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="min-h-11"
-                    onClick={() => {
-                      setError(null);
-                      setSelectedIds(completeEligibleIds);
-                    }}
-                  >
-                    Select ready to complete
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="min-h-11"
-                    onClick={() => {
-                      setError(null);
-                      setSelectedIds(deleteEligibleIds);
-                    }}
-                  >
-                    Select deletable
-                  </Button>
+                <div className="flex flex-wrap items-center gap-2 xl:justify-end">
+                  <InlineDropdown
+                    label="Filter:"
+                    activeLabel={activeStatusLabel}
+                    options={statusFilterOptions}
+                    value={statusFilter}
+                    onSelect={setStatusFilter}
+                  />
+                  <InlineDropdown
+                    label="Select:"
+                    activeLabel="Choose a preset"
+                    options={selectActionOptions}
+                    onSelect={handleSelectAction}
+                  />
                   <Button
                     type="button"
                     variant="secondary"
@@ -339,7 +462,7 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
           </p>
         ) : filteredBookings.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No bookings match your search query.
+            No bookings match your search or filter.
           </p>
         ) : (
           <ProgressiveList
@@ -362,6 +485,12 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
               const isExpanded = expandedBookingIds.includes(booking.id);
               const isToday = booking.service_date === todayString;
 
+              const destinationCoverUrl = destinationCoverByDestinationId[booking.destination_id] ?? null;
+              const serviceImageUrl = booking.service_id
+                ? serviceImagesByServiceId[booking.service_id] ?? null
+                : null;
+              const touristAvatarUrl = touristAvatarsByUserId[booking.user_id] ?? null;
+
               return (
                 <div
                   key={booking.id}
@@ -380,11 +509,41 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
                     />
                   </label>
 
-                  <div className="space-y-1">
-                    <p className="font-medium">{booking.destination_snapshot.title}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Package: {booking.service_snapshot?.title ?? "Standard service"}
-                    </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-8 w-8 shrink-0 overflow-hidden rounded-[0.5rem] bg-muted"
+                        title="Destination cover photo"
+                      >
+                        {destinationCoverUrl ? (
+                          <img src={destinationCoverUrl} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                            <ImageOff className="h-3 w-3" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="font-medium">{booking.destination_snapshot.title}</p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-8 w-8 shrink-0 overflow-hidden rounded-[0.5rem] bg-muted"
+                        title="Service photo"
+                      >
+                        {serviceImageUrl ? (
+                          <img src={serviceImageUrl} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                            <ImageOff className="h-3 w-3" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Package: {booking.service_snapshot?.title ?? "Standard service"}
+                      </p>
+                    </div>
+
                     {booking.service_snapshot?.additional_services && booking.service_snapshot.additional_services.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 pt-1 pb-1">
                         {booking.service_snapshot.additional_services.map((addon: any) => (
@@ -394,9 +553,25 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
                         ))}
                       </div>
                     )}
-                    <p className="text-sm text-muted-foreground">
-                      {booking.contact_name} | {booking.contact_email}
-                    </p>
+
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-8 w-8 shrink-0 overflow-hidden rounded-full border border-border/70 bg-secondary/65"
+                        title="Tourist profile"
+                      >
+                        {touristAvatarUrl ? (
+                          <img src={touristAvatarUrl} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <span className="flex h-full w-full items-center justify-center text-primary">
+                            <UserRound className="h-3 w-3" />
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {booking.contact_name} | {booking.contact_email}
+                      </p>
+                    </div>
+
                     <p className="text-sm text-muted-foreground">{booking.contact_phone}</p>
                     <p className="text-xs text-muted-foreground">
                       Ticket: {booking.ticket_code ?? "Issued after payment confirmation"}
@@ -424,7 +599,6 @@ export function StaffBookingsManager({ bookings }: { bookings: Booking[] }) {
                   </div>
 
                   <div className="rounded-[0.9rem] bg-muted/45 px-3 py-3 sm:px-3.5">
-                    <p className="text-sm text-muted-foreground">Service Date</p>
                     <p className="text-sm text-muted-foreground">Check-in</p>
                     <p className="mt-1 font-medium">{booking.service_date}</p>
                     <p className="mt-1.5 text-sm text-muted-foreground">Check-out</p>
