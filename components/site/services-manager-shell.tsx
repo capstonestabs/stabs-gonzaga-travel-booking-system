@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { splitServicesByCategory } from "@/lib/service-categories";
 
+import { AdditionalServicesEditorForm } from "@/components/forms/additional-services-editor-form";
 import { DeleteDestinationServiceButton } from "@/components/forms/delete-destination-service-button";
 import { ServiceCalendarManager } from "@/components/forms/service-calendar-manager";
 import { ServicesEditorForm } from "@/components/forms/services-editor-form";
@@ -24,7 +25,7 @@ import { optimizeImageToWebp } from "@/lib/browser-image";
 import { formatServiceTypeLabel } from "@/lib/service-types";
 import type { Destination, DestinationService } from "@/lib/types";
 import { formatPesoCurrency } from "@/lib/utils";
-import { formatOpenWeekdays, formatOperatingTime } from "@/lib/service-schedule";
+import { formatOperatingTime } from "@/lib/service-schedule";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -46,9 +47,9 @@ export function ServicesManagerShell({
   const [activeTab, setActiveTab] = useState<"core" | "additional">("core");
   const [currentPage, setCurrentPage] = useState(1);
   const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false);
-const { core, additional } = splitServicesByCategory(destination.destination_services);
 
-  const services = initialServices;
+  const { core, additional } = splitServicesByCategory(initialServices);
+  const services = activeTab === "core" ? core : additional;
 
   const totalPages = Math.max(1, Math.ceil(services.length / ITEMS_PER_PAGE));
   const paginatedServices = useMemo(() => {
@@ -148,7 +149,7 @@ const { core, additional } = splitServicesByCategory(destination.destination_ser
               </Button>
               <Button onClick={handleAdd} className="w-full sm:w-auto">
                 <Plus className="mr-2 h-4 w-4" />
-                Add service
+                {activeTab === "core" ? "Add Service" : "Add Additional Service"}
               </Button>
             </div>
           </div>
@@ -270,7 +271,7 @@ const { core, additional } = splitServicesByCategory(destination.destination_ser
               </Button>
             </div>
             <div className="p-0">
-              <ServiceCalendarManager destinationId={destination.id} services={services} />
+              <ServiceCalendarManager destinationId={destination.id} services={core} />
             </div>
           </div>
         </div>
@@ -290,8 +291,8 @@ const { core, additional } = splitServicesByCategory(destination.destination_ser
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {activeTab === "core"
-                      ? "These are the main services or packages that guests can book."
-                      : "Optional details attached to each core service."}
+                      ? "The main bookable packages guests reserve a date and slot for."
+                      : "Light add-ons like life vests, spa access, or snorkeling gear just a photo, price, and status."}
                   </p>
                 </div>
               </div>
@@ -305,218 +306,182 @@ const { core, additional } = splitServicesByCategory(destination.destination_ser
 
             {services.length === 0 ? (
               <div className="px-5 py-12 text-center text-sm text-muted-foreground sm:px-6">
-                <p className="font-semibold text-foreground/80">No services created yet</p>
+                <p className="font-semibold text-foreground/80">
+                  {activeTab === "core" ? "No services created yet" : "No additional services yet"}
+                </p>
                 <p className="mx-auto mt-1 max-w-xs text-xs opacity-70">
-                  Click the add service button above to define your first bookable package.
+                  {activeTab === "core"
+                    ? "Click Add Service above to define your first bookable package."
+                    : "Click Add Additional Service above to list a life vest, spa pass, or similar add-on."}
                 </p>
               </div>
+            ) : activeTab === "core" ? (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[720px] text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-400">
+                        <th className="px-5 py-3 font-medium">Service name</th>
+                        <th className="px-3 py-3 font-medium">Description</th>
+                        <th className="px-3 py-3 font-medium">Price</th>
+                        <th className="px-3 py-3 font-medium">Slots</th>
+                        <th className="px-3 py-3 font-medium">Status</th>
+                        <th className="px-5 py-3 font-medium">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedServices.map((service) => (
+                        <tr key={service.id} className="border-b border-slate-50 last:border-0">
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-3">
+                              {service.image_url ? (
+                                <img
+                                  src={service.image_url}
+                                  alt={service.title}
+                                  className="h-16 w-16 shrink-0 rounded-sm object-cover"
+                                />
+                              ) : (
+                                <div className="h-16 w-16 shrink-0 rounded-lg bg-slate-100" />
+                              )}
+                              <div>
+                                <p className="font-semibold text-slate-800">{service.title}</p>
+                                <p className="text-xs text-slate-400">
+                                  {formatServiceTypeLabel(service.service_type, {
+                                    category: destination.category,
+                                    includeSlash: true
+                                  })}
+                                  {" · "}
+                                  {service.opening_time && service.closing_time
+                                    ? `${formatOperatingTime(service.opening_time)} – ${formatOperatingTime(service.closing_time)}`
+                                    : "Hours not set"}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="max-w-[220px] px-3 py-3 text-slate-600">
+                            <p className="line-clamp-2">{service.description || "No description"}</p>
+                          </td>
+                          <td className="px-3 py-3 font-medium text-slate-800">
+                            {formatPesoCurrency(service.price_amount)}
+                          </td>
+                          <td className="px-3 py-3 text-slate-600">{service.daily_capacity}</td>
+                          <td className="px-3 py-3">
+                            <Badge variant={service.is_active ? "success" : "muted"}>
+                              {service.is_active ? "Active" : "Disabled"}
+                            </Badge>
+                          </td>
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                title="Edit service"
+                                aria-label="Edit service"
+                                onClick={() => handleEdit(service.id)}
+                                className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                              <DeleteDestinationServiceButton
+                                destinationId={destination.id}
+                                serviceId={service.id}
+                                label="Delete service"
+                                title={`Delete ${service.title}?`}
+                                description="Delete this service from the destination? Existing booking snapshots stay on file, but the service will no longer appear in the staff workspace or public booking list."
+                                iconOnly
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <PaginationBar
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                  totalCount={services.length}
+                  itemLabel="core service"
+                  onChange={setCurrentPage}
+                />
+              </>
             ) : (
               <>
                 <div className="overflow-x-auto">
-                  {activeTab === "core" ? (
-                    <table className="w-full min-w-[720px] text-left text-sm">
-                      <thead>
-                        <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-400">
-                          <th className="px-5 py-3 font-medium">Service name</th>
-                          <th className="px-3 py-3 font-medium">Description</th>
-                          <th className="px-3 py-3 font-medium">Price</th>
-                          <th className="px-3 py-3 font-medium">Slots</th>
-                          <th className="px-3 py-3 font-medium">Status</th>
-                          <th className="px-5 py-3 font-medium">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {paginatedServices.map((service) => (
-                          <tr key={service.id} className="border-b border-slate-50 last:border-0">
-                            <td className="px-5 py-3">
-                              <div className="flex items-center gap-3">
-                                {service.image_url ? (
-                                  <img
-                                    src={service.image_url}
-                                    alt={service.title}
-                                    className="h-16 w-16 shrink-0 rounded-sm object-cover"
-                                  />
-                                ) : (
-                                  <div className="h-16 w-16 shrink-0 rounded-lg bg-slate-100" />
-                                )}
-                                <div>
-                                  <p className="font-semibold text-slate-800">{service.title}</p>
-                                  <p className="text-xs text-slate-400">
-                                    {formatServiceTypeLabel(service.service_type, {
-                                      category: destination.category,
-                                      includeSlash: true
-                                    })}
-                                    {" · "}
-                                    {service.opening_time && service.closing_time
-                                      ? `${formatOperatingTime(service.opening_time)} – ${formatOperatingTime(service.closing_time)}`
-                                      : "Hours not set"}
-                                  </p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="max-w-[220px] px-3 py-3 text-slate-600">
-                              <p className="line-clamp-2">{service.description || "No description"}</p>
-                            </td>
-                            <td className="px-3 py-3 font-medium text-slate-800">
-                              {formatPesoCurrency(service.price_amount)}
-                            </td>
-                            <td className="px-3 py-3 text-slate-600">{service.daily_capacity}</td>
-                            <td className="px-3 py-3">
-                              <Badge variant={service.is_active ? "success" : "muted"}>
-                                {service.is_active ? "Active" : "Disabled"}
-                              </Badge>
-                            </td>
-                            <td className="px-5 py-3">
-                              <div className="flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  title="Edit service"
-                                  aria-label="Edit service"
-                                  onClick={() => handleEdit(service.id)}
-                                  className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50"
-                                >
-                                  <Pencil className="h-3.5 w-3.5" />
-                                </button>
-                              <DeleteDestinationServiceButton
-                                  destinationId={destination.id}
-                                  serviceId={service.id}
-                                  label="Delete service"
-                                  title={`Delete ${service.title}?`}
-                                  description="Delete this service from the destination? Existing booking snapshots stay on file, but the service will no longer appear in the staff workspace or public booking list."
-                                  iconOnly
+                  <table className="w-full min-w-[560px] text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-400">
+                        <th className="px-5 py-3 font-medium">Service Name</th>
+                        <th className="px-3 py-3 font-medium">Description</th>
+                        <th className="px-3 py-3 font-medium">Price</th>
+                        <th className="px-3 py-3 font-medium">Status</th>
+                        <th className="px-5 py-3 font-medium">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedServices.map((service) => (
+                        <tr key={service.id} className="border-b border-slate-50 last:border-0">
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-3">
+                              {service.image_url ? (
+                                <img
+                                  src={service.image_url}
+                                  alt={service.title}
+                                  className="h-14 w-14 shrink-0 rounded-sm object-cover"
                                 />
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  ) : (
-                    <table className="w-full min-w-[720px] text-left text-sm">
-                      <thead>
-                        <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-400">
-                          <th className="px-5 py-3 font-medium">Service name</th>
-                          <th className="px-3 py-3 font-medium">Description</th>
-                          <th className="px-3 py-3 font-medium">Units</th>
-                          <th className="px-3 py-3 font-medium">Features</th>
-                          <th className="px-3 py-3 font-medium">Status</th>
-                          <th className="px-5 py-3 font-medium">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {paginatedServices.map((service) => (
-                          <tr key={service.id} className="border-b border-slate-50 last:border-0">
-                            <td className="px-5 py-3">
-                                                           <div className="flex items-center gap-3">
-                                {service.image_url ? (
-                                  <img
-                                    src={service.image_url}
-                                    alt={service.title}
-                                    className="h-16 w-16 shrink-0 rounded-sm object-cover"
-                                  />
-                                ) : (
-                                  <div className="h-16 w-16 shrink-0 rounded-lg bg-slate-100" />
-                                )}
-                                <p className="font-semibold text-slate-800">{service.title}</p>
-                              </div>
-                            </td>
-                            <td className="max-w-[220px] px-3 py-3 text-slate-600">
-                              <p className="line-clamp-2">{service.description || "No description"}</p>
-                            </td>
-                            <td className="px-3 py-3 text-slate-600">
-                              {service.unit_count
-                                ? `${service.unit_count} ${service.unit_label || "units"}`
-                                : "Not set"}
-                            </td>
-                            <td className="max-w-[220px] px-3 py-3">
-                              {service.features?.length ? (
-                                <div className="flex flex-wrap gap-1">
-                                  {service.features.map((tag) => (
-                                    <span
-                                      key={tag}
-                                      className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs text-slate-600"
-                                    >
-                                      {tag}
-                                    </span>
-                                  ))}
-                                </div>
                               ) : (
-                                <span className="text-slate-400">None</span>
+                                <div className="h-14 w-14 shrink-0 rounded-lg bg-slate-100" />
                               )}
-                            </td>
-                            <td className="px-3 py-3">
-                              <Badge variant={service.is_active ? "success" : "muted"}>
-                                {service.is_active ? "Active" : "Disabled"}
-                              </Badge>
-                            </td>
-                            <td className="px-5 py-3">
-                              <div className="flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  title="Edit service"
-                                  aria-label="Edit service"
-                                  onClick={() => handleEdit(service.id)}
-                                  className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50"
-                                >
-                                  <Pencil className="h-3.5 w-3.5" />
-                                </button>
-                                <DeleteDestinationServiceButton
-                                  destinationId={destination.id}
-                                  serviceId={service.id}
-                                  label="Delete service"
-                                  title={`Delete ${service.title}?`}
-                                  description="Delete this service from the destination? Existing booking snapshots stay on file, but the service will no longer appear in the staff workspace or public booking list."
-                                  iconOnly
-                                />
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
+                              <p className="font-semibold text-slate-800">{service.title}</p>
+                            </div>
+                          </td>
+                          <td className="max-w-[260px] px-3 py-3 text-slate-600">
+                            <p className="line-clamp-2">{service.description || "No description"}</p>
+                          </td>
+                          <td className="px-3 py-3 font-medium text-slate-800">
+                            {formatPesoCurrency(service.price_amount)}
+                          </td>
+                          <td className="px-3 py-3">
+                            <Badge variant={service.is_active ? "success" : "muted"}>
+                              {service.is_active ? "Active" : "Disabled"}
+                            </Badge>
+                          </td>
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                title="Edit item"
+                                aria-label="Edit item"
+                                onClick={() => handleEdit(service.id)}
+                                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                              <DeleteDestinationServiceButton
+                                destinationId={destination.id}
+                                serviceId={service.id}
+                                label="Delete item"
+                                title={`Delete ${service.title}?`}
+                                description="Delete this add-on from the destination? Existing booking snapshots stay on file, but the item will no longer appear in the staff workspace or public booking list."
+                                iconOnly
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
 
-                <div className="flex items-center justify-between border-t border-slate-100 px-5 py-3 sm:px-6">
-                  <p className="text-xs text-slate-400">
-                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
-                    {Math.min(currentPage * ITEMS_PER_PAGE, services.length)} of {services.length}{" "}
-                    {activeTab === "core" ? "core service" : "additional service"}
-                    {services.length === 1 ? "" : "s"}
-                  </p>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      disabled={currentPage === 1}
-                      onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                      className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40"
-                    >
-                      <ChevronLeft className="h-3.5 w-3.5" />
-                    </button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        type="button"
-                        onClick={() => setCurrentPage(page)}
-                        className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${
-                          page === currentPage
-                            ? "bg-emerald-700 text-white"
-                            : "border border-slate-200 text-slate-500 hover:bg-slate-50"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      disabled={currentPage === totalPages}
-                      onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                      className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40"
-                    >
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
+                <PaginationBar
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                  totalCount={services.length}
+                  itemLabel="additional service"
+                  onChange={setCurrentPage}
+                />
               </>
             )}
           </CardContent>
@@ -534,25 +499,96 @@ const { core, additional } = splitServicesByCategory(destination.destination_ser
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <h2 className="text-lg font-bold tracking-tight">
-                {editingServiceId === "new" ? "Create service" : "Edit service"}
+                {editingServiceId === "new"
+                  ? activeTab === "core" ? "Create service" : "Create additional service"
+                  : activeTab === "core" ? "Edit service" : "Edit additional service"}
               </h2>
             </div>
             <p className="text-xs text-muted-foreground sm:text-right">
-              {editingServiceId === "new"
-                ? "Define the new bookable package below."
-                : "Update this package, then use the calendar below to close or reopen dates without changing the saved slot total."}
+              {activeTab === "core"
+                ? editingServiceId === "new"
+                  ? "Define the new bookable package below."
+                  : "Update this package, then use the calendar above to close or reopen dates without changing the saved slot total."
+                : "Just a photo, name, description, price, and status — no schedule or capacity needed."}
             </p>
           </div>
 
-          <ServicesEditorForm
-            destinationId={destination.id}
-            destinationCategory={destination.category}
-            services={servicesInEditor}
-            hideAddRow={editingServiceId !== "new"}
-            onSuccess={handleBack}
-          />
+          {activeTab === "core" ? (
+            <ServicesEditorForm
+              destinationId={destination.id}
+              destinationCategory={destination.category}
+              services={servicesInEditor}
+              hideAddRow={editingServiceId !== "new"}
+              onSuccess={handleBack}
+            />
+          ) : (
+            <AdditionalServicesEditorForm
+              destinationId={destination.id}
+              services={servicesInEditor}
+              hideAddRow={editingServiceId !== "new"}
+              onSuccess={handleBack}
+            />
+          )}
         </div>
       )}
     </section>
+  );
+}
+
+function PaginationBar({
+  currentPage,
+  totalPages,
+  itemsPerPage,
+  totalCount,
+  itemLabel,
+  onChange
+}: {
+  currentPage: number;
+  totalPages: number;
+  itemsPerPage: number;
+  totalCount: number;
+  itemLabel: string;
+  onChange: (page: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between border-t border-slate-100 px-5 py-3 sm:px-6">
+      <p className="text-xs text-slate-400">
+        Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+        {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} {itemLabel}
+        {totalCount === 1 ? "" : "s"}
+      </p>
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          disabled={currentPage === 1}
+          onClick={() => onChange(Math.max(1, currentPage - 1))}
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40"
+        >
+          <ChevronLeft className="h-3.5 w-3.5" />
+        </button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            type="button"
+            onClick={() => onChange(page)}
+            className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${
+              page === currentPage
+                ? "bg-emerald-700 text-white"
+                : "border border-slate-200 text-slate-500 hover:bg-slate-50"
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+        <button
+          type="button"
+          disabled={currentPage === totalPages}
+          onClick={() => onChange(Math.min(totalPages, currentPage + 1))}
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40"
+        >
+          <ChevronRight className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
   );
 }

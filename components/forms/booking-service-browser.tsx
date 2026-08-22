@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getAbramMergedGuestRatePlan } from "@/lib/guest-pricing";
 import { formatServiceTypeLabel } from "@/lib/service-types";
+import { getBookableServices, getAdditionalServices } from "@/lib/service-categories";
 import type { DestinationService, ListingCategory, UserRole } from "@/lib/types";
 import { cn, formatPesoCurrency } from "@/lib/utils";
 
@@ -61,6 +62,8 @@ export function BookingServiceBrowser({
   policies?: string[];
 }) {
   const activeServices = services.filter((service) => service.is_active);
+  const coreServices = getBookableServices(activeServices);
+  const additionalServicesList = getAdditionalServices(activeServices);
   const mergedAbramRatePlan = getAbramMergedGuestRatePlan(
     destinationSlug,
     destinationTitle,
@@ -84,7 +87,7 @@ export function BookingServiceBrowser({
           isMergedAbram: true
         }
       ]
-    : activeServices.map((service) => ({
+    : coreServices.map((service) => ({
         id: service.id,
         title: service.title,
         description: service.description || "Reserve this active destination service.",
@@ -99,7 +102,19 @@ export function BookingServiceBrowser({
     ? initialServiceId ?? fallbackServiceId
     : fallbackServiceId;
   const [selectedServiceId, setSelectedServiceId] = useState(requestedServiceId);
+  const [selectedAdditionalServiceIds, setSelectedAdditionalServiceIds] = useState<string[]>([]);
   const selectedService = browserServices.find((service) => service.id === selectedServiceId);
+  const selectedAdditionalServices = additionalServicesList.filter((service) =>
+    selectedAdditionalServiceIds.includes(service.id)
+  );
+
+  const toggleAdditionalService = (serviceId: string) => {
+    setSelectedAdditionalServiceIds((current) =>
+      current.includes(serviceId)
+        ? current.filter((id) => id !== serviceId)
+        : [...current, serviceId]
+    );
+  };
 
   const bookingForm = (serviceId: string) => (
     <BookingForm
@@ -116,6 +131,7 @@ export function BookingServiceBrowser({
       defaultContactEmail={defaultContactEmail}
       defaultContactPhone={defaultContactPhone}
       policies={policies}
+      additionalServices={selectedAdditionalServices}
     />
   );
 
@@ -148,7 +164,7 @@ export function BookingServiceBrowser({
       <div id="booking-services" className="scroll-mt-28 lg:hidden">
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Active services</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Core Services</p>
             <h2 className="mt-1 font-display text-2xl font-semibold">Choose and book</h2>
           </div>
           <Badge variant="muted">{browserServices.length} available</Badge>
@@ -175,6 +191,34 @@ export function BookingServiceBrowser({
                         </div>
                         <Badge variant="accent">Selected</Badge>
                       </div>
+                      {additionalServicesList.length > 0 ? (
+                        <div className="mb-4 space-y-2">
+                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Additional Services</p>
+                          <div className="grid gap-2">
+                            {additionalServicesList.map((addon) => {
+                              const isSelected = selectedAdditionalServiceIds.includes(addon.id);
+                              return (
+                                <button
+                                  key={addon.id}
+                                  type="button"
+                                  onClick={() => toggleAdditionalService(addon.id)}
+                                  className={`flex items-center justify-between rounded-[0.85rem] border px-3 py-2.5 text-left transition ${
+                                    isSelected
+                                      ? "border-primary bg-primary/5"
+                                      : "border-border/70 hover:border-primary/30"
+                                  }`}
+                                >
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-medium">{addon.title}</p>
+                                    <p className="text-xs text-muted-foreground">{formatPesoCurrency(addon.price_amount)}</p>
+                                  </div>
+                                  {isSelected ? <Badge variant="accent">Added</Badge> : <Badge variant="muted">Add</Badge>}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : null}
                       {bookingForm(service.id)}
                     </CardContent>
                   </Card>
@@ -189,8 +233,8 @@ export function BookingServiceBrowser({
         <section className="space-y-3">
           <div className="mb-4 flex items-end justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Active services</p>
-              <h2 className="mt-1 font-display text-2xl font-semibold">Choose what to book</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Core Services</p>
+            <h2 className="mt-1 font-display text-2xl font-semibold">Choose what to book</h2>
             </div>
             <Badge variant="muted">{browserServices.length} available</Badge>
           </div>
@@ -216,6 +260,34 @@ export function BookingServiceBrowser({
                 </div>
                 <Badge variant="accent">Selected</Badge>
               </div>
+              {selectedService && additionalServicesList.length > 0 ? (
+                <div className="mb-4 space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Add-ons</p>
+                  <div className="grid gap-2">
+                    {additionalServicesList.map((addon) => {
+                      const isSelected = selectedAdditionalServiceIds.includes(addon.id);
+                      return (
+                        <button
+                          key={addon.id}
+                          type="button"
+                          onClick={() => toggleAdditionalService(addon.id)}
+                          className={`flex items-center justify-between rounded-[0.85rem] border px-3 py-2.5 text-left transition ${
+                            isSelected
+                              ? "border-primary bg-primary/5"
+                              : "border-border/70 hover:border-primary/30"
+                          }`}
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium">{addon.title}</p>
+                            <p className="text-xs text-muted-foreground">{formatPesoCurrency(addon.price_amount)}</p>
+                          </div>
+                          {isSelected ? <Badge variant="accent">Added</Badge> : <Badge variant="muted">Add</Badge>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
               {selectedServiceId ? bookingForm(selectedServiceId) : null}
             </CardContent>
           </Card>
@@ -264,7 +336,7 @@ function ServiceBookingCard({
             <img src={service.imageUrl} alt={service.title} className="absolute inset-0 h-full w-full object-cover" />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent p-3 pt-10">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-black/35 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
-                <Sparkles className="h-3.5 w-3.5" /> Active service
+                <Sparkles className="h-3.5 w-3.5" /> Core service
               </span>
             </div>
           </div>

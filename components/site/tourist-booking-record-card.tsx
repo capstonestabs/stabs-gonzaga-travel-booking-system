@@ -127,6 +127,18 @@ export function TouristBookingRecordCard({
             <p className="text-muted-foreground">Booking ID</p>
             <p className="mt-1 break-all font-medium">{booking.id}</p>
           </div>
+          {booking.service_snapshot?.additional_services && booking.service_snapshot.additional_services.length > 0 ? (
+            <div className="col-span-full rounded-[0.95rem] bg-muted/45 px-3.5 py-3">
+              <p className="text-muted-foreground">Additional services</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {booking.service_snapshot.additional_services.map((addon) => (
+                  <span key={addon.id} className="inline-flex items-center rounded-md bg-primary/10 border border-primary/20 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                    + {addon.title} {addon.quantity > 1 ? `(x${addon.quantity})` : ""}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {mode === "active" && booking.status === "pending_payment" ? (

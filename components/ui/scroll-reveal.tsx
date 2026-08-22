@@ -22,19 +22,51 @@ export function ScrollReveal({
       return;
     }
 
+    let settled = false;
+
+    function reveal() {
+      if (settled) return;
+      settled = true;
+      setIsVisible(true);
+      observer.disconnect();
+      window.removeEventListener("resize", handleResize);
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry?.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
+          reveal();
         }
       },
-      { threshold: 0.16, rootMargin: "0px 0px -64px 0px" }
+      { threshold: 0.05, rootMargin: "0px 0px -32px 0px" }
     );
 
     observer.observe(node);
 
-    return () => observer.disconnect();
+    // Zooming, resizing, or any layout shift (e.g. images inside this section
+    // finishing their load after the observer's first geometry check) can leave
+    // the observer never firing on the very first pass. Re-checking the node's
+    // bounding rect on resize catches that without waiting on the observer.
+    function handleResize() {
+      if (settled || !node) return;
+      const rect = node.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+      if (rect.top < viewportHeight && rect.bottom > 0) {
+        reveal();
+      }
+    }
+    window.addEventListener("resize", handleResize);
+
+    // Safety net: never leave content permanently invisible if the observer
+    // fails to fire for any reason (scroll restoration quirks, extensions, etc.).
+    const fallbackTimer = setTimeout(reveal, 1800);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(fallbackTimer);
+    };
   }, []);
 
   return (

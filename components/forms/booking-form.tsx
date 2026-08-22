@@ -33,7 +33,8 @@ export function BookingForm({
   defaultContactName,
   defaultContactEmail,
   defaultContactPhone,
-  policies = []
+  policies = [],
+  additionalServices = []
 }: {
   destinationId: string;
   destinationSlug: string;
@@ -48,6 +49,7 @@ export function BookingForm({
   defaultContactEmail?: string;
   defaultContactPhone?: string;
   policies?: string[];
+  additionalServices?: DestinationService[];
 }) {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
@@ -74,7 +76,12 @@ export function BookingForm({
       : pesoAmountToCentavos(selectedService.price_amount) * guestCount
     : 0;
 
-  const localGrandTotalCentavos = basePriceCentavos;
+  const additionalServicesTotalCentavos = additionalServices.reduce(
+    (sum, service) => sum + pesoAmountToCentavos(service.price_amount),
+    0
+  );
+
+  const localGrandTotalCentavos = basePriceCentavos + additionalServicesTotalCentavos;
 
   useEffect(() => {
     if (bookableServices.length === 0) {
@@ -204,6 +211,14 @@ export function BookingForm({
         throw new Error("Enter the full name of every guest so each QR pass can be issued correctly.");
       }
 
+      const additionalServicesList = additionalServices.map((service) => ({
+        id: service.id,
+        title: service.title,
+        price_amount: service.price_amount,
+        quantity: 1,
+        subtotal: service.price_amount
+      }));
+
       writeCheckoutDraft({
         destinationId,
         destinationSlug,
@@ -228,9 +243,12 @@ export function BookingForm({
           description: selectedService.description,
           price_amount: selectedService.price_amount,
           service_type: normalizeServiceTypeLabel(selectedService.service_type, category),
-          additional_services: []
+          additional_services: additionalServicesList
         },
-        additionalServices: []
+        additionalServices: additionalServices.map((service) => ({
+          id: service.id,
+          quantity: 1
+        }))
       });
       router.push("/checkout/continue" as Route);
     } catch (submissionError) {

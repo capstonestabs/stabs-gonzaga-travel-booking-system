@@ -123,7 +123,7 @@ export async function PUT(
       ])
     );
 
-    const rowsToUpsert = payload.services.map((service, serviceIndex) => {
+    const rowsToUpsert = payload.services.map((service) => {
       const imagePaths = service.imagePaths.length > 0
         ? service.imagePaths
         : service.imagePath ? [service.imagePath] : [];
@@ -133,9 +133,10 @@ export async function PUT(
 
       const isAdditional = service.serviceCategory === "additional";
 
-      const row: Record<string, unknown> = {
+      return {
         id: service.id || crypto.randomUUID(),
         destination_id: destinationId,
+        service_category: service.serviceCategory,
         title: service.title,
         description: service.description || null,
         price_amount: service.priceAmount,
@@ -155,31 +156,8 @@ export async function PUT(
         features: isAdditional ? [] : (service.features ?? []),
         service_type: normalizeServiceTypeLabel(service.serviceType, destination.category),
         is_active: service.isActive,
-        _serviceIndex: serviceIndex,
       };
-
-      return row;
     });
-
-    const { data: categoryColumns } = await supabase
-      .from("information_schema.columns")
-      .select("column_name")
-      .eq("table_name", "destination_services")
-      .eq("table_schema", "public")
-      .in("column_name", ["service_category", "unit_count", "unit_label", "features"]);
-
-    const availableColumns = new Set((categoryColumns ?? []).map((col) => col.column_name));
-
-    for (const row of rowsToUpsert) {
-      const service = payload.services[row._serviceIndex as number];
-      if (availableColumns.has("service_category")) {
-        row.service_category = service.serviceCategory;
-      }
-      if (!availableColumns.has("unit_count")) delete row.unit_count;
-      if (!availableColumns.has("unit_label")) delete row.unit_label;
-      if (!availableColumns.has("features")) delete row.features;
-      delete row._serviceIndex;
-    }
 
     if (rowsToUpsert.length > 0) {
       const { error: upsertError } = await supabase
@@ -252,15 +230,7 @@ export async function DELETE(
       .select("id, image_path, image_paths")
       .eq("destination_id", destinationId);
 
-    const { data: deleteColumnCheck } = await supabase
-      .from("information_schema.columns")
-      .select("column_name")
-      .eq("table_name", "destination_services")
-      .eq("table_schema", "public")
-      .eq("column_name", "service_category")
-      .maybeSingle();
-
-    if (payload.serviceCategory && deleteColumnCheck?.column_name === "service_category") {
+    if (payload.serviceCategory) {
       query = query.eq("service_category", payload.serviceCategory);
     }
 

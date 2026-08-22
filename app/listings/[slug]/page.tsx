@@ -6,11 +6,9 @@ import {
   Accessibility,
   BedDouble,
   BusFront,
-  CalendarCheck2,
   CarFront,
   Check,
   ChevronRight,
-  Clock3,
   Compass,
   Info,
   MapPin,
@@ -19,14 +17,13 @@ import {
   Route as RouteIcon,
   ShowerHead,
   Store,
-  Users,
   Utensils,
   Wifi
 } from "lucide-react";
 
+import { DestinationServicesSection } from "@/components/site/destination-services-section";
 import { DestinationGalleryLightbox } from "@/components/site/destination-gallery-lightbox";
 import { GoogleMapsDirections } from "@/components/site/google-maps-directions";
-import { PackageBookingAction } from "@/components/site/package-booking-action";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,9 +31,10 @@ import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { getBlueprintSceneBySeed } from "@/lib/blueprint";
 import { getAbramMergedGuestRatePlan } from "@/lib/guest-pricing";
 import { getDestinationBySlug } from "@/lib/repositories";
-import { formatServiceTypeLabel } from "@/lib/service-types";
-import { formatOpenWeekdays, formatOperatingTime } from "@/lib/service-schedule";
+import { splitServicesByCategory } from "@/lib/service-categories";
 import { cn, formatPesoCurrency } from "@/lib/utils";
+
+
 
 type AmenityDefinition = {
   label: string;
@@ -123,20 +121,21 @@ export default async function ListingPage({
   ) as string[];
   const leadImage = galleryImages[0] ?? getBlueprintSceneBySeed(destination.slug).src;
   const displayGalleryImages = galleryImages.length > 0 ? galleryImages : [leadImage];
-  const activeServices = (destination.destination_services ?? []).filter((service) => service.is_active);
+  const { core: coreServices, additional: additionalServices } = splitServicesByCategory(
+    destination.destination_services
+  );
+  const activeCoreServices = coreServices.filter((service) => service.is_active);
+  const activeAdditionalServices = additionalServices.filter((service) => service.is_active);
   const mergedAbramRatePlan = getAbramMergedGuestRatePlan(
     destination.slug,
     destination.title,
-    activeServices
+    activeCoreServices
   );
-  const displayedPackageServices = mergedAbramRatePlan
-    ? [mergedAbramRatePlan.primaryService]
-    : activeServices;
   const destinationDetails = [
     destination.summary,
     destination.description,
     ...destination.inclusions,
-    ...activeServices.flatMap((service) => [service.title, service.description ?? "", service.service_type])
+    ...activeCoreServices.flatMap((service) => [service.title, service.description ?? "", service.service_type])
   ]
     .join(" ")
     .toLowerCase();
@@ -338,197 +337,15 @@ export default async function ListingPage({
               ))}
             </div>
 
-            {activeServices.length > 0 ? (
-              <div className="pt-2">
-                <div className="mb-4 flex items-center gap-3">
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-[0.85rem] bg-primary text-primary-foreground">
-                    <Clock3 className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <h3 className="font-display text-2xl font-semibold">Available packages</h3>
-                    <p className="text-xs text-muted-foreground">Compare the details and book your preferred option.</p>
-                  </div>
-                </div>
-
-                <div className="space-y-5">
-                  {displayedPackageServices.map((service) => {
-                    const packageTitle = mergedAbramRatePlan?.title ?? service.title;
-                    const startingPrice = mergedAbramRatePlan
-                      ? Math.min(
-                          mergedAbramRatePlan.adult.priceAmount,
-                          mergedAbramRatePlan.child.priceAmount
-                        )
-                      : service.price_amount;
-                    const servicePhotos = service.image_urls?.length
-                      ? service.image_urls
-                      : service.image_url ? [service.image_url] : [];
-
-                    return (
-                      <article key={service.id} className="rounded-[1.2rem] border border-border/70 bg-card p-3 shadow-[0_10px_28px_rgba(22,74,47,0.055)] sm:p-4">
-                        <div className="mb-3 flex items-start justify-between gap-3 px-1 sm:mb-4">
-                          <div>
-                            <h4 className="font-display text-2xl font-semibold tracking-tight">{packageTitle}</h4>
-                            <p className="mt-1 text-xs text-muted-foreground">Book this option through the destination&apos;s secure reservation flow.</p>
-                          </div>
-                          <Badge variant="muted" className="shrink-0">
-                            {formatServiceTypeLabel(service.service_type, { category: destination.category })}
-                          </Badge>
-                        </div>
-
-                        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.05fr),minmax(22rem,0.95fr)]">
-                          <div className="min-w-0">
-                            <div className="relative aspect-[16/10] overflow-hidden rounded-[1rem] bg-muted">
-                              <img
-                                src={servicePhotos[0] || leadImage}
-                                alt={service.title}
-                                className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 hover:scale-[1.025]"
-                              />
-                              <Badge variant="muted" className="absolute bottom-3 left-3 border-white/60 bg-black/55 text-white shadow-sm backdrop-blur-sm">
-                                Package photo
-                              </Badge>
-                            </div>
-
-                            {servicePhotos.length > 1 ? (
-                              <div className="mt-2 grid grid-cols-4 gap-2">
-                                {servicePhotos.slice(1, 5).map((url, photoIndex) => (
-                                  <img
-                                    key={`${url}-${photoIndex}`}
-                                    src={url}
-                                    alt={`${service.title} photo ${photoIndex + 2}`}
-                                    className="aspect-[4/3] w-full rounded-[0.7rem] object-cover"
-                                  />
-                                ))}
-                              </div>
-                            ) : null}
-
-                            {service.description ? (
-                              <details className="group mt-3 rounded-[0.9rem] bg-muted/35 px-3.5 py-3">
-                                <summary className="cursor-pointer list-none text-sm font-semibold text-primary marker:hidden">
-                                  See package description
-                                </summary>
-                                <p className="mt-2 text-sm leading-6 text-muted-foreground">{service.description}</p>
-                              </details>
-                            ) : null}
-                            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 border-b border-border/70 pb-3 text-xs font-medium text-muted-foreground">
-                              <span className="inline-flex items-center gap-1.5">
-                                <Users className="h-3.5 w-3.5 text-primary" /> Up to {service.daily_capacity} guest{service.daily_capacity === 1 ? "" : "s"}
-                              </span>
-                              <span className="inline-flex items-center gap-1.5">
-                                <Check className="h-3.5 w-3.5 text-accent" /> Confirmed service
-                              </span>
-                              <span className="inline-flex items-center gap-1.5">
-                                <CalendarCheck2 className="h-3.5 w-3.5 text-primary" /> Date checked during booking
-                              </span>
-                            </div>
-
-                            {service.unit_count || service.unit_label || service.features?.length ? (
-                              <div className="mt-3 flex flex-wrap items-center gap-2 border-b border-border/70 pb-3">
-                                {service.unit_count || service.unit_label ? (
-                                  <Badge variant="accent">
-                                    {service.unit_count ?? ""} {service.unit_label ?? "Units"}
-                                  </Badge>
-                                ) : null}
-                                {service.features?.map((feature) => (
-                                  <Badge key={feature} variant="muted">
-                                    {feature}
-                                  </Badge>
-                                ))}
-                              </div>
-                            ) : null}
-
-                          </div>
-
-                          <div className="overflow-hidden rounded-[1rem] border border-primary/25 bg-background">
-                            <div className="bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">
-                              Direct booking rate
-                            </div>
-                            <div className="flex min-h-[18rem] flex-col p-4">
-                              <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr),auto] sm:items-start">
-                                <div className="space-y-2.5 text-sm">
-                                  <p className="flex items-start gap-2">
-                                    <Users className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                                    <span>Up to {service.daily_capacity} guest{service.daily_capacity === 1 ? "" : "s"}</span>
-                                  </p>
-                                  <p className="flex items-start gap-2 text-emerald-700">
-                                    <Check className="mt-0.5 h-4 w-4 shrink-0" />
-                                    <span>Availability confirmed before checkout</span>
-                                  </p>
-                                  <p className="flex items-start gap-2">
-                                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                                    <span>Secure online payment</span>
-                                  </p>
-                                  <p className="flex items-start gap-2">
-                                    <Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                                    <span>
-                                      {service.opening_time && service.closing_time
-                                        ? `${formatOperatingTime(service.opening_time)} – ${formatOperatingTime(service.closing_time)}`
-                                        : "Operating hours available from staff"}
-                                      {` · ${formatOpenWeekdays(service.open_weekdays)}`}
-                                    </span>
-                                  </p>
-                                  {service.operating_remarks ? (
-                                    <p className="flex items-start gap-2 text-muted-foreground">
-                                      <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                                      <span>{service.operating_remarks}</span>
-                                    </p>
-                                  ) : null}
-                                  {mergedAbramRatePlan ? (
-                                    <p className="flex items-start gap-2">
-                                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                                      <span>Adults and children in one reservation</span>
-                                    </p>
-                                  ) : null}
-                                </div>
-
-                                <div className="text-left sm:min-w-40 sm:text-right">
-                                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Starting rate</p>
-                                  <p className="mt-1 font-display text-3xl font-semibold text-primary">
-                                    {formatPesoCurrency(startingPrice)}
-                                  </p>
-                                  <p className="mt-1 text-[11px] text-muted-foreground">
-                                    {mergedAbramRatePlan
-                                      ? "per guest, based on type"
-                                      : `per ${formatServiceTypeLabel(service.service_type, { category: destination.category })}`}
-                                  </p>
-                                </div>
-                              </div>
-
-                              {mergedAbramRatePlan ? (
-                                <div className="mt-4 flex flex-wrap gap-2">
-                                  <Badge variant="muted">Adult {formatPesoCurrency(mergedAbramRatePlan.adult.priceAmount)}</Badge>
-                                  <Badge variant="muted">Child {formatPesoCurrency(mergedAbramRatePlan.child.priceAmount)}</Badge>
-                                </div>
-                              ) : null}
-
-                              <div className="mt-auto pt-4">
-                                <PackageBookingAction
-                                  destinationSlug={destination.slug}
-                                  bookingType={destination.booking_type}
-                                  category={destination.category}
-                                  options={displayedPackageServices.map((packageService) => ({
-                                    id: packageService.id,
-                                    title: mergedAbramRatePlan?.title ?? packageService.title,
-                                    priceLabel: formatPesoCurrency(
-                                      mergedAbramRatePlan
-                                        ? Math.min(
-                                            mergedAbramRatePlan.adult.priceAmount,
-                                            mergedAbramRatePlan.child.priceAmount
-                                          )
-                                        : packageService.price_amount
-                                    )
-                                  }))}
-                                  initialServiceId={service.id}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </article>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : null}
+            <DestinationServicesSection
+              destinationSlug={destination.slug}
+              bookingType={destination.booking_type}
+              category={destination.category}
+              leadImage={leadImage}
+              coreServices={activeCoreServices}
+              additionalServices={activeAdditionalServices}
+              mergedAbramRatePlan={mergedAbramRatePlan}
+            />
           </section>
         </ScrollReveal>
       </div>

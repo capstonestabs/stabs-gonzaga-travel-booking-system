@@ -77,7 +77,7 @@ export function DeleteDestinationServiceButton({
             disabled={isPending}
             onClick={() => setIsDialogOpen(true)}
             className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-full border border-destructive/25 text-destructive hover:bg-destructive/8 disabled:opacity-50",
+              "flex h-8 w-8 items-center justify-center rounded-md border border-destructive/25 text-destructive hover:bg-destructive/8 disabled:opacity-50",
               className
             )}
           >
