@@ -14,12 +14,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { getAvailabilityState } from "@/lib/availability";
 import { formatServiceWindowLabel } from "@/lib/booking-state";
 import { writeCheckoutDraft } from "@/lib/checkout-draft";
-import { formatServiceTypeLabel, getEntranceFeeAmount, getServiceCategory, normalizeServiceTypeLabel } from "@/lib/service-types";
+import { formatServiceTypeLabel, normalizeServiceTypeLabel } from "@/lib/service-types";
 import { getAbramMergedGuestRatePlan } from "@/lib/guest-pricing";
 import type { AvailabilitySnapshot, DestinationService, ListingCategory, UserRole } from "@/lib/types";
 import { formatCurrency, formatPesoCurrency, pesoAmountToCentavos } from "@/lib/utils";
 import Link from "next/link";
-import { Plus, Minus } from "lucide-react";
+import { Plus, Minus, /* ...whatever else was already there */ } from "lucide-react";
 export function BookingForm({
   destinationId,
   destinationSlug,
@@ -70,37 +70,18 @@ export function BookingForm({
 
   const selectedService = bookableServices.find((s) => s.id === selectedServiceId) ?? null;
 
-  const availableAddonsList = services.filter(
-    (s) => getServiceCategory(s) === "additional" && s.is_active
-  );
-  const addonsToChoose = availableAddonsList.length > 0 ? availableAddonsList : additionalServices;
-  const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>(
-    addonsToChoose.map((s) => s.id)
-  );
-  const [isAddonDropdownOpen, setIsAddonDropdownOpen] = useState(false);
-
-  const toggleAddon = (id: string) => {
-    setSelectedAddonIds((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
-    );
-  };
-
-  const selectedAddons = addonsToChoose.filter((s) => selectedAddonIds.includes(s.id));
-  const addonsTotalCentavos = selectedAddons.reduce(
-    (sum, addon) => sum + pesoAmountToCentavos(addon.price_amount),
-    0
-  );
-
-  const entranceFeePerGuest = getEntranceFeeAmount();
-  const entranceFeeTotalCentavos = pesoAmountToCentavos(entranceFeePerGuest * guestCount);
-
   const basePriceCentavos = selectedService
     ? category === "stay"
       ? pesoAmountToCentavos(selectedService.price_amount)
       : pesoAmountToCentavos(selectedService.price_amount) * guestCount
     : 0;
 
-  const localGrandTotalCentavos = basePriceCentavos + addonsTotalCentavos + entranceFeeTotalCentavos;
+  const additionalServicesTotalCentavos = additionalServices.reduce(
+    (sum, service) => sum + pesoAmountToCentavos(service.price_amount),
+    0
+  );
+
+  const localGrandTotalCentavos = basePriceCentavos + additionalServicesTotalCentavos;
 
   useEffect(() => {
     if (bookableServices.length === 0) {
@@ -517,125 +498,6 @@ export function BookingForm({
                 </div>
               ) : null}
             </div>
-
-            {/* Additional Services Selection Dropdown & Summary (Section 2) */}
-            {addonsToChoose.length > 0 && (
-              <div className="space-y-4 rounded-[1.2rem] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <div className="border-b border-slate-100 pb-2.5 dark:border-slate-800">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
-                    2. BOOKING FORM - SELECT ADDITIONAL SERVICES
-                  </h3>
-                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                    When creating a booking, staff/customer can select one or more services.
-                  </p>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2 items-start">
-                  {/* Left Column: Dropdown Selection */}
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-xs font-extrabold uppercase tracking-wide text-slate-900 dark:text-white">
-                        Additional Services
-                      </label>
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                        Choose additional activities or equipment.
-                      </p>
-                    </div>
-
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => setIsAddonDropdownOpen(!isAddonDropdownOpen)}
-                        className="flex h-10 w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-800 shadow-sm transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-                      >
-                        <span>
-                          {selectedAddonIds.length === 0
-                            ? "Select additional services"
-                            : `${selectedAddonIds.length} additional service${selectedAddonIds.length === 1 ? "" : "s"} selected`}
-                        </span>
-                        <span className="text-xs text-slate-500">▼</span>
-                      </button>
-
-                      {isAddonDropdownOpen && (
-                        <div className="absolute z-30 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-800 dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
-                          {addonsToChoose.map((addon) => {
-                            const isChecked = selectedAddonIds.includes(addon.id);
-                            return (
-                              <label
-                                key={addon.id}
-                                className="flex cursor-pointer items-center justify-between py-2.5 px-3 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors text-xs"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <input
-                                    type="checkbox"
-                                    checked={isChecked}
-                                    onChange={() => toggleAddon(addon.id)}
-                                    className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                                  />
-                                  <span className="text-slate-900 dark:text-white font-bold">{addon.title}</span>
-                                </div>
-                                <span className="font-extrabold text-emerald-700 dark:text-emerald-400 text-xs">
-                                  {formatPesoCurrency(addon.price_amount)}
-                                </span>
-                              </label>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-1 pt-1 text-xs font-semibold text-slate-600 dark:text-slate-400">
-                      <div className="flex justify-between">
-                        <span>{selectedService.title}</span>
-                        <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(basePriceCentavos)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Entrance Fee ({guestCount} {guestCount === 1 ? "person" : "people"})</span>
-                        <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(entranceFeeTotalCentavos)}</span>
-                      </div>
-                      <div className="flex justify-between border-t border-slate-200 pt-1.5 font-bold text-slate-900 dark:border-slate-700 dark:text-white">
-                        <span>Total Amount</span>
-                        <span className="text-emerald-700 dark:text-emerald-400 font-extrabold">{formatCurrency(localGrandTotalCentavos)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Column: Live Summary panel matching diagram */}
-                  <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 space-y-3 dark:border-emerald-900 dark:bg-emerald-950/40">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white border-b border-emerald-200/80 pb-2 dark:border-emerald-900/80">
-                      Summary
-                    </h4>
-                    <div className="space-y-2 text-xs font-semibold text-slate-800 dark:text-slate-200">
-                      <div className="flex justify-between">
-                        <span>Entrance Fee ({guestCount} {guestCount === 1 ? "person" : "people"})</span>
-                        <span className="font-bold">{formatCurrency(entranceFeeTotalCentavos)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>{selectedService.title}</span>
-                        <span className="font-bold">{formatCurrency(basePriceCentavos)}</span>
-                      </div>
-
-                      {selectedAddons.length > 0 && (
-                        <div className="pt-2 border-t border-emerald-200 dark:border-emerald-900 space-y-1">
-                          <p className="font-extrabold text-slate-900 dark:text-white">Additional Services</p>
-                          {selectedAddons.map((addon) => (
-                            <div key={addon.id} className="flex justify-between text-slate-700 dark:text-slate-300 font-medium pl-2">
-                              <span>• {addon.title}</span>
-                              <span className="font-bold">{formatPesoCurrency(addon.price_amount)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      <div className="pt-2.5 border-t-2 border-emerald-300 dark:border-emerald-700 flex justify-between items-center text-sm font-black text-emerald-900 dark:text-emerald-200">
-                        <span>Total Amount</span>
-                        <span className="text-base font-black">{formatCurrency(localGrandTotalCentavos)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
 
             <div className={`rounded-[1rem] border px-3.5 py-3 text-sm ${availabilityToneClass}`}>
               {isAvailabilityLoading ? "Checking live availability..." : availabilityState.message}
