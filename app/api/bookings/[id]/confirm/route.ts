@@ -4,6 +4,8 @@ import { requireRole } from "@/lib/auth";
 import { hasSupabaseServiceEnv } from "@/lib/env";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { ensureBookingTicketCode } from "@/lib/tickets";
+import { upsertFinancialRecordForBooking } from "@/lib/financial-records";
+import { sendBookingReceiptEmail } from "@/lib/booking-receipt-email";
 
 export async function POST(
   request: Request,
@@ -60,6 +62,14 @@ export async function POST(
 
     if (updateError) {
       throw new Error(updateError.message);
+    }
+
+    await upsertFinancialRecordForBooking(id);
+
+    try {
+      await sendBookingReceiptEmail(id);
+    } catch (receiptError) {
+      console.error("Unable to send booking receipt email", receiptError);
     }
 
     return NextResponse.json({ message: "Reservation confirmed." });

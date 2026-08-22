@@ -5,6 +5,7 @@ import { isBookingDateInPast } from "@/lib/booking-state";
 import { hasSupabaseServiceEnv } from "@/lib/env";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { ensureBookingTicketCode } from "@/lib/tickets";
+import { markFinancialRecordSettledByBookingId } from "@/lib/financial-records";
 
 export async function POST(
   _request: Request,
@@ -67,6 +68,8 @@ export async function POST(
     if (updateError) {
       throw new Error(updateError.message);
     }
+
+    await markFinancialRecordSettledByBookingId(booking.id);
 
     return NextResponse.json({ message: "Booking marked as completed." });
   } catch (error) {

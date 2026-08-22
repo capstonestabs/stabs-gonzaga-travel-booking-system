@@ -152,7 +152,7 @@ export function SiteHeaderClient({
                   )}
                   style={isScenicPage ? { textShadow: "0 4px 18px rgba(0,0,0,0.48)" } : undefined}
                 >
-                  STABSasdasd
+                  STABS
                 </p>
                 <p
                   className={cn(

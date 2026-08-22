@@ -74,6 +74,7 @@ export async function createCheckoutSession(input: {
     amount: number; // in centavos
     quantity: number;
     description?: string;
+    image?: string;
   }>;
 }) {
   const siteUrl = getSiteUrl();
@@ -86,7 +87,8 @@ export async function createCheckoutSession(input: {
           amount: item.amount,
           name: item.name,
           quantity: item.quantity,
-          description: item.description ?? ""
+          description: item.description ?? "",
+          ...(item.image ? { image: item.image } : {})
         }))
       : [
           {

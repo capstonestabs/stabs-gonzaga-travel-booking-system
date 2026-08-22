@@ -46,20 +46,22 @@ const todayString = (() => {
   return `${value.year}-${value.month}-${value.day}`;
 })();
 
-type Tab = "all" | "pending_payment" | "confirmed" | "cancelled";
+type Tab = "all" | "pending_payment" | "confirmed" | "completed" | "cancelled";
 
 const TABS: { value: Tab; label: string }[] = [
   { value: "all", label: "All" },
   { value: "pending_payment", label: "Pending" },
   { value: "confirmed", label: "Confirmed" },
+  { value: "completed", label: "Completed" },
   { value: "cancelled", label: "Declined" }
 ];
 
 function statusStyle(status: string): { label: string; className: string } {
   switch (status) {
     case "confirmed":
+      return { label: "Confirmed", className: "border-blue-200 bg-blue-50 text-blue-700" };
     case "completed":
-      return { label: status === "completed" ? "Completed" : "Confirmed", className: "border-emerald-200 bg-emerald-50 text-emerald-700" };
+      return { label: "Completed", className: "border-emerald-200 bg-emerald-50 text-emerald-700" };
     case "pending_payment":
       return { label: "Pending", className: "border-yellow-200 bg-yellow-50 text-yellow-700" };
     case "cancelled":
@@ -141,6 +143,7 @@ export function StaffBookingsManager({
       all: bookings.length,
       pending_payment: bookings.filter((b) => b.status === "pending_payment").length,
       confirmed: bookings.filter((b) => b.status === "confirmed").length,
+      completed: bookings.filter((b) => b.status === "completed").length,
       cancelled: bookings.filter((b) => b.status === "cancelled").length
     }),
     [bookings]

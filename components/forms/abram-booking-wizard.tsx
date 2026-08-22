@@ -1,7 +1,5 @@
 "use client";
 
-import type { Route } from "next";
-import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
   ArrowLeft,
@@ -22,7 +20,6 @@ import { Button } from "@/components/ui/button";
 import { AvailabilityCalendarPanel } from "@/components/forms/availability-calendar-panel";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { writeCheckoutDraft } from "@/lib/checkout-draft";
 import {
   calculateGuestTotal,
   type GuestType,
@@ -69,7 +66,6 @@ export function AbramBookingWizard({
   defaultContactPhone?: string;
   policies?: string[];
 }) {
-  const router = useRouter();
   const [step, setStep] = useState(1);
   const [serviceDate, setServiceDate] = useState("");
   const [checkOutDate, setCheckOutDate] = useState("");
@@ -174,7 +170,7 @@ export function AbramBookingWizard({
     setError(null);
   }
 
-  function handleGuestDetailsSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleGuestDetailsSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!availability?.is_open || !canFitGuests) {
@@ -220,47 +216,40 @@ export function AbramBookingWizard({
     setIsSaving(true);
 
     try {
-      writeCheckoutDraft({
+      const payload = {
         destinationId,
-        destinationSlug,
-        destinationTitle,
-        locationText,
-        category,
-        priceAmount: pesoAmountToCentavos(ratePlan.adult.priceAmount),
+        serviceId: ratePlan.primaryService.id,
         serviceDate,
         checkOutDate,
         checkOutTime,
         guestCount: guests.length,
         guestTypes,
         guestDetails,
-        guestPricing: {
-          adult: {
-            label: ratePlan.adult.title,
-            priceAmount: pesoAmountToCentavos(ratePlan.adult.priceAmount)
-          },
-          child: {
-            label: ratePlan.child.title,
-            priceAmount: pesoAmountToCentavos(ratePlan.child.priceAmount)
-          }
-        },
-        serviceId: ratePlan.primaryService.id,
-        serviceSnapshot: {
-          id: ratePlan.primaryService.id,
-          title: ratePlan.title,
-          description: "One reservation with Adult and Child guest rates.",
-          price_amount: ratePlan.adult.priceAmount,
-          service_type: "person",
-          additional_services: []
-        },
         contactName,
         contactEmail,
         contactPhone,
         notes: String(formData.get("notes") ?? "").trim(),
-        policies,
+        termsAccepted: true,
         additionalServices: []
+      };
+
+      const response = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
       });
-      setStep(3);
-      router.push("/checkout/continue" as Route);
+
+      if (!response.ok) {
+        const body = (await response.json()) as { error?: string };
+        throw new Error(body.error ?? "Unable to create booking.");
+      }
+
+      const body = (await response.json()) as { checkoutUrl?: string };
+      if (!body.checkoutUrl) {
+        throw new Error("Payment session was not created.");
+      }
+
+      window.location.href = body.checkoutUrl;
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Unable to save the reservation.");
       setIsSaving(false);

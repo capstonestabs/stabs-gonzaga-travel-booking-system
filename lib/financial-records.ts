@@ -100,6 +100,26 @@ export async function markFinancialRecordBookingDeleted(bookingId: string) {
   }
 }
 
+export async function markFinancialRecordSettledByBookingId(bookingId: string) {
+  if (!hasSupabaseServiceEnv()) {
+    return;
+  }
+
+  const supabase = createAdminSupabaseClient();
+  const { error } = await supabase
+    .from("financial_records")
+    .update({
+      settlement_status: "settled",
+      settled_at: new Date().toISOString()
+    })
+    .eq("booking_id", bookingId)
+    .neq("settlement_status", "settled");
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 export async function backfillFinancialRecords() {
   if (!hasSupabaseServiceEnv()) {
     return;
@@ -109,7 +129,7 @@ export async function backfillFinancialRecords() {
   const { data, error } = await supabase
     .from("bookings")
     .select("id, status, payment:payments(status)")
-    .in("status", ["confirmed", "completed"])
+    .in("status", ["pending_payment", "confirmed", "completed"])
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -129,7 +149,7 @@ export async function backfillFinancialRecords() {
 
   const { data: existingRecords, error: existingRecordsError } = await supabase
     .from("financial_records")
-    .select("booking_id")
+    .select("booking_id, settlement_status")
     .in("booking_id", paidBookingIds);
 
   if (existingRecordsError) {
@@ -142,5 +162,34 @@ export async function backfillFinancialRecords() {
 
   for (const bookingId of paidBookingIds.filter((id) => !existingBookingIds.has(id))) {
     await upsertFinancialRecordForBooking(bookingId);
+  }
+
+  const completedPaidBookingIds = new Set(
+    (data ?? [])
+      .filter((booking) => {
+        const payment = Array.isArray(booking.payment) ? booking.payment[0] : booking.payment;
+        return booking.status === "completed" && payment?.status === "paid";
+      })
+      .map((booking) => booking.id as string)
+  );
+
+  const unsettledCompletedRecords = (existingRecords ?? []).filter(
+    (record) =>
+      record.settlement_status === "unsettled" &&
+      completedPaidBookingIds.has(record.booking_id as string)
+  );
+
+  if (unsettledCompletedRecords.length > 0) {
+    const { error: updateError } = await supabase
+      .from("financial_records")
+      .update({
+        settlement_status: "settled",
+        settled_at: new Date().toISOString()
+      })
+      .in("booking_id", unsettledCompletedRecords.map((record) => record.booking_id));
+
+    if (updateError) {
+      throw new Error(updateError.message);
+    }
   }
 }

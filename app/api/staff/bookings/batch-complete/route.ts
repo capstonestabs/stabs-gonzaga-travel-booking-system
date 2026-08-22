@@ -6,6 +6,7 @@ import { hasSupabaseServiceEnv } from "@/lib/env";
 import { batchStaffBookingActionSchema } from "@/lib/schemas";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { ensureBookingTicketCode } from "@/lib/tickets";
+import { markFinancialRecordSettledByBookingId } from "@/lib/financial-records";
 
 export async function POST(request: Request) {
   try {
@@ -74,6 +75,8 @@ export async function POST(request: Request) {
         if (updateError) {
           throw new Error(updateError.message);
         }
+
+        await markFinancialRecordSettledByBookingId(booking.id);
       })
     );
 

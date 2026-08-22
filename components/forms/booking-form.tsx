@@ -1,7 +1,5 @@
 "use client";
 
-import type { Route } from "next";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { AvailabilityCalendarPanel } from "@/components/forms/availability-calendar-panel";
@@ -13,8 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getAvailabilityState } from "@/lib/availability";
 import { formatServiceWindowLabel } from "@/lib/booking-state";
-import { writeCheckoutDraft } from "@/lib/checkout-draft";
-import { formatServiceTypeLabel, normalizeServiceTypeLabel } from "@/lib/service-types";
+import { formatServiceTypeLabel } from "@/lib/service-types";
 import { getAbramMergedGuestRatePlan } from "@/lib/guest-pricing";
 import type { AvailabilitySnapshot, DestinationService, ListingCategory, UserRole } from "@/lib/types";
 import { formatCurrency, formatPesoCurrency, pesoAmountToCentavos } from "@/lib/utils";
@@ -51,7 +48,6 @@ export function BookingForm({
   policies?: string[];
   additionalServices?: DestinationService[];
 }) {
-  const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [serviceDate, setServiceDate] = useState("");
@@ -71,9 +67,7 @@ export function BookingForm({
   const selectedService = bookableServices.find((s) => s.id === selectedServiceId) ?? null;
 
   const basePriceCentavos = selectedService
-    ? category === "stay"
-      ? pesoAmountToCentavos(selectedService.price_amount)
-      : pesoAmountToCentavos(selectedService.price_amount) * guestCount
+    ? pesoAmountToCentavos(selectedService.price_amount)
     : 0;
 
   const additionalServicesTotalCentavos = additionalServices.reduce(
@@ -219,13 +213,9 @@ export function BookingForm({
         subtotal: service.price_amount
       }));
 
-      writeCheckoutDraft({
+      const payload = {
         destinationId,
-        destinationSlug,
-        destinationTitle,
-        locationText,
-        category,
-        priceAmount: pesoAmountToCentavos(selectedService.price_amount),
+        serviceId: selectedService.id,
         serviceDate,
         checkOutDate,
         checkOutTime,
@@ -235,22 +225,30 @@ export function BookingForm({
         contactEmail: String(formData.get("contactEmail") ?? ""),
         contactPhone: String(formData.get("contactPhone") ?? ""),
         notes: String(formData.get("notes") ?? ""),
-        policies,
-        serviceId: selectedService.id,
-        serviceSnapshot: {
-          id: selectedService.id,
-          title: selectedService.title,
-          description: selectedService.description,
-          price_amount: selectedService.price_amount,
-          service_type: normalizeServiceTypeLabel(selectedService.service_type, category),
-          additional_services: additionalServicesList
-        },
+        termsAccepted: true,
         additionalServices: additionalServices.map((service) => ({
           id: service.id,
           quantity: 1
         }))
+      };
+
+      const response = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
       });
-      router.push("/checkout/continue" as Route);
+
+      if (!response.ok) {
+        const body = (await response.json()) as { error?: string };
+        throw new Error(body.error ?? "Unable to create booking.");
+      }
+
+      const body = (await response.json()) as { checkoutUrl?: string };
+      if (!body.checkoutUrl) {
+        throw new Error("Payment session was not created.");
+      }
+
+      window.location.href = body.checkoutUrl;
     } catch (submissionError) {
       setError(
         submissionError instanceof Error

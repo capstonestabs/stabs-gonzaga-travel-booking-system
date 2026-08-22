@@ -163,7 +163,7 @@ export function DestinationFinancialsPanel({
         <CardHeader className="border-b border-border/70">
           <CardTitle className="inline-flex items-center gap-2">
             <Wallet className="h-5 w-5 text-primary" />
-            Financial summarysss
+            Financial summary
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

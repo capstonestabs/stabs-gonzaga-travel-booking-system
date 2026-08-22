@@ -55,12 +55,16 @@ export async function applyPaymentStateUpdate(input: {
   let finalPaymentStatus = input.paymentStatus;
   let finalBookingStatus: typeof existingBooking.status =
     finalPaymentStatus === "paid"
-      ? "confirmed"
+      ? existingBooking.status === "cancelled"
+        ? "confirmed"
+        : existingBooking.status
       : finalPaymentStatus === "pending"
         ? "pending_payment"
         : "cancelled";
 
   if (finalPaymentStatus === "paid") {
+    let capacityError: unknown = null;
+
     try {
       if (existingBooking.status === "cancelled") {
         if (!existingBooking.service_id) {
@@ -73,14 +77,22 @@ export async function applyPaymentStateUpdate(input: {
         );
 
         if (!snapshot?.is_open || snapshot.remaining_guests < existingBooking.guest_count) {
-          throw new Error("The slot hold expired and the date is no longer available.");
+          console.error(
+            `[payment-sync] Slot hold expired for booking ${input.bookingId}, but payment was confirmed.`
+          );
         }
       } else {
         await finalizePaidBookingCapacity(input.bookingId);
       }
-    } catch (capacityError) {
-      finalPaymentStatus = "failed";
-      finalBookingStatus = "cancelled";
+    } catch (error) {
+      capacityError = error;
+    }
+
+    if (capacityError) {
+      console.error(
+        `[payment-sync] Capacity finalization failed for paid booking ${input.bookingId}:`,
+        capacityError
+      );
     }
   }
 
@@ -146,10 +158,10 @@ export async function applyPaymentStateUpdate(input: {
     throw new Error(bookingError.message);
   }
 
-  if (finalBookingStatus === "confirmed") {
+  if (finalPaymentStatus === "paid") {
     await upsertFinancialRecordForBooking(input.bookingId);
 
-    if (existingBooking.status !== "confirmed" && existingBooking.status !== "completed") {
+    if (finalBookingStatus === "confirmed" && existingBooking.status !== "confirmed" && existingBooking.status !== "completed") {
       try {
         await sendBookingReceiptEmail(input.bookingId);
       } catch (receiptError) {

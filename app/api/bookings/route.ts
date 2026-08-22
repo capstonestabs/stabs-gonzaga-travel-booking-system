@@ -200,9 +200,7 @@ export async function POST(request: NextRequest) {
 
     const baseTotalAmount = mergedAbramRatePlan
       ? pesoAmountToCentavos(calculateGuestTotal(guestTypes ?? [], mergedAbramRatePlan))
-      : destination.category === "stay"
-        ? unitAmount
-        : unitAmount * payload.guestCount;
+      : unitAmount;
 
     const totalAmount = baseTotalAmount + addonsTotalCentavos;
 
@@ -295,27 +293,32 @@ export async function POST(request: NextRequest) {
 
     try {
       if (hasPayMongoEnv()) {
+        const serviceImage = service.image_url ?? destination.cover_url ?? undefined;
+
         const lineItems = [];
         if (mergedAbramRatePlan) {
           if (adultGuestCount > 0) {
             lineItems.push({
               name: `${destination.title} — ${mergedAbramRatePlan.adult.title}`,
               amount: pesoAmountToCentavos(mergedAbramRatePlan.adult.priceAmount),
-              quantity: adultGuestCount
+              quantity: 1,
+              ...(serviceImage ? { image: serviceImage } : {})
             });
           }
           if (childGuestCount > 0) {
             lineItems.push({
               name: `${destination.title} — ${mergedAbramRatePlan.child.title}`,
               amount: pesoAmountToCentavos(mergedAbramRatePlan.child.priceAmount),
-              quantity: childGuestCount
+              quantity: 1,
+              ...(serviceImage ? { image: serviceImage } : {})
             });
           }
         } else {
           lineItems.push({
             name: `${destination.title} — ${service.title}`,
             amount: pesoAmountToCentavos(service.price_amount),
-            quantity: destination.category === "stay" ? 1 : payload.guestCount
+            quantity: 1,
+            ...(serviceImage ? { image: serviceImage } : {})
           });
         }
 
@@ -323,7 +326,8 @@ export async function POST(request: NextRequest) {
           lineItems.push({
             name: addon.title,
             amount: pesoAmountToCentavos(addon.price_amount),
-            quantity: addon.quantity
+            quantity: 1,
+            ...(serviceImage ? { image: serviceImage } : {})
           });
         }
 

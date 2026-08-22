@@ -6,6 +6,7 @@ import { getBookingGuestTickets } from "@/lib/guest-tickets";
 import { hasSupabaseServiceEnv } from "@/lib/env";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import type { Booking } from "@/lib/types";
+import { markFinancialRecordSettledByBookingId } from "@/lib/financial-records";
 
 const visitActionSchema = z.object({ action: z.enum(["check_in", "check_out"]) });
 
@@ -104,6 +105,8 @@ export async function POST(
           completed_at: now
         }).eq("id", booking.id);
         if (bookingUpdateError) throw new Error(bookingUpdateError.message);
+
+        await markFinancialRecordSettledByBookingId(booking.id);
       }
     }
 
