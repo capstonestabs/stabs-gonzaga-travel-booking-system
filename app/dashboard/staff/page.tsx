@@ -125,9 +125,10 @@ function statusBadge(status: "pending_payment" | "confirmed" | "completed" | "ca
 
 function formatBookingDate(iso: string) {
   const date = new Date(iso);
+  const tz = { timeZone: "Asia/Manila" } as const;
   return {
-    date: date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-    time: date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
+    date: date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", ...tz }),
+    time: date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", ...tz })
   };
 } 
 export default async function StaffDashboardPage({

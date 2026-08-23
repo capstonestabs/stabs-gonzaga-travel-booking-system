@@ -16,9 +16,10 @@ const ICON_STYLES: Record<ActivityType, string> = {
 
 function formatTimestamp(iso: string) {
   const date = new Date(iso);
+  const opts = { timeZone: "Asia/Manila" } as const;
   return {
-    datePart: date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
-    timePart: date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
+    datePart: date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", ...opts }),
+    timePart: date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", ...opts })
   };
 }
 

@@ -277,7 +277,7 @@ export function GalleryUploadGrid({
     <Card>
       <CardHeader className="border-b border-border/70">
         <div className="flex items-center justify-between gap-3">
-          <CardTitle>Gallery images</CardTitle>
+          <CardTitle>Destination images</CardTitle>
           {orderedImages.length > 0 ? (
             <Button
               type="button"
@@ -300,7 +300,7 @@ export function GalleryUploadGrid({
               ) : (
                 <>
                   <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                  Edit Gallery
+                  Edit images
                 </>
               )}
             </Button>
@@ -310,12 +310,12 @@ export function GalleryUploadGrid({
       <CardContent className="space-y-4">
         <div className="space-y-1 text-sm text-muted-foreground">
           <p>
-            {orderedImages.length} of {maxItems} gallery images used.
+            {orderedImages.length} of {maxItems} images uploaded.
           </p>
           <p>
             {isEditing
               ? "Edit descriptions, replace or delete images below. Click Save & Close when done."
-              : "Drag images to reorder. Click empty slots to upload."}
+              : "Click empty slots to upload. You can upload 1 to 6 images total (1 cover + 5 gallery)."}
           </p>
         </div>
 

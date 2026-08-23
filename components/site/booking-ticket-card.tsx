@@ -7,18 +7,10 @@ import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 
 type BookingTicketCardProps = {
-  destinationTitle: string;
-  locationText: string;
   ticketCode: string;
-  serviceTitle: string;
-  guestName: string;
-  serviceDate: string;
-  guestCount: number;
-  guestNumber: number;
-  guestType: "adult" | "child";
   verificationUrl: string;
-  totalPaid: string;
   referenceCode: string;
+  guestName?: string;
   isExpired?: boolean;
 };
 
@@ -145,8 +137,8 @@ function loadCanvasImage(source: string) {
 }
 
 async function renderTicketCanvas(props: BookingTicketCardProps) {
-  const width = 1600;
-  const height = 980;
+  const width = 800;
+  const height = 1040;
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -164,105 +156,56 @@ async function renderTicketCanvas(props: BookingTicketCardProps) {
   context.fillRect(0, 0, width, height);
 
   strokeRoundedRect(context, 26, 26, width - 52, height - 52, 36, "rgba(255,255,255,0.18)", 3);
-  fillRoundedRect(context, 1094, 86, 410, 808, 34, "rgba(255,255,255,0.10)");
-  strokeRoundedRect(context, 1094, 86, 410, 808, 34, "rgba(255,255,255,0.12)", 2);
 
-  fillRoundedRect(context, 76, 82, 258, 58, 29, "rgba(255,255,255,0.10)");
-  strokeRoundedRect(context, 76, 82, 258, 58, 29, "rgba(255,255,255,0.22)", 2);
+  // Header badge
+  fillRoundedRect(context, 62, 62, 258, 58, 29, "rgba(255,255,255,0.10)");
+  strokeRoundedRect(context, 62, 62, 258, 58, 29, "rgba(255,255,255,0.22)", 2);
   context.fillStyle = "#f8fffb";
   context.font = "700 24px system-ui, -apple-system, sans-serif";
-  context.fillText(props.isExpired ? "Expired pass" : "Verified booking", 126, 120);
-  context.fillStyle = "rgba(255,255,255,0.82)";
-  context.font = "700 16px system-ui, -apple-system, sans-serif";
-  context.fillText("STABS Gonzaga Travel Bookings", 76, 175);
-
-  fillRoundedRect(context, 1220, 82, 212, 88, 24, "rgba(255,255,255,0.10)");
-  strokeRoundedRect(context, 1220, 82, 212, 88, 24, "rgba(255,255,255,0.18)", 2);
-  context.fillStyle = "rgba(255,255,255,0.74)";
-  context.font = "700 16px system-ui, -apple-system, sans-serif";
-  context.fillText("Reference", 1256, 117);
-  context.fillStyle = "#ffffff";
-  context.font = "700 33px ui-monospace, SFMono-Regular, Menlo, monospace";
-  context.fillText(`#${props.referenceCode}`, 1256, 151);
-
-  context.fillStyle = "#ffffff";
-  context.font = "700 66px Georgia, 'Times New Roman', serif";
-  const titleLines = wrapCanvasText(context, props.destinationTitle, 900, 2);
-  titleLines.forEach((line, index) => {
-    context.fillText(line, 76, 280 + index * 78);
-  });
-
-  context.fillStyle = "rgba(255,255,255,0.94)";
-  context.font = "600 30px system-ui, -apple-system, sans-serif";
-  const serviceLine = wrapCanvasText(context, props.serviceTitle, 835, 1)[0] ?? props.serviceTitle;
-  context.fillText(serviceLine, 76, 410);
+  context.fillText(props.isExpired ? "Expired pass" : "Verified booking", 112, 100);
 
   context.fillStyle = "rgba(255,255,255,0.82)";
-  context.font = "500 24px system-ui, -apple-system, sans-serif";
-  const locationLine =
-    wrapCanvasText(context, props.locationText, 835, 1)[0] ?? props.locationText;
-  context.fillText(locationLine, 76, 458);
+  context.font = "700 16px system-ui, -apple-system, sans-serif";
+  context.fillText("STABS Gonzaga Travel Bookings", 62, 152);
 
-  fillRoundedRect(context, 76, 515, 412, 134, 28, "rgba(0,0,0,0.14)");
-  fillRoundedRect(context, 516, 515, 412, 134, 28, "rgba(0,0,0,0.14)");
-  strokeRoundedRect(context, 76, 515, 412, 134, 28, "rgba(255,255,255,0.10)", 2);
-  strokeRoundedRect(context, 516, 515, 412, 134, 28, "rgba(255,255,255,0.10)", 2);
-
-  context.fillStyle = "rgba(255,255,255,0.76)";
-  context.font = "700 18px system-ui, -apple-system, sans-serif";
-  context.fillText("Visit date", 116, 560);
-  context.fillText("Guest pass", 556, 560);
-
-  context.fillStyle = "#ffffff";
-  context.font = "700 34px system-ui, -apple-system, sans-serif";
-  context.fillText(props.serviceDate, 116, 610);
-  context.fillText(
-    `${props.guestNumber} of ${props.guestCount}`,
-    556,
-    610
-  );
-
+  // Reference chip
+  context.textAlign = "center";
   context.fillStyle = "rgba(255,255,255,0.74)";
   context.font = "700 18px system-ui, -apple-system, sans-serif";
-  context.fillText("Guest name", 76, 744);
-  const guestLines = wrapCanvasText(context, props.guestName, 650, 2);
+  context.fillText("Reference", width / 2, 232);
   context.fillStyle = "#ffffff";
-  context.font = "700 34px system-ui, -apple-system, sans-serif";
-  guestLines.forEach((line, index) => {
-    context.fillText(line, 76, 796 + index * 42);
-  });
+  context.font = "700 40px ui-monospace, SFMono-Regular, Menlo, monospace";
+  context.fillText(`#${props.referenceCode}`, width / 2, 280);
 
-  context.fillStyle = "rgba(255,255,255,0.74)";
-  context.font = "700 18px system-ui, -apple-system, sans-serif";
-  context.fillText("Paid", 832, 744);
-  context.fillStyle = "#ffffff";
-  context.font = "700 38px ui-monospace, SFMono-Regular, Menlo, monospace";
-  const paidLine = wrapCanvasText(context, props.totalPaid, 180, 1)[0] ?? props.totalPaid;
-  context.fillText(paidLine, 832, 796);
-
-  fillRoundedRect(context, 1176, 170, 246, 246, 30, "#ffffff");
+  // QR code
+  const qrSize = 380;
+  const qrX = (width - qrSize) / 2;
+  const qrY = 330;
+  fillRoundedRect(context, qrX - 24, qrY - 24, qrSize + 48, qrSize + 48, 30, "#ffffff");
   const qrDataUrl = await QRCode.toDataURL(props.verificationUrl, {
     errorCorrectionLevel: "M",
     margin: 1,
-    width: 220,
+    width: qrSize,
     color: { dark: "#0f4b33", light: "#ffffff" }
   });
   const qrImage = await loadCanvasImage(qrDataUrl);
-  context.drawImage(qrImage, 1189, 183, 220, 220);
+  context.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
 
+  // Ticket code
+  const codeY = qrY + qrSize + 90;
   context.fillStyle = "rgba(255,255,255,0.74)";
   context.font = "700 18px system-ui, -apple-system, sans-serif";
-  context.fillText("Ticket code", 1176, 504);
+  context.fillText("Ticket code", width / 2, codeY);
+
   context.fillStyle = "#ffffff";
-  context.font = "700 58px Georgia, 'Times New Roman', serif";
-  context.fillText(props.ticketCode.split("-").pop() ?? props.ticketCode, 1176, 575);
+  context.font = "700 64px Georgia, 'Times New Roman', serif";
+  context.fillText(props.ticketCode.split("-").pop() ?? props.ticketCode, width / 2, codeY + 70);
+
   context.fillStyle = "rgba(255,255,255,0.68)";
   context.font = "500 18px ui-monospace, SFMono-Regular, Menlo, monospace";
-  const fullCodeLines = wrapCanvasText(context, props.ticketCode, 290, 2);
-  fullCodeLines.forEach((line, index) => {
-    context.fillText(line, 1176, 614 + index * 28);
-  });
+  context.fillText(props.ticketCode, width / 2, codeY + 110);
 
+  context.textAlign = "left";
   return canvas;
 }
 

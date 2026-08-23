@@ -95,8 +95,8 @@ export default async function TouristTicketsPage() {
                     </div>
                     <div className="rounded-[1rem] bg-muted/45 px-4 py-3">
                       <p className="text-muted-foreground">Guest passes</p>
-                      <p className="mt-1 font-medium">{booking.guest_count} individual QR {booking.guest_count === 1 ? "ticket" : "tickets"}</p>
-                    </div>
+                      <p className="mt-1 font-medium">1 QR ticket · {booking.guest_count} guest{booking.guest_count === 1 ? "" : "s"}</p>                    
+                      </div>
                     <div className="rounded-[1rem] bg-muted/45 px-4 py-3">
                       <p className="text-muted-foreground">Guests</p>
                       <p className="mt-1 font-medium">{booking.guest_count}</p>

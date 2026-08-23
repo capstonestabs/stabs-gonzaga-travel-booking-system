@@ -36,6 +36,11 @@ export default async function BookingTicketPage({
 
   const isExpired = isBookingTicketExpired(booking);
   const guestTickets = getBookingGuestTickets(booking);
+  const ticket = guestTickets[0];
+
+  if (!ticket) {
+    notFound();
+  }
 
   return (
     <div className="page-shell space-y-6 py-8 sm:py-10">
@@ -46,7 +51,7 @@ export default async function BookingTicketPage({
           <p className="page-intro">
             {isExpired
               ? "This pass is no longer valid because the scheduled date has already passed."
-              : `This booking has ${guestTickets.length} individual guest ${guestTickets.length === 1 ? "pass" : "passes"}. Save each QR ticket and present it on arrival.`}
+              : `Present this single QR ticket on arrival for your full party of ${booking.guest_count} guest${booking.guest_count === 1 ? "" : "s"}.`}
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -59,33 +64,17 @@ export default async function BookingTicketPage({
       </div>
 
       <div className="space-y-8">
-        {guestTickets.map((guest) => (
-          <section key={guest.ticketCode} className="space-y-3">
-            <p className="text-sm font-semibold text-muted-foreground">
-              Guest {guest.guestNumber} of {guestTickets.length}: {guest.name}
-            </p>
-            <BookingTicketCard
-              destinationTitle={booking.destination_snapshot.title}
-              locationText={booking.destination_snapshot.location_text}
-              ticketCode={guest.ticketCode}
-              serviceTitle={booking.service_snapshot?.title ?? "Standard service"}
-              guestName={guest.name}
-              guestNumber={guest.guestNumber}
-              guestType={guest.type}
-              verificationUrl={createGuestTicketVerificationUrl(
-                booking.id,
-                guest.guestNumber
-              )}
-              serviceDate={booking.service_date}
-              guestCount={booking.guest_count}
-              totalPaid={formatCurrency(booking.total_amount)}
-              referenceCode={booking.id.split("-")[0].toUpperCase()}
-              isExpired={isExpired}
-            />
-          </section>
-        ))}
+        <section className="space-y-3">
+          <BookingTicketCard
+            ticketCode={ticket.ticketCode}
+            verificationUrl={createGuestTicketVerificationUrl(booking.id, ticket.guestNumber)}
+            referenceCode={booking.id.split("-")[0].toUpperCase()}
+            guestName={ticket.name}
+            isExpired={isExpired}
+          />
+        </section>
       </div>
-      
+
       <div className="text-center">
         <p className="text-sm text-muted-foreground">
           Need help? <Link href="/feedback" className="text-primary underline">Contact destination support</Link>

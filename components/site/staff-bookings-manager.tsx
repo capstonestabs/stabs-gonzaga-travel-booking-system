@@ -108,6 +108,7 @@ export function StaffBookingsManager({
   const [remarksDraft, setRemarksDraft] = useState("");
   const [staffActionPending, setStaffActionPending] = useState<"confirm" | "decline" | null>(null);
   const [staffActionError, setStaffActionError] = useState<string | null>(null);
+  const [staffActionSuccess, setStaffActionSuccess] = useState<string | null>(null);
   const [bulkPending, setBulkPending] = useState<"confirm" | "decline" | "delete" | null>(null);
   const [bulkDialogMode, setBulkDialogMode] = useState<"confirm" | "decline" | "delete" | null>(null);
   const [bulkError, setBulkError] = useState<string | null>(null);
@@ -124,6 +125,12 @@ export function StaffBookingsManager({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [bulkMenuOpen]);
+
+  useEffect(() => {
+    if (!staffActionSuccess) return;
+    const timer = setTimeout(() => setStaffActionSuccess(null), 3000);
+    return () => clearTimeout(timer);
+  }, [staffActionSuccess]);
   const duplicateBookingIds = useMemo(() => {
     const groups = new Map<string, string[]>();
     for (const booking of bookings) {
@@ -185,6 +192,7 @@ export function StaffBookingsManager({
     setSelectedBookingId(booking.id);
     setRemarksDraft("");
     setStaffActionError(null);
+    setStaffActionSuccess(null);
   }
 
   function closeBooking() {
@@ -222,6 +230,7 @@ export function StaffBookingsManager({
   async function handleStaffAction(action: "confirm" | "decline") {
     if (!selectedBooking) return;
     setStaffActionError(null);
+    setStaffActionSuccess(null);
     setStaffActionPending(action);
 
     try {
@@ -231,7 +240,7 @@ export function StaffBookingsManager({
           : `/api/bookings/${selectedBooking.id}/cancel`,
         { method: "POST" }
       );
-      const body = (await response.json()) as { error?: string };
+      const body = (await response.json()) as { error?: string; message?: string };
 
       if (!response.ok) {
         throw new Error(
@@ -239,6 +248,9 @@ export function StaffBookingsManager({
         );
       }
 
+      setStaffActionSuccess(
+        action === "confirm" ? "Reservation confirmed." : "Reservation declined."
+      );
       router.refresh();
     } catch (err) {
       setStaffActionError(err instanceof Error ? err.message : "Something went wrong.");
@@ -538,6 +550,7 @@ export function StaffBookingsManager({
               </Button>
             </div>
             {staffActionError ? <p className="text-xs text-destructive">{staffActionError}</p> : null}
+            {staffActionSuccess ? <p className="text-xs text-emerald-700">{staffActionSuccess}</p> : null}
 
             <label className="block space-y-1">
               <span className="text-xs font-medium text-slate-600">Remarks (optional)</span>

@@ -51,7 +51,17 @@ export async function upsertFinancialRecordForBooking(bookingId: string) {
     location_text?: string;
   };
 
-  const { error: upsertError } = await supabase.from("financial_records").upsert(
+  const { data: existingRecord } = await supabase
+    .from("financial_records")
+    .select("id")
+    .eq("booking_id", booking.id)
+    .maybeSingle();
+
+  if (existingRecord) {
+    return;
+  }
+
+  const { error: upsertError } = await supabase.from("financial_records").insert(
     {
       booking_id: booking.id,
       payment_id: payment.id,
@@ -71,9 +81,6 @@ export async function upsertFinancialRecordForBooking(bookingId: string) {
       payment_method_type: payment.payment_method_type ?? null,
       ticket_code: booking.ticket_code ?? null,
       paid_at: payment.paid_at
-    },
-    {
-      onConflict: "booking_id"
     }
   );
 
