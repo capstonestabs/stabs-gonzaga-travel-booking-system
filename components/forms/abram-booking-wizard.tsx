@@ -324,6 +324,8 @@ export function AbramBookingWizard({
                 setAvailability(null);
                 setError(null);
             }}
+            availabilityStartDate={ratePlan.primaryService.availability_start_date}
+            availabilityEndDate={ratePlan.primaryService.availability_end_date}
           />
           <div className="rounded-[0.9rem] border border-border/70 bg-muted/30 px-3.5 py-3 text-sm">
             <span className="text-muted-foreground">Selected date: </span>

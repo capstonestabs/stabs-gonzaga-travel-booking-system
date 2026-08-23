@@ -134,6 +134,7 @@ export default async function DestinationBookingPage({
           services={destination.destination_services ?? []}
           coverUrl={destination.cover_url}
           initialServiceId={selectedServiceId}
+          lockToService={Boolean(serviceId)}
           viewerRole={viewer?.role}
           defaultContactName={viewer?.profile?.full_name ?? ""}
           defaultContactEmail={viewer?.email ?? ""}

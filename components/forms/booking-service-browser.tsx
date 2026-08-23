@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import type { Route } from "next";
+import Link from "next/link";
 import {
+  ArrowLeft,
   CalendarCheck2,
   Check,
   ChevronDown,
@@ -41,6 +44,8 @@ export function BookingServiceBrowser({
   services,
   coverUrl,
   initialServiceId,
+  /** When true, only the service matching initialServiceId is shown \u2014 the browsing list is hidden. */
+  lockToService = false,
   viewerRole,
   defaultContactName,
   defaultContactEmail,
@@ -55,6 +60,7 @@ export function BookingServiceBrowser({
   services: DestinationService[];
   coverUrl?: string | null;
   initialServiceId?: string;
+  lockToService?: boolean;
   viewerRole?: UserRole | null;
   defaultContactName?: string;
   defaultContactEmail?: string;
@@ -82,7 +88,7 @@ export function BookingServiceBrowser({
               mergedAbramRatePlan.child.priceAmount
             )
           )}`,
-          unitLabel: `Adult ${formatPesoCurrency(mergedAbramRatePlan.adult.priceAmount)} · Child ${formatPesoCurrency(mergedAbramRatePlan.child.priceAmount)}`,
+          unitLabel: `Adult ${formatPesoCurrency(mergedAbramRatePlan.adult.priceAmount)} \u00b7 Child ${formatPesoCurrency(mergedAbramRatePlan.child.priceAmount)}`,
           capacity: mergedAbramRatePlan.primaryService.daily_capacity,
           isMergedAbram: true
         }
@@ -135,6 +141,79 @@ export function BookingServiceBrowser({
     />
   );
 
+  const addOnsPicker = selectedService && additionalServicesList.length > 0 ? (
+    <div className="mb-4 space-y-2">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Add-ons</p>
+      <div className="grid gap-2">
+        {additionalServicesList.map((addon) => {
+          const isSelected = selectedAdditionalServiceIds.includes(addon.id);
+          return (
+            <button
+              key={addon.id}
+              type="button"
+              onClick={() => toggleAdditionalService(addon.id)}
+              className={`flex items-center justify-between rounded-[0.85rem] border px-3 py-2.5 text-left transition ${
+                isSelected
+                  ? "border-primary bg-primary/5"
+                  : "border-border/70 hover:border-primary/30"
+              }`}
+            >
+              <div className="min-w-0">
+                <p className="text-sm font-medium">{addon.title}</p>
+                <p className="text-xs text-muted-foreground">{formatPesoCurrency(addon.price_amount)}</p>
+              </div>
+              {isSelected ? <Badge variant="accent">Added</Badge> : <Badge variant="muted">Add</Badge>}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  ) : null;
+
+  if (lockToService) {
+    return (
+      <div className="space-y-4">
+        <Link
+          href={`/listings/${destinationSlug}` as Route}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-primary"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Wrong package? Go back to the listing
+        </Link>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[320px,1fr] lg:gap-6">
+          <Card className="border-border/70 shadow-[0_8px_24px_rgba(22,74,47,0.06)] self-start">
+            <CardContent className="p-0">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-t-[1rem] bg-muted">
+                {selectedService?.imageUrl ? (
+                  <img
+                    src={selectedService.imageUrl}
+                    alt={selectedService.title}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                ) : null}
+                <Badge variant="accent" className="absolute top-3 right-3">Selected</Badge>
+              </div>
+              <div className="p-4 xl:p-5">
+                <h3 className="font-display text-xl font-semibold">{selectedService?.title}</h3>
+                <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <MapPin className="h-3.5 w-3.5" /> {locationText}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-primary/20 shadow-[0_16px_40px_rgba(22,74,47,0.1)]">
+            <CardContent className="p-4 xl:p-5">
+              {addOnsPicker}
+              {selectedServiceId ? bookingForm(selectedServiceId) : null}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-[1.25fr,0.75fr,0.65fr] overflow-hidden rounded-[1rem] border border-border/70 bg-card shadow-[0_8px_24px_rgba(22,74,47,0.06)] sm:grid-cols-[1.4fr,0.8fr,0.8fr]">
@@ -153,7 +232,7 @@ export function BookingServiceBrowser({
           </div>
         </a>
         <div className="flex min-w-0 items-center gap-2 px-3 py-3 sm:px-4">
-          <span className="text-base font-bold text-primary">₱</span>
+          <span className="text-base font-bold text-primary">\u20b1</span>
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-[0.13em] text-muted-foreground">Currency</p>
             <p className="truncate text-xs font-semibold sm:text-sm">PHP</p>
@@ -191,34 +270,7 @@ export function BookingServiceBrowser({
                         </div>
                         <Badge variant="accent">Selected</Badge>
                       </div>
-                      {additionalServicesList.length > 0 ? (
-                        <div className="mb-4 space-y-2">
-                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Additional Services</p>
-                          <div className="grid gap-2">
-                            {additionalServicesList.map((addon) => {
-                              const isSelected = selectedAdditionalServiceIds.includes(addon.id);
-                              return (
-                                <button
-                                  key={addon.id}
-                                  type="button"
-                                  onClick={() => toggleAdditionalService(addon.id)}
-                                  className={`flex items-center justify-between rounded-[0.85rem] border px-3 py-2.5 text-left transition ${
-                                    isSelected
-                                      ? "border-primary bg-primary/5"
-                                      : "border-border/70 hover:border-primary/30"
-                                  }`}
-                                >
-                                  <div className="min-w-0">
-                                    <p className="text-sm font-medium">{addon.title}</p>
-                                    <p className="text-xs text-muted-foreground">{formatPesoCurrency(addon.price_amount)}</p>
-                                  </div>
-                                  {isSelected ? <Badge variant="accent">Added</Badge> : <Badge variant="muted">Add</Badge>}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ) : null}
+                      {addOnsPicker}
                       {bookingForm(service.id)}
                     </CardContent>
                   </Card>
@@ -260,34 +312,7 @@ export function BookingServiceBrowser({
                 </div>
                 <Badge variant="accent">Selected</Badge>
               </div>
-              {selectedService && additionalServicesList.length > 0 ? (
-                <div className="mb-4 space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Add-ons</p>
-                  <div className="grid gap-2">
-                    {additionalServicesList.map((addon) => {
-                      const isSelected = selectedAdditionalServiceIds.includes(addon.id);
-                      return (
-                        <button
-                          key={addon.id}
-                          type="button"
-                          onClick={() => toggleAdditionalService(addon.id)}
-                          className={`flex items-center justify-between rounded-[0.85rem] border px-3 py-2.5 text-left transition ${
-                            isSelected
-                              ? "border-primary bg-primary/5"
-                              : "border-border/70 hover:border-primary/30"
-                          }`}
-                        >
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium">{addon.title}</p>
-                            <p className="text-xs text-muted-foreground">{formatPesoCurrency(addon.price_amount)}</p>
-                          </div>
-                          {isSelected ? <Badge variant="accent">Added</Badge> : <Badge variant="muted">Add</Badge>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : null}
+              {addOnsPicker}
               {selectedServiceId ? bookingForm(selectedServiceId) : null}
             </CardContent>
           </Card>

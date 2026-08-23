@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { CalendarDays, ChevronRight, Minus, Plus } from "lucide-react";
 
 import { AvailabilityCalendarPanel } from "@/components/forms/availability-calendar-panel";
 import { AbramBookingWizard } from "@/components/forms/abram-booking-wizard";
@@ -8,6 +10,7 @@ import { ServiceImagePreview } from "@/components/site/service-image-preview";
 import { Button } from "@/components/ui/button";
 import { ExpandableText } from "@/components/ui/expandable-text";
 import { Input } from "@/components/ui/input";
+import { Modal } from "@/components/ui/modal";
 import { Textarea } from "@/components/ui/textarea";
 import { getAvailabilityState } from "@/lib/availability";
 import { formatServiceWindowLabel } from "@/lib/booking-state";
@@ -15,8 +18,7 @@ import { formatServiceTypeLabel } from "@/lib/service-types";
 import { getAbramMergedGuestRatePlan } from "@/lib/guest-pricing";
 import type { AvailabilitySnapshot, DestinationService, ListingCategory, UserRole } from "@/lib/types";
 import { formatCurrency, formatPesoCurrency, pesoAmountToCentavos } from "@/lib/utils";
-import Link from "next/link";
-import { Plus, Minus, /* ...whatever else was already there */ } from "lucide-react";
+
 export function BookingForm({
   destinationId,
   destinationSlug,
@@ -53,6 +55,8 @@ export function BookingForm({
   const [serviceDate, setServiceDate] = useState("");
   const [checkOutDate, setCheckOutDate] = useState("");
   const [checkOutTime, setCheckOutTime] = useState("12:00");
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const hasCheckInRef = useRef(false);
   const [guestCount, setGuestCount] = useState(1);
   const [guestNames, setGuestNames] = useState<string[]>([defaultContactName ?? ""]);
   const bookableServices = services.filter((service) => service.is_active);
@@ -101,20 +105,6 @@ export function BookingForm({
       setError(null);
     }
   }, [initialServiceId]);
-
-  useEffect(() => {
-    if (!serviceDate) {
-      setCheckOutDate("");
-      return;
-    }
-
-    setCheckOutDate((current) => {
-      if (!current) {
-        return serviceDate;
-      }
-      return current < serviceDate ? serviceDate : current;
-    });
-  }, [serviceDate]);
 
   useEffect(() => {
     if (!serviceDate || !selectedServiceId) {
@@ -170,6 +160,12 @@ export function BookingForm({
     };
   }, [destinationId, serviceDate, selectedServiceId]);
 
+  function handleRangeChange({ checkIn, checkOut }: { checkIn: string; checkOut: string }) {
+    setError(null);
+    setServiceDate(checkIn);
+    setCheckOutDate(checkOut);
+  }
+
   async function handleSubmit(formData: FormData) {
     if (viewerRole && viewerRole !== "user") {
       setError("Bookings can only be completed with a traveler account.");
@@ -204,14 +200,6 @@ export function BookingForm({
       if (guestDetails.length !== guestCount || guestDetails.some((guest) => guest.name.length < 2)) {
         throw new Error("Enter the full name of every guest so each QR pass can be issued correctly.");
       }
-
-      const additionalServicesList = additionalServices.map((service) => ({
-        id: service.id,
-        title: service.title,
-        price_amount: service.price_amount,
-        quantity: 1,
-        subtotal: service.price_amount
-      }));
 
       const payload = {
         destinationId,
@@ -261,14 +249,6 @@ export function BookingForm({
   }
 
   const availabilityState = getAvailabilityState(availability, guestCount);
-  const availabilityToneClass =
-    availabilityState.tone === "success"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-      : availabilityState.tone === "warning"
-        ? "border-amber-200 bg-amber-50 text-amber-800"
-        : availabilityState.tone === "destructive"
-          ? "border-destructive/20 bg-destructive/5 text-destructive"
-          : "border-border/70 bg-muted/45 text-muted-foreground";
 
   const mergedAbramRatePlan = getAbramMergedGuestRatePlan(
     destinationSlug,
@@ -293,6 +273,13 @@ export function BookingForm({
       />
     );
   }
+
+  const dateRangeLabel =
+    serviceDate && checkOutDate
+      ? `${serviceDate} \u2192 ${checkOutDate}`
+      : serviceDate
+        ? `Check-in ${serviceDate} \u00b7 pick check-out`
+        : "Tap to choose your dates";
 
   return (
     <form
@@ -389,25 +376,88 @@ export function BookingForm({
 
       {selectedService ? (
         <div className="grid gap-4 xl:grid-cols-[minmax(21rem,1.05fr),minmax(19rem,0.95fr)] xl:items-start">
-          <AvailabilityCalendarPanel
-            destinationId={destinationId}
-            serviceId={selectedService.id}
-            selectedDate={serviceDate}
-            onSelectDate={(nextDate) => {
-              setError(null);
-              setServiceDate(nextDate);
-            }}
-            compactDesktop
-          />
+          <div>
+            <div className="hidden sm:block">
+              <AvailabilityCalendarPanel
+                destinationId={destinationId}
+                serviceId={selectedService.id}
+                mode="range"
+                checkInDate={serviceDate}
+                checkOutDate={checkOutDate}
+                onRangeChange={handleRangeChange}
+                compactDesktop
+                availabilityMessage={availabilityState.message}
+                availabilityTone={availabilityState.tone}
+                availabilityStartDate={selectedService.availability_start_date}
+                availabilityEndDate={selectedService.availability_end_date}
+              />
+            </div>
+
+            <div className="sm:hidden">
+              <button
+                type="button"
+                onClick={() => setIsCalendarModalOpen(true)}
+                className="flex w-full items-center justify-between gap-3 rounded-[1.3rem] border border-border/70 bg-muted/30 px-4 py-3.5 text-left"
+              >
+                <span className="flex min-w-0 items-center gap-3">
+                  <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <CalendarDays className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                      Your dates
+                    </span>
+                    <span className="block truncate text-sm font-semibold text-foreground">
+                      {dateRangeLabel}
+                    </span>
+                  </span>
+                </span>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </button>
+
+              <Modal
+                open={isCalendarModalOpen}
+                onClose={() => {
+                  setIsCalendarModalOpen(false);
+                  hasCheckInRef.current = false;
+                }}
+                title="Select your dates"
+              >
+                <AvailabilityCalendarPanel
+                  destinationId={destinationId}
+                  serviceId={selectedService.id}
+                  mode="range"
+                  checkInDate={serviceDate}
+                  checkOutDate={checkOutDate}
+                  onRangeChange={(next) => {
+                    const hadCheckIn = hasCheckInRef.current;
+                    handleRangeChange(next);
+                    if (hadCheckIn && next.checkOut) {
+                      setIsCalendarModalOpen(false);
+                    }
+                    hasCheckInRef.current = Boolean(next.checkIn);
+                  }}
+                  availabilityMessage={availabilityState.message}
+                  availabilityTone={availabilityState.tone}
+                  availabilityStartDate={selectedService.availability_start_date}
+                  availabilityEndDate={selectedService.availability_end_date}
+                />
+              </Modal>
+            </div>
+          </div>
 
           <div className="space-y-3.5">
             <div className="space-y-3.5 rounded-[1rem] border border-border/70 bg-muted/30 px-3.5 py-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                  Selected date
+                  Your trip dates
                 </p>
                 <p className="mt-1 text-sm font-medium text-foreground">
-                  {serviceDate || "Choose a date from the calendar above"}
+                  {serviceDate && checkOutDate
+                    ? `${serviceDate} \u2192 ${checkOutDate}`
+                    : serviceDate
+                      ? "Check-in set \u2014 pick your check-out date on the calendar."
+                      : "Choose your check-in date from the calendar above."}
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground">
                   {`Bookable window: ${formatServiceWindowLabel({
@@ -417,122 +467,104 @@ export function BookingForm({
                 </p>
               </div>
 
-              <label className="block space-y-1.5">
-                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">Guests</span>
-                <div className="flex h-11 items-center justify-between rounded-[0.85rem] border border-input/90 bg-card px-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setError(null);
-                      const nextCount = Math.max(1, guestCount - 1);
-                      setGuestCount(nextCount);
-                      setGuestNames((current) => current.slice(0, nextCount));
-                    }}
-                    disabled={guestCount <= 1}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted disabled:opacity-40"
-                    aria-label="Decrease guests"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </button>
-                  <span className="text-sm font-semibold tabular-nums">
-                    {guestCount} {guestCount === 1 ? "guest" : "guests"}
+              {serviceDate && checkOutDate ? (
+                <label className="block space-y-1.5">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
+                    Check-out time
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => {
+                  <Input
+                    type="time"
+                    value={checkOutTime}
+                    onChange={(event) => {
                       setError(null);
-                      const max = selectedService.daily_capacity ?? 200;
-                      const nextCount = Math.min(max, guestCount + 1);
-                      setGuestCount(nextCount);
-                      setGuestNames((current) =>
-                        Array.from(
-                          { length: nextCount },
-                          (_, index) => current[index] ?? (index === 0 ? defaultContactName ?? "" : "")
-                        )
-                      );
+                      setCheckOutTime(event.target.value);
                     }}
-                    disabled={guestCount >= (selectedService.daily_capacity ?? 200)}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted disabled:opacity-40"
-                    aria-label="Increase guests"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
+                    required
+                  />
+                </label>
+              ) : null}
+
+              <div className="space-y-3 rounded-[0.9rem] border border-border/70 bg-background px-3 py-3">
+                <div className="flex h-11 items-center justify-between rounded-[0.85rem] border border-input/90 bg-card px-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+                  <span className="pl-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
+                    Guests
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setError(null);
+                        const nextCount = Math.max(1, guestCount - 1);
+                        setGuestCount(nextCount);
+                        setGuestNames((current) => current.slice(0, nextCount));
+                      }}
+                      disabled={guestCount <= 1}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted disabled:opacity-40"
+                      aria-label="Decrease guests"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <span className="w-6 text-center text-sm font-semibold tabular-nums">
+                      {guestCount}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setError(null);
+                        const max = selectedService.daily_capacity ?? 200;
+                        const nextCount = Math.min(max, guestCount + 1);
+                        setGuestCount(nextCount);
+                        setGuestNames((current) =>
+                          Array.from(
+                            { length: nextCount },
+                            (_, index) => current[index] ?? (index === 0 ? defaultContactName ?? "" : "")
+                          )
+                        );
+                      }}
+                      disabled={guestCount >= (selectedService.daily_capacity ?? 200)}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted disabled:opacity-40"
+                      aria-label="Increase guests"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
                 <input type="hidden" name="guestCount" value={guestCount} />
-              </label>
 
-              {serviceDate ? (
-                <div className="space-y-2.5 rounded-[0.9rem] border border-border/70 bg-background px-3 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
-                    Select check-out date & time
-                  </p>
-                  <div className="space-y-2">
-                    <label className="block space-y-1.5">
-                      <span className="text-xs font-medium text-muted-foreground">Check-out date</span>
-                      <Input
-                        type="date"
-                        value={checkOutDate}
-                        min={serviceDate}
-                        onChange={(event) => {
-                          setError(null);
-                          setCheckOutDate(event.target.value);
-                        }}
-                        required
-                      />
-                    </label>
-                    <label className="block space-y-1.5">
-                      <span className="text-xs font-medium text-muted-foreground">Check-out time</span>
-                      <Input
-                        type="time"
-                        value={checkOutTime}
-                        onChange={(event) => {
-                          setError(null);
-                          setCheckOutTime(event.target.value);
-                        }}
-                        required
-                      />
-                    </label>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-
-            <div className={`rounded-[1rem] border px-3.5 py-3 text-sm ${availabilityToneClass}`}>
-              {isAvailabilityLoading ? "Checking live availability..." : availabilityState.message}
-            </div>
-
-            {viewerRole === "user" ? (
-              <div className="space-y-3.5">
-                <div className="space-y-2.5 rounded-[1rem] border border-border/70 bg-muted/30 p-3.5">
-                  <div>
-                    <p className="text-sm font-medium">Guest names</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
+                {viewerRole === "user" ? (
+                  <div className="space-y-2 border-t border-border/60 pt-3">
+                    <p className="text-xs text-muted-foreground">
                       Each guest receives an individual ticket and scannable QR code.
                     </p>
+                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                      {guestNames.slice(0, guestCount).map((name, index) => (
+                        <label key={index} className="block space-y-1.5">
+                          <span className="text-xs font-medium">Guest {index + 1} full name</span>
+                          <Input
+                            value={name}
+                            onChange={(event) => {
+                              const nextName = event.target.value;
+                              setGuestNames((current) =>
+                                current.map((entry, entryIndex) =>
+                                  entryIndex === index ? nextName : entry
+                                )
+                              );
+                              setError(null);
+                            }}
+                            autoComplete="name"
+                            required
+                            minLength={2}
+                          />
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                  <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
-                    {guestNames.slice(0, guestCount).map((name, index) => (
-                      <label key={index} className="block space-y-1.5">
-                        <span className="text-xs font-medium">Guest {index + 1} full name</span>
-                        <Input
-                          value={name}
-                          onChange={(event) => {
-                            const nextName = event.target.value;
-                            setGuestNames((current) =>
-                              current.map((entry, entryIndex) =>
-                                entryIndex === index ? nextName : entry
-                              )
-                            );
-                            setError(null);
-                          }}
-                          autoComplete="name"
-                          required
-                          minLength={2}
-                        />
-                      </label>
-                    ))}
-                  </div>
-                </div>
+              ) : null}
+            </div>
+          </div>
+
+          {viewerRole === "user" ? (
+              <div className="space-y-3.5">
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
                   <label className="block space-y-1.5">
                     <span className="text-sm font-medium">Contact name</span>
@@ -566,7 +598,9 @@ export function BookingForm({
                   </label>
 
                   <label className="block space-y-1.5 sm:col-span-2 xl:col-span-1 2xl:col-span-2">
-                    <span className="text-sm font-medium">Notes <span className="font-normal text-muted-foreground">(optional)</span></span>
+                    <span className="text-sm font-medium">
+                      Notes <span className="font-normal text-muted-foreground">(optional)</span>
+                    </span>
                     <Textarea
                       name="notes"
                       className="min-h-20 resize-y"
