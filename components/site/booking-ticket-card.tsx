@@ -137,8 +137,8 @@ function loadCanvasImage(source: string) {
 }
 
 async function renderTicketCanvas(props: BookingTicketCardProps) {
-  const width = 800;
-  const height = 1040;
+  const width = 700;
+  const height = 820;
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -157,30 +157,21 @@ async function renderTicketCanvas(props: BookingTicketCardProps) {
 
   strokeRoundedRect(context, 26, 26, width - 52, height - 52, 36, "rgba(255,255,255,0.18)", 3);
 
-  // Header badge
-  fillRoundedRect(context, 62, 62, 258, 58, 29, "rgba(255,255,255,0.10)");
-  strokeRoundedRect(context, 62, 62, 258, 58, 29, "rgba(255,255,255,0.22)", 2);
-  context.fillStyle = "#f8fffb";
-  context.font = "700 24px system-ui, -apple-system, sans-serif";
-  context.fillText(props.isExpired ? "Expired pass" : "Verified booking", 112, 100);
-
-  context.fillStyle = "rgba(255,255,255,0.82)";
-  context.font = "700 16px system-ui, -apple-system, sans-serif";
-  context.fillText("STABS Gonzaga Travel Bookings", 62, 152);
-
-  // Reference chip
   context.textAlign = "center";
+
+  // Reference
   context.fillStyle = "rgba(255,255,255,0.74)";
-  context.font = "700 18px system-ui, -apple-system, sans-serif";
-  context.fillText("Reference", width / 2, 232);
+  context.font = "700 20px system-ui, -apple-system, sans-serif";
+  context.fillText("Reference", width / 2, 120);
+
   context.fillStyle = "#ffffff";
-  context.font = "700 40px ui-monospace, SFMono-Regular, Menlo, monospace";
-  context.fillText(`#${props.referenceCode}`, width / 2, 280);
+  context.font = "700 46px ui-monospace, SFMono-Regular, Menlo, monospace";
+  context.fillText(`#${props.referenceCode}`, width / 2, 178);
 
   // QR code
-  const qrSize = 380;
+  const qrSize = 440;
   const qrX = (width - qrSize) / 2;
-  const qrY = 330;
+  const qrY = 240;
   fillRoundedRect(context, qrX - 24, qrY - 24, qrSize + 48, qrSize + 48, 30, "#ffffff");
   const qrDataUrl = await QRCode.toDataURL(props.verificationUrl, {
     errorCorrectionLevel: "M",
@@ -191,24 +182,9 @@ async function renderTicketCanvas(props: BookingTicketCardProps) {
   const qrImage = await loadCanvasImage(qrDataUrl);
   context.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
 
-  // Ticket code
-  const codeY = qrY + qrSize + 90;
-  context.fillStyle = "rgba(255,255,255,0.74)";
-  context.font = "700 18px system-ui, -apple-system, sans-serif";
-  context.fillText("Ticket code", width / 2, codeY);
-
-  context.fillStyle = "#ffffff";
-  context.font = "700 64px Georgia, 'Times New Roman', serif";
-  context.fillText(props.ticketCode.split("-").pop() ?? props.ticketCode, width / 2, codeY + 70);
-
-  context.fillStyle = "rgba(255,255,255,0.68)";
-  context.font = "500 18px ui-monospace, SFMono-Regular, Menlo, monospace";
-  context.fillText(props.ticketCode, width / 2, codeY + 110);
-
   context.textAlign = "left";
   return canvas;
 }
-
 async function downloadTicketImage(props: BookingTicketCardProps, fileName: string) {
   const canvas = await renderTicketCanvas(props);
 
