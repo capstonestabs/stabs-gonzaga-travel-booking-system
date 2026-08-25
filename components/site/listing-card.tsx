@@ -22,8 +22,8 @@ export function ListingCard({ destination }: { destination: Destination }) {
         : "Services coming soon";
 
   return (
-    <article className="card-corner-accent group flex h-full flex-col overflow-hidden rounded-[1.15rem] border border-border/70 bg-card shadow-[0_10px_24px_rgba(22,74,47,0.06)] transition-all hover:-translate-y-1 hover:shadow-[0_16px_30px_rgba(22,74,47,0.1)]">
-      <div className="relative h-44 overflow-hidden bg-[linear-gradient(135deg,rgba(28,74,47,0.94),rgba(51,109,74,0.82),rgba(175,214,188,0.68))] p-4 text-primary-foreground sm:h-56">
+    <article className="card-corner-accent group flex h-full flex-col overflow-hidden rounded-[1rem] border border-border/70 bg-card shadow-[0_8px_18px_rgba(22,74,47,0.05)] transition-all hover:-translate-y-1 hover:shadow-[0_12px_24px_rgba(22,74,47,0.08)] sm:rounded-[1.15rem] sm:shadow-[0_10px_24px_rgba(22,74,47,0.06)]">
+      <div className="relative h-32 overflow-hidden bg-[linear-gradient(135deg,rgba(28,74,47,0.94),rgba(51,109,74,0.82),rgba(175,214,188,0.68))] p-3 text-primary-foreground sm:h-56 sm:p-4">
         {leadImage ? (
           <>
             <img
@@ -38,37 +38,37 @@ export function ListingCard({ destination }: { destination: Destination }) {
         )}
         <div className="relative flex h-full flex-col justify-between">
           <div className="flex items-center justify-between gap-3">
-            <Badge variant="accent" className="shadow-lg">
+            <Badge variant="accent" className="shadow-lg text-[10px] px-2 py-0.5 sm:text-xs sm:px-2.5 sm:py-1">
               {destination.category}
             </Badge>
           </div>
           <div>
-            <h3 className="mt-2 font-display text-[1.45rem] font-semibold leading-tight sm:text-[1.6rem]">
+            <h3 className="font-display text-base font-semibold leading-tight sm:text-[1.45rem] sm:leading-snug">
               {destination.title}
             </h3>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-4 p-3.5 sm:p-4">
-        <p className="line-clamp-2 text-sm leading-6 text-muted-foreground">
+      <div className="flex flex-1 flex-col gap-2 p-2.5 sm:gap-4 sm:p-4">
+        <p className="line-clamp-1 text-xs leading-5 text-muted-foreground sm:line-clamp-2 sm:text-sm sm:leading-6">
           {destination.summary}
         </p>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-          <span className="inline-flex items-center gap-2 text-muted-foreground">
-            <MapPin className="h-4 w-4" />
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground sm:gap-3 sm:text-sm">
+          <span className="inline-flex items-center gap-1.5 sm:gap-2">
+            <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
             {destination.location_text}
           </span>
-          <span className="font-medium text-emerald-700">
+          <span className="font-medium text-emerald-700 text-[11px] sm:text-sm">
             {availabilityLabel}
           </span>
         </div>
 
         <Link href={`/listings/${destination.slug}`} className="mt-auto">
-          <Button variant="secondary" className="w-full justify-between">
+          <Button variant="secondary" className="h-8 w-full justify-between text-xs sm:h-10 sm:text-sm">
             View destination
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
         </Link>
       </div>

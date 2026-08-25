@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, CalendarDays, Compass, History, Ticket } from "lucide-react";
 
 import { DashboardShell } from "@/components/site/dashboard-shell";
-import { ListingCard } from "@/components/site/listing-card";
+import { PaginatedDestinationGrid } from "@/components/site/paginated-destination-grid";
 import { UserBookingCalendar } from "@/components/site/user-booking-calendar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,42 +43,42 @@ export default async function AccountPage() {
       description="Explore Gonzaga travel destinations, choose stay activities, and manage your reservation passes."
     >
       {/* Quick Booking Summary Cards */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
         <Link href="/account/current">
           <Card className="transition-all hover:-translate-y-[2px] hover:border-primary/30">
-            <CardContent className="space-y-1.5 p-4 sm:p-5">
-              <p className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                <CalendarDays className="h-3.5 w-3.5 text-primary" />
+            <CardContent className="space-y-1 p-2.5 sm:p-5">
+              <p className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">
+                <CalendarDays className="h-3 w-3 text-primary sm:h-3.5 sm:w-3.5" />
                 Current bookings
               </p>
-              <p className="text-2xl font-semibold">{activeBookings.length}</p>
-              <p className="text-sm text-muted-foreground">Active reservations ready for your trip.</p>
+              <p className="text-xl font-semibold sm:text-2xl">{activeBookings.length}</p>
+              <p className="text-[10px] leading-4 text-muted-foreground sm:text-xs sm:leading-5">Upcoming trips</p>
             </CardContent>
           </Card>
         </Link>
 
         <Link href="/account/tickets">
           <Card className="transition-all hover:-translate-y-[2px] hover:border-primary/30">
-            <CardContent className="space-y-1.5 p-4 sm:p-5">
-              <p className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                <Ticket className="h-3.5 w-3.5 text-primary" />
+            <CardContent className="space-y-1 p-2.5 sm:p-5">
+              <p className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">
+                <Ticket className="h-3 w-3 text-primary sm:h-3.5 sm:w-3.5" />
                 Ticket wallet
               </p>
-              <p className="text-2xl font-semibold">{ticketBookings.length}</p>
-              <p className="text-sm text-muted-foreground">Passes ready to display or download.</p>
+              <p className="text-xl font-semibold sm:text-2xl">{ticketBookings.length}</p>
+              <p className="text-[10px] leading-4 text-muted-foreground sm:text-xs sm:leading-5">QR passes ready</p>
             </CardContent>
           </Card>
         </Link>
 
         <Link href="/account/history">
           <Card className="transition-all hover:-translate-y-[2px] hover:border-primary/30">
-            <CardContent className="space-y-1.5 p-4 sm:p-5">
-              <p className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                <History className="h-3.5 w-3.5 text-primary" />
+            <CardContent className="space-y-1 p-2.5 sm:p-5">
+              <p className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">
+                <History className="h-3 w-3 text-primary sm:h-3.5 sm:w-3.5" />
                 Booking history
               </p>
-              <p className="text-2xl font-semibold">{historyBookings.length}</p>
-              <p className="text-sm text-muted-foreground">Past and completed trip records.</p>
+              <p className="text-xl font-semibold sm:text-2xl">{historyBookings.length}</p>
+              <p className="text-[10px] leading-4 text-muted-foreground sm:text-xs sm:leading-5">Past & completed</p>
             </CardContent>
           </Card>
         </Link>
@@ -114,11 +114,7 @@ export default async function AccountPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {destinations.map((destination) => (
-              <ListingCard key={destination.id} destination={destination} />
-            ))}
-          </div>
+          <PaginatedDestinationGrid destinations={destinations} />
         )}
       </section>
 

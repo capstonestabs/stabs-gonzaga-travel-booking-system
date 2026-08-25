@@ -54,6 +54,7 @@ export const adminNavSections: AdminNavSection[] = [
 export const workspaceNavByRole = {
   user: [
     { href: "/account", label: "Overview", icon: "overview" },
+    { href: "/dashboard/user", label: "Dashboard", icon: "reports" },
     { href: "/account/current", label: "Current bookings", icon: "bookings" },
     { href: "/account/tickets", label: "Ticket wallet", icon: "tickets" },
     { href: "/account/history", label: "Booking history", icon: "history" },
