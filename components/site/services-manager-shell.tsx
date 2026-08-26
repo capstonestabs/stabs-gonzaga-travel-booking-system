@@ -7,6 +7,8 @@ import {
   CalendarRange,
   ChevronLeft,
   ChevronRight,
+  DollarSign,
+  FileText,
   Home,
   Pencil,
   Plus,
@@ -16,6 +18,8 @@ import { splitServicesByCategory } from "@/lib/service-categories";
 
 import { AdditionalServicesEditorForm } from "@/components/forms/additional-services-editor-form";
 import { DeleteDestinationServiceButton } from "@/components/forms/delete-destination-service-button";
+import { DestinationPoliciesManager } from "@/components/forms/destination-policies-manager";
+import { EntranceFeeManager } from "@/components/forms/entrance-fee-manager";
 import { ServiceCalendarManager } from "@/components/forms/service-calendar-manager";
 import { ServicesEditorForm } from "@/components/forms/services-editor-form";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +32,8 @@ import { formatPesoCurrency } from "@/lib/utils";
 import { formatOperatingTime } from "@/lib/service-schedule";
 
 const ITEMS_PER_PAGE = 5;
+
+type TabType = "core" | "entrance_fee" | "additional" | "policies";
 
 export function ServicesManagerShell({
   destination,
@@ -44,7 +50,7 @@ export function ServicesManagerShell({
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [coverError, setCoverError] = useState<string | null>(null);
   const [selectedCoverFileName, setSelectedCoverFileName] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"core" | "additional">("core");
+  const [activeTab, setActiveTab] = useState<TabType>("core");
   const [currentPage, setCurrentPage] = useState(1);
   const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false);
 
@@ -57,9 +63,11 @@ export function ServicesManagerShell({
     return services.slice(start, start + ITEMS_PER_PAGE);
   }, [services, currentPage]);
 
-  function switchTab(tab: "core" | "additional") {
+  function switchTab(tab: TabType) {
     setActiveTab(tab);
     setCurrentPage(1);
+    setShowEditor(false);
+    setEditingServiceId(null);
   }
 
   const handleAdd = () => {
@@ -139,22 +147,31 @@ export function ServicesManagerShell({
             <div className="space-y-1">
               <h1 className="font-display text-2xl font-bold tracking-tight">Services Management</h1>
               <p className="text-sm text-muted-foreground">
-                Manage core services and additional service details separately.
+                Manage core services, entrance fees, add-ons, and destination rules in one place.
               </p>
             </div>
             <div className="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
-              <Button variant="outline" onClick={() => setIsAvailabilityModalOpen(true)} className="w-full sm:w-auto">
-                <CalendarRange className="mr-2 h-4 w-4" />
-                Manage availability
-              </Button>
-              <Button onClick={handleAdd} className="w-full sm:w-auto">
-                <Plus className="mr-2 h-4 w-4" />
-                {activeTab === "core" ? "Add Service" : "Add Additional Service"}
-              </Button>
+              {activeTab === "core" ? (
+                <>
+                  <Button variant="outline" onClick={() => setIsAvailabilityModalOpen(true)} className="w-full sm:w-auto">
+                    <CalendarRange className="mr-2 h-4 w-4" />
+                    Manage availability
+                  </Button>
+                  <Button onClick={handleAdd} className="w-full sm:w-auto">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Service
+                  </Button>
+                </>
+              ) : activeTab === "additional" ? (
+                <Button onClick={handleAdd} className="w-full sm:w-auto">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Additional Service
+                </Button>
+              ) : null}
             </div>
           </div>
 
-          <div className="flex gap-6 border-b border-border/60">
+          <div className="flex flex-wrap gap-4 sm:gap-6 border-b border-border/60">
             <button
               type="button"
               onClick={() => switchTab("core")}
@@ -168,6 +185,17 @@ export function ServicesManagerShell({
             </button>
             <button
               type="button"
+              onClick={() => switchTab("entrance_fee")}
+              className={`-mb-px border-b-2 pb-2.5 text-sm font-semibold transition-colors ${
+                activeTab === "entrance_fee"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Entrance Fee
+            </button>
+            <button
+              type="button"
               onClick={() => switchTab("additional")}
               className={`-mb-px border-b-2 pb-2.5 text-sm font-semibold transition-colors ${
                 activeTab === "additional"
@@ -176,6 +204,17 @@ export function ServicesManagerShell({
               }`}
             >
               Additional Services
+            </button>
+            <button
+              type="button"
+              onClick={() => switchTab("policies")}
+              className={`-mb-px border-b-2 pb-2.5 text-sm font-semibold transition-colors ${
+                activeTab === "policies"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Rules & Policies
             </button>
           </div>
         </>
@@ -278,31 +317,36 @@ export function ServicesManagerShell({
       ) : null}
 
       {!showEditor ? (
-        <Card className="overflow-hidden border-border/70 shadow-sm">
-          <CardContent className="p-0">
-            <div className="flex items-center justify-between gap-3 border-b border-border/60 bg-muted/20 px-5 py-4 sm:px-6">
-              <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
-                  {activeTab === "core" ? <Home className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
-                </span>
-                <div>
-                  <p className="font-semibold text-foreground">
-                    {activeTab === "core" ? "Core Services" : "Additional Services"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {activeTab === "core"
-                      ? "The main bookable packages guests reserve a date and slot for."
-                      : "Light add-ons like life vests, spa access, or snorkeling gear just a photo, price, and status."}
-                  </p>
+        activeTab === "entrance_fee" ? (
+          <EntranceFeeManager destination={destination} />
+        ) : activeTab === "policies" ? (
+          <DestinationPoliciesManager destination={destination} />
+        ) : (
+          <Card className="overflow-hidden border-border/70 shadow-sm">
+            <CardContent className="p-0">
+              <div className="flex items-center justify-between gap-3 border-b border-border/60 bg-muted/20 px-5 py-4 sm:px-6">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
+                    {activeTab === "core" ? <Home className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+                  </span>
+                  <div>
+                    <p className="font-semibold text-foreground">
+                      {activeTab === "core" ? "Core Services" : "Additional Services"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {activeTab === "core"
+                        ? "The main bookable packages guests reserve a date and slot for."
+                        : "Light add-ons like life vests, spa access, or snorkeling gear just a photo, price, and status."}
+                    </p>
+                  </div>
+                </div>
+                <div className="hidden shrink-0 items-center gap-2 sm:flex">
+                  <span className="text-xs text-muted-foreground">
+                    {activeTab === "core" ? "Total Core Services" : "Total Additional Services"}
+                  </span>
+                  <Badge variant="success">{services.length}</Badge>
                 </div>
               </div>
-              <div className="hidden shrink-0 items-center gap-2 sm:flex">
-                <span className="text-xs text-muted-foreground">
-                  {activeTab === "core" ? "Total Core Services" : "Total Additional Services"}
-                </span>
-                <Badge variant="success">{services.length}</Badge>
-              </div>
-            </div>
 
             {services.length === 0 ? (
               <div className="px-5 py-12 text-center text-sm text-muted-foreground sm:px-6">
@@ -486,6 +530,7 @@ export function ServicesManagerShell({
             )}
           </CardContent>
         </Card>
+        )
       ) : (
         <div className="space-y-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

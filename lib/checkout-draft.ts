@@ -20,6 +20,11 @@ export interface CheckoutDraft {
     adult: { label: string; priceAmount: number };
     child: { label: string; priceAmount: number };
   };
+  entranceFee?: {
+    title: string;
+    priceAmount: number;
+    isActive: boolean;
+  } | null;
   serviceId: string;
   serviceSnapshot: {
     id: string;
@@ -27,6 +32,13 @@ export interface CheckoutDraft {
     description: string | null;
     price_amount: number;
     service_type: string;
+    entrance_fee?: {
+      title: string;
+      price_amount: number;
+      guest_count: number;
+      total_amount: number;
+      is_active: boolean;
+    } | null;
     additional_services?: Array<{
       id: string;
       title: string;

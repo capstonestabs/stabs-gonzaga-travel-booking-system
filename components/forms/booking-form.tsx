@@ -33,7 +33,10 @@ export function BookingForm({
   defaultContactEmail,
   defaultContactPhone,
   policies = [],
-  additionalServices = []
+  additionalServices = [],
+  entranceFeeAmount = 0,
+  isEntranceFeeActive = false,
+  entranceFeeTitle = "Entrance Fee"
 }: {
   destinationId: string;
   destinationSlug: string;
@@ -49,6 +52,9 @@ export function BookingForm({
   defaultContactPhone?: string;
   policies?: string[];
   additionalServices?: DestinationService[];
+  entranceFeeAmount?: number;
+  isEntranceFeeActive?: boolean;
+  entranceFeeTitle?: string;
 }) {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,12 +80,16 @@ export function BookingForm({
     ? pesoAmountToCentavos(selectedService.price_amount)
     : 0;
 
+  const entranceFeeCentavos = isEntranceFeeActive && entranceFeeAmount > 0
+    ? pesoAmountToCentavos(entranceFeeAmount) * guestCount
+    : 0;
+
   const additionalServicesTotalCentavos = additionalServices.reduce(
     (sum, service) => sum + pesoAmountToCentavos(service.price_amount),
     0
   );
 
-  const localGrandTotalCentavos = basePriceCentavos + additionalServicesTotalCentavos;
+  const localGrandTotalCentavos = basePriceCentavos + entranceFeeCentavos + additionalServicesTotalCentavos;
 
   useEffect(() => {
     if (bookableServices.length === 0) {
@@ -610,6 +620,27 @@ export function BookingForm({
                 </div>
 
                 {error ? <p className="text-sm text-destructive">{error}</p> : null}
+
+                {(entranceFeeCentavos > 0 || additionalServicesTotalCentavos > 0) ? (
+                  <div className="rounded-[0.95rem] border border-border/70 bg-muted/40 p-3 text-xs space-y-1.5">
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>{selectedService?.title ?? "Service Package"} {category !== "stay" && `(× ${guestCount})`}:</span>
+                      <span>{formatCurrency(basePriceCentavos)}</span>
+                    </div>
+                    {entranceFeeCentavos > 0 ? (
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>{entranceFeeTitle || "Entrance Fee"} (₱{entranceFeeAmount} × {guestCount} {guestCount === 1 ? "guest" : "guests"}):</span>
+                        <span className="font-semibold text-foreground">{formatCurrency(entranceFeeCentavos)}</span>
+                      </div>
+                    ) : null}
+                    {additionalServices.map((addon) => (
+                      <div key={addon.id} className="flex justify-between text-muted-foreground">
+                        <span>{addon.title}:</span>
+                        <span className="font-semibold text-foreground">{formatCurrency(pesoAmountToCentavos(addon.price_amount))}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
 
                 <div className="grid grid-cols-[minmax(0,0.72fr),minmax(10rem,1fr)] gap-2">
                   <div className="flex flex-wrap items-center justify-between gap-2 rounded-[0.9rem] border-2 border-primary/20 bg-background px-3 py-2.5">

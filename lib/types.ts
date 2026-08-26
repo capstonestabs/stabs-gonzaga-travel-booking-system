@@ -124,6 +124,9 @@ export interface Destination {
   currency: "PHP";
   inclusions: string[];
   policies: string[];
+  entrance_fee_amount?: number | null;
+  is_entrance_fee_active?: boolean | null;
+  entrance_fee_title?: string | null;
   cover_path: string | null;
   cover_url: string | null;
   featured: boolean;
@@ -177,6 +180,13 @@ export interface Booking {
       name: string;
       type: "adult" | "child";
     }>;
+    entrance_fee?: {
+      title: string;
+      price_amount: number;
+      guest_count: number;
+      total_amount: number;
+      is_active: boolean;
+    } | null;
     additional_services?: Array<{
       id: string;
       title: string;

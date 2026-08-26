@@ -213,7 +213,14 @@ export function CheckoutContinueCard({
   const addonsTotalAmount = additionalServicesList.reduce((sum: number, addon: any) => {
     return sum + (pesoAmountToCentavos(addon.price_amount) * addon.quantity);
   }, 0);
-  const grandTotalAmount = totalAmount + addonsTotalAmount;
+
+  const entranceFee = draft.entranceFee || (draft.serviceSnapshot as any)?.entrance_fee;
+  const entranceFeeUnitAmount = entranceFee?.priceAmount ?? entranceFee?.price_amount ?? 0;
+  const entranceFeeTotalCentavos = entranceFee && entranceFeeUnitAmount > 0
+    ? pesoAmountToCentavos(entranceFeeUnitAmount) * draft.guestCount
+    : 0;
+
+  const grandTotalAmount = totalAmount + entranceFeeTotalCentavos + addonsTotalAmount;
   const authRedirect = `/sign-in?redirectTo=${encodeURIComponent("/checkout/continue")}`;
   const signUpRedirect = `/sign-up?redirectTo=${encodeURIComponent("/checkout/continue")}`;
 
@@ -358,6 +365,16 @@ export function CheckoutContinueCard({
               <div className="mt-3 flex items-center justify-between gap-4">
                 <span className="text-muted-foreground">Child guests</span>
                 <span className="font-medium">{childGuestCount} × {formatCurrency(draft.guestPricing.child.priceAmount)}</span>
+              </div>
+            ) : null}
+            {entranceFeeTotalCentavos > 0 ? (
+              <div className="mt-3 flex items-center justify-between gap-4">
+                <span className="text-muted-foreground">
+                  {entranceFee?.title || "Entrance Fee"} ({draft.guestCount} {draft.guestCount === 1 ? "guest" : "guests"})
+                </span>
+                <span className="font-medium">
+                  {draft.guestCount} × {formatCurrency(pesoAmountToCentavos(entranceFeeUnitAmount))} = {formatCurrency(entranceFeeTotalCentavos)}
+                </span>
               </div>
             ) : null}
             {additionalServicesList.length > 0 && (

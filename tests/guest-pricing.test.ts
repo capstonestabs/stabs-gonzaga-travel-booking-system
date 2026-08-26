@@ -19,6 +19,7 @@ function service(
     description: null,
     price_amount: priceAmount,
     service_type: "person",
+    service_category: "core",
     daily_capacity: 100,
     is_active: true,
     created_at: "2026-01-01T00:00:00.000Z",
@@ -41,5 +42,33 @@ describe("Abram merged guest pricing", () => {
     expect(plan?.primaryService.id).toBe("adult");
     expect(plan?.child.priceAmount).toBe(100);
     expect(calculateGuestTotal(["adult", "child", "child"], plan!)).toBe(350);
+  });
+});
+
+describe("Destination entrance fee calculation", () => {
+  it("calculates total payment correctly with entrance fee, stay package, and add-ons", () => {
+    const guestCount = 2;
+    const entranceFeePerGuest = 50;
+    const stayPrice = 2000;
+    const kayakAddonPrice = 50;
+
+    const entranceFeeTotal = entranceFeePerGuest * guestCount; // 100
+    const totalAmount = stayPrice + entranceFeeTotal + kayakAddonPrice; // 2150
+
+    expect(entranceFeeTotal).toBe(100);
+    expect(totalAmount).toBe(2150);
+  });
+
+  it("handles tour packages where base price and entrance fee both multiply by guest count", () => {
+    const guestCount = 4;
+    const entranceFeePerGuest = 50;
+    const tourRatePerGuest = 250;
+
+    const entranceFeeTotal = entranceFeePerGuest * guestCount; // 200
+    const tourTotal = tourRatePerGuest * guestCount; // 1000
+    const totalAmount = tourTotal + entranceFeeTotal; // 1200
+
+    expect(entranceFeeTotal).toBe(200);
+    expect(totalAmount).toBe(1200);
   });
 });

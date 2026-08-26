@@ -140,6 +140,9 @@ export default async function DestinationBookingPage({
           defaultContactEmail={viewer?.email ?? ""}
           defaultContactPhone={viewer?.profile?.phone ?? ""}
           policies={destination.policies}
+          entranceFeeAmount={destination.entrance_fee_amount ?? 0}
+          isEntranceFeeActive={destination.is_entrance_fee_active ?? false}
+          entranceFeeTitle={destination.entrance_fee_title ?? "Entrance Fee"}
         />
       )}
     </div>

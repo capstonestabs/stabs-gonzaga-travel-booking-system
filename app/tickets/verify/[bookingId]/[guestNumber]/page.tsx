@@ -69,6 +69,28 @@ export default async function VerifyGuestTicketPage({
     (service) => service.is_active
   );
 
+  const entranceFeeInfo = booking.service_snapshot?.entrance_fee ?? (
+    destination?.is_entrance_fee_active && destination?.entrance_fee_amount
+      ? {
+          title: destination.entrance_fee_title || "Entrance Fee",
+          price_amount: destination.entrance_fee_amount,
+          guest_count: booking.guest_count,
+          total_amount: destination.entrance_fee_amount * booking.guest_count
+        }
+      : null
+  );
+
+  const paymentData = Array.isArray(booking.payment) ? booking.payment[0] : booking.payment;
+  const paymentMethodLabel = paymentData?.payment_method_type
+    ? paymentData.payment_method_type === "gcash"
+      ? "GCash"
+      : paymentData.payment_method_type === "paymaya"
+        ? "Maya"
+        : paymentData.payment_method_type === "card"
+          ? "Card"
+          : String(paymentData.payment_method_type)
+    : "GCash";
+
   return (
     <div className="page-shell flex justify-center py-10 sm:py-14">
       <Card className="w-full max-w-xl overflow-hidden">
@@ -88,47 +110,49 @@ export default async function VerifyGuestTicketPage({
 
             <div className="space-y-3 pt-2">
               <div className="flex justify-between gap-2 text-xs">
-                <span>Guest Name:</span>
+                <span>Guest Name :</span>
                 <span className="font-bold uppercase text-right">{guest.name}</span>
               </div>
               <div className="flex justify-between gap-2 text-xs">
-                <span>Total number of Guest:</span>
+                <span>Total Number of Guest :</span>
                 <span className="font-bold">{booking.guest_count} person{booking.guest_count === 1 ? "" : "s"}</span>
               </div>
-              <div className="border-t border-dashed border-slate-300 my-2" />
               <div className="flex justify-between gap-2 text-xs">
-                <span>Ticket code:</span>
+                <span>Ticket code :</span>
                 <span className="font-semibold break-all text-right">{guest.ticketCode}</span>
               </div>
               <div className="flex justify-between gap-2 text-xs">
-                <span>Visit date:</span>
+                <span>Visit date :</span>
                 <span className="font-bold">{booking.service_date}</span>
               </div>
               
               <div className="border-t border-dashed border-slate-300 my-2" />
               
-              {/* Main Service Charges */}
-              <div className="space-y-1.5">
+              {/* Entrance Fee Line */}
+              {entranceFeeInfo ? (
                 <div className="flex justify-between gap-2 text-xs">
-                  <span>
-                    {booking.service_snapshot?.title ?? "Entrance Fee"}
-                    {booking.destination_snapshot?.category !== "stay" && ` (× ${booking.guest_count} guest${booking.guest_count === 1 ? "" : "s"})`}
-                    :
-                  </span>
-                  <span>
-                    {formatCurrency(
-                      pesoAmountToCentavos(booking.service_snapshot?.price_amount ?? 0) *
-                        (booking.destination_snapshot?.category === "stay" ? 1 : booking.guest_count)
-                    )}
+                  <span>{entranceFeeInfo.title || "Entrance Fee"} :</span>
+                  <span className="font-bold">
+                    {entranceFeeInfo.price_amount} × {entranceFeeInfo.guest_count}
                   </span>
                 </div>
+              ) : null}
+
+              {/* Main Service Package */}
+              <div className="flex justify-between gap-2 text-xs">
+                <span>{booking.service_snapshot?.title ?? "Service package"} :</span>
+                <span className="font-bold">
+                  {booking.destination_snapshot?.category === "stay"
+                    ? `${booking.service_snapshot?.price_amount ?? 0}`
+                    : `${booking.service_snapshot?.price_amount ?? 0} × ${booking.guest_count}`}
+                </span>
               </div>
 
               {/* Additional Services Checklist */}
               {allServices.filter((s) => s.id !== booking.service_id).length > 0 && (
                 <div className="border-t border-dashed border-slate-300 pt-2.5 mt-2.5">
                   <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-                    Additional Services
+                    Additional Services:
                   </p>
                   <div className="mt-2 space-y-1.5">
                     {allServices
@@ -139,7 +163,7 @@ export default async function VerifyGuestTicketPage({
                         );
                         const isBooked = Boolean(bookedAddon);
                         const label = isBooked
-                          ? `${srv.title} (Qty: ${bookedAddon.quantity})`
+                          ? `${srv.title}${bookedAddon.quantity > 1 ? ` (Qty: ${bookedAddon.quantity})` : ""}`
                           : srv.title;
                         const priceVal = isBooked
                           ? bookedAddon.price_amount * bookedAddon.quantity
@@ -152,11 +176,11 @@ export default async function VerifyGuestTicketPage({
                                 {isBooked ? "[x]" : "[ ]"}
                               </span>
                               <span className={isBooked ? "font-bold text-slate-900" : "text-slate-500"}>
-                                {label}
+                                {label} :
                               </span>
                             </div>
                             <span className={isBooked ? "font-bold text-slate-900" : "text-slate-500"}>
-                              {formatCurrency(pesoAmountToCentavos(priceVal))}
+                              {priceVal}
                             </span>
                           </div>
                         );
@@ -168,7 +192,7 @@ export default async function VerifyGuestTicketPage({
               <div className="border-t-2 border-double border-slate-400 my-3" />
               
               <div className="flex justify-between items-center text-sm font-bold pt-1">
-                <span>Payment Method: GCash</span>
+                <span>Payment Method : {paymentMethodLabel}</span>
                 <span className="text-base">{formatCurrency(booking.total_amount)}</span>
               </div>
             </div>

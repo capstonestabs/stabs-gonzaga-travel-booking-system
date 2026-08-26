@@ -50,7 +50,10 @@ export function BookingServiceBrowser({
   defaultContactName,
   defaultContactEmail,
   defaultContactPhone,
-  policies = []
+  policies = [],
+  entranceFeeAmount = 0,
+  isEntranceFeeActive = false,
+  entranceFeeTitle = "Entrance Fee"
 }: {
   destinationId: string;
   destinationSlug: string;
@@ -66,6 +69,9 @@ export function BookingServiceBrowser({
   defaultContactEmail?: string;
   defaultContactPhone?: string;
   policies?: string[];
+  entranceFeeAmount?: number;
+  isEntranceFeeActive?: boolean;
+  entranceFeeTitle?: string;
 }) {
   const activeServices = services.filter((service) => service.is_active);
   const coreServices = getBookableServices(activeServices);
@@ -138,6 +144,9 @@ export function BookingServiceBrowser({
       defaultContactPhone={defaultContactPhone}
       policies={policies}
       additionalServices={selectedAdditionalServices}
+      entranceFeeAmount={entranceFeeAmount}
+      isEntranceFeeActive={isEntranceFeeActive}
+      entranceFeeTitle={entranceFeeTitle}
     />
   );
 

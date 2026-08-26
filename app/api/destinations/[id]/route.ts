@@ -48,31 +48,63 @@ export async function PATCH(
     }
 
     const isStatusOnly = Object.keys(body).length === 1 && "status" in body;
+    const isEntranceFeeOnly =
+      "isEntranceFeeActive" in body || "entranceFeeAmount" in body || "entranceFeeTitle" in body;
+    const isPoliciesOnly = Object.keys(body).length === 1 && "policies" in body;
+
     const data = isStatusOnly
       ? {
           status: destinationStatusSchema.parse(body).status
         }
-      : (() => {
-          const updatePayload = destinationSchema.parse(body);
+      : isEntranceFeeOnly && !("title" in body)
+        ? {
+            entrance_fee_amount:
+              body.entranceFeeAmount !== undefined
+                ? Math.max(0, Number(body.entranceFeeAmount) || 0)
+                : undefined,
+            is_entrance_fee_active:
+              body.isEntranceFeeActive !== undefined
+                ? Boolean(body.isEntranceFeeActive)
+                : undefined,
+            entrance_fee_title:
+              body.entranceFeeTitle !== undefined
+                ? String(body.entranceFeeTitle || "Entrance Fee").trim()
+                : undefined
+          }
+        : isPoliciesOnly
+          ? {
+              policies: Array.isArray(body.policies)
+                ? body.policies.map((p: any) => String(p).trim()).filter(Boolean)
+                : parseMultilineList(String(body.policies || ""))
+            }
+          : (() => {
+              const updatePayload = destinationSchema.parse(body);
 
-          return {
-            title: user.role === "admin" ? updatePayload.title : existing.title,
-            summary: updatePayload.summary,
-            description: updatePayload.description,
-            location_text:
-              user.role === "admin" ? updatePayload.locationText : existing.location_text,
-            province: user.role === "admin" ? updatePayload.province || null : existing.province,
-            city: user.role === "admin" ? updatePayload.city || null : existing.city,
-            category: updatePayload.category,
-            booking_type: updatePayload.bookingType ?? "online",
-            status: updatePayload.status,
-            inclusions: parseMultilineList(updatePayload.inclusions || ""),
-            policies: parseMultilineList(updatePayload.policies || ""),
-            featured: updatePayload.featured
-          };
-        })();
+              return {
+                title: user.role === "admin" ? updatePayload.title : existing.title,
+                summary: updatePayload.summary,
+                description: updatePayload.description,
+                location_text:
+                  user.role === "admin" ? updatePayload.locationText : existing.location_text,
+                province: user.role === "admin" ? updatePayload.province || null : existing.province,
+                city: user.role === "admin" ? updatePayload.city || null : existing.city,
+                category: updatePayload.category,
+                booking_type: updatePayload.bookingType ?? "online",
+                status: updatePayload.status,
+                inclusions: parseMultilineList(updatePayload.inclusions || ""),
+                policies: parseMultilineList(updatePayload.policies || ""),
+                entrance_fee_amount: updatePayload.entranceFeeAmount ?? 0,
+                is_entrance_fee_active: updatePayload.isEntranceFeeActive ?? false,
+                entrance_fee_title: updatePayload.entranceFeeTitle ?? "Entrance Fee",
+                featured: updatePayload.featured
+              };
+            })();
 
-    const { error } = await supabase.from("destinations").update(data).eq("id", id);
+    const cleanData = Object.fromEntries(
+      Object.entries(data).filter(([_, value]) => value !== undefined)
+    );
+
+    const { error } = await supabase.from("destinations").update(cleanData).eq("id", id);
 
     if (error) {
       throw new Error(error.message);

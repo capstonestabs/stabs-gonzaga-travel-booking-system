@@ -110,11 +110,19 @@ export const checkoutDraftSchema = z.object({
   guestCount: z.number().int().min(1),
   guestTypes: z.array(guestTypeSchema).min(1).optional(),
   guestDetails: z.array(bookingGuestSchema).min(1).optional(),
-  guestPricing: z
+    guestPricing: z
     .object({
       adult: z.object({ label: z.string(), priceAmount: z.number().min(0) }),
       child: z.object({ label: z.string(), priceAmount: z.number().min(0) })
     })
+    .optional(),
+  entranceFee: z
+    .object({
+      title: z.string(),
+      priceAmount: z.number().min(0),
+      isActive: z.boolean()
+    })
+    .nullable()
     .optional(),
   serviceId: z.string().uuid(),
   serviceSnapshot: z.object({
@@ -123,6 +131,16 @@ export const checkoutDraftSchema = z.object({
     description: z.string().nullable().optional(),
     price_amount: z.number(),
     service_type: serviceTypeLabelSchema,
+    entrance_fee: z
+      .object({
+        title: z.string(),
+        price_amount: z.number().min(0),
+        guest_count: z.number().int().min(1),
+        total_amount: z.number().min(0),
+        is_active: z.boolean()
+      })
+      .nullable()
+      .optional(),
     additional_services: z
       .array(
         z.object({
@@ -175,6 +193,9 @@ export const destinationSchema = z.object({
   status: z.enum(["draft", "published", "archived"]).default("draft"),
   inclusions: z.string().max(2000).optional().or(z.literal("")),
   policies: z.string().max(2000).optional().or(z.literal("")),
+  entranceFeeAmount: z.coerce.number().int().min(0).optional().default(0),
+  isEntranceFeeActive: z.coerce.boolean().optional().default(false),
+  entranceFeeTitle: z.string().max(100).optional().default("Entrance Fee"),
   featured: z.coerce.boolean().optional().default(false)
 });
 

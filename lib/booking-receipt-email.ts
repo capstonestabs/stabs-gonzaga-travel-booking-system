@@ -1,6 +1,6 @@
 import { env, hasBookingEmailEnv } from "@/lib/env";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, pesoAmountToCentavos } from "@/lib/utils";
 
 function escapeHtml(value: unknown) {
   return String(value ?? "")
@@ -75,10 +75,19 @@ export async function sendBookingReceiptEmail(bookingId: string) {
     ? `${guestBreakdown.adult_count ?? 0} Adult, ${guestBreakdown.child_count ?? 0} Child (${(guestBreakdown.guest_types ?? []).map((type, index) => `Guest ${index + 1}: ${type === "child" ? "Child" : "Adult"}`).join(", ")})`
     : `${booking.guest_count} guest${booking.guest_count === 1 ? "" : "s"}`;
   const supportEmail = env.bookingSupportEmail || env.bookingReceiptFromEmail;
+  const entranceFee = (booking.service_snapshot as any)?.entrance_fee;
   const rows = [
     ["Booking reference", booking.ticket_code || booking.id],
     ["Resort", destinationSnapshot.title || "STABS destination"],
     ["Package", serviceSnapshot.title || "Standard service"],
+    ...(entranceFee
+      ? [
+          [
+            entranceFee.title || "Entrance fee",
+            `₱${entranceFee.price_amount} × ${entranceFee.guest_count} (${formatCurrency(pesoAmountToCentavos(entranceFee.total_amount))})`
+          ]
+        ]
+      : []),
     ["Booking date", booking.service_date],
     ["Guest information", guestInformation],
     ["Total amount paid", formatCurrency(booking.total_amount, booking.currency || "PHP")],

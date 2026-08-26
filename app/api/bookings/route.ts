@@ -202,7 +202,14 @@ export async function POST(request: NextRequest) {
       ? pesoAmountToCentavos(calculateGuestTotal(guestTypes ?? [], mergedAbramRatePlan))
       : unitAmount;
 
-    const totalAmount = baseTotalAmount + addonsTotalCentavos;
+    const isEntranceFeeActive = destination.is_entrance_fee_active ?? false;
+    const entranceFeeUnitAmount = destination.entrance_fee_amount ?? 0;
+    const entranceFeeTitle = destination.entrance_fee_title || "Entrance Fee";
+    const entranceFeeCentavos = isEntranceFeeActive && entranceFeeUnitAmount > 0
+      ? pesoAmountToCentavos(entranceFeeUnitAmount) * payload.guestCount
+      : 0;
+
+    const totalAmount = baseTotalAmount + entranceFeeCentavos + addonsTotalCentavos;
 
     const { data: booking, error: bookingError } = await supabase
       .from("bookings")
@@ -242,6 +249,16 @@ export async function POST(request: NextRequest) {
                 }
               }
             : {}),
+          entrance_fee:
+            isEntranceFeeActive && entranceFeeUnitAmount > 0
+              ? {
+                  title: entranceFeeTitle,
+                  price_amount: entranceFeeUnitAmount,
+                  guest_count: payload.guestCount,
+                  total_amount: entranceFeeUnitAmount * payload.guestCount,
+                  is_active: true
+                }
+              : null,
           additional_services: validatedAdditionalServices
         },
         destination_snapshot: {
@@ -319,6 +336,14 @@ export async function POST(request: NextRequest) {
             amount: pesoAmountToCentavos(service.price_amount),
             quantity: 1,
             ...(serviceImage ? { image: serviceImage } : {})
+          });
+        }
+
+        if (isEntranceFeeActive && entranceFeeUnitAmount > 0) {
+          lineItems.push({
+            name: `${destination.title} — ${entranceFeeTitle}`,
+            amount: pesoAmountToCentavos(entranceFeeUnitAmount),
+            quantity: payload.guestCount
           });
         }
 
