@@ -1,10 +1,7 @@
 import Link from "next/link";
-import { BriefcaseBusiness, KeyRound, ShieldCheck, UserRound } from "lucide-react";
+import { BriefcaseBusiness, ShieldCheck, UserRound } from "lucide-react";
 
-import { DashboardNav } from "@/components/site/dashboard-nav";
-import { workspaceNavByRole } from "@/components/site/workspace-nav-config";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 const roleLabelByRole = {
   user: "tourist",
@@ -23,7 +20,6 @@ export function DashboardShell({
   description: string;
   children: React.ReactNode;
 }) {
-  const nav = workspaceNavByRole[role];
   const RoleIcon =
     role === "admin" ? ShieldCheck : role === "staff" ? BriefcaseBusiness : UserRound;
   const roleLabel = roleLabelByRole[role];
@@ -71,30 +67,22 @@ export function DashboardShell({
   return (
     <div className="page-shell space-y-3 py-4 sm:space-y-3.5 sm:py-5">
       <div className="panel p-3 sm:p-3.5">
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-2">
-              <Badge className="inline-flex items-center gap-1.5">
-                <RoleIcon className="h-3.5 w-3.5" />
-                {roleLabel}
-              </Badge>
-              <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-[0.9rem] border border-border/70 bg-secondary/65 text-primary">
-                  <RoleIcon className="h-4 w-4" />
-                </span>
-                <p className="font-display text-[1rem] font-semibold tracking-tight sm:text-[1.18rem]">
-                  {title}
-                </p>
-              </div>
-              <p className="max-w-3xl text-[13px] leading-5 text-muted-foreground sm:text-sm sm:leading-6">
-                {description}
-              </p>
-            </div>
-
-            <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:justify-end">
-              <DashboardNav items={nav} />
-            </div>
+        <div className="space-y-2">
+          <Badge className="inline-flex items-center gap-1.5">
+            <RoleIcon className="h-3.5 w-3.5" />
+            {roleLabel}
+          </Badge>
+          <div className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-[0.9rem] border border-border/70 bg-secondary/65 text-primary">
+              <RoleIcon className="h-4 w-4" />
+            </span>
+            <p className="font-display text-[1rem] font-semibold tracking-tight sm:text-[1.18rem]">
+              {title}
+            </p>
           </div>
+          <p className="max-w-3xl text-[13px] leading-5 text-muted-foreground sm:text-sm sm:leading-6">
+            {description}
+          </p>
         </div>
       </div>
 

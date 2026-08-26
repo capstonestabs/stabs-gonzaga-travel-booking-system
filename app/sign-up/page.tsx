@@ -15,7 +15,7 @@ export default async function SignUpPage() {
     if (user.role === "staff") {
       redirect("/staff" as Route);
     }
-    redirect("/account" as Route);
+    redirect("/" as Route);
   }
 
   return (

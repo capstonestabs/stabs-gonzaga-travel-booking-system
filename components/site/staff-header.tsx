@@ -1,9 +1,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 
-import { DashboardNav } from "@/components/site/dashboard-nav";
 import { HeaderAccountMenu } from "@/components/site/header-account-menu";
-import { workspaceNavByRole } from "@/components/site/workspace-nav-config";
 import { blueprintLogo } from "@/lib/blueprint";
 
 export function StaffHeader({
@@ -15,10 +13,6 @@ export function StaffHeader({
     <header className="sticky top-0 z-20 bg-white/95 px-4 py-2.5 backdrop-blur sm:px-6">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="xl:hidden">
-            <DashboardNav items={workspaceNavByRole.staff} variant="drawer" />
-          </div>
-
           <Link href={"/staff" as Route} prefetch className="flex items-center gap-2.5">
             <img src={blueprintLogo} alt="Gonzaga Travel Bookings logo" className="h-9 w-9 object-contain" />
             <div>

@@ -88,13 +88,13 @@ export async function updateSession(request: NextRequest) {
   } else if (role === "user") {
     if (pathname.startsWith("/admin") || pathname.startsWith("/staff")) {
       const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = "/account";
+      redirectUrl.pathname = "/";
       redirectUrl.search = "";
       return NextResponse.redirect(redirectUrl);
     }
     if (pathname === "/sign-in" || pathname === "/sign-up") {
       const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = "/account";
+      redirectUrl.pathname = "/";
       redirectUrl.search = "";
       return NextResponse.redirect(redirectUrl);
     }

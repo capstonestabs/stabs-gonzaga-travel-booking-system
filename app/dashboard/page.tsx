@@ -18,5 +18,5 @@ export default async function DashboardIndexPage() {
     redirect("/staff" as Route);
   }
 
-  redirect("/account");
+  redirect("/");
 }
