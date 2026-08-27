@@ -34,6 +34,11 @@ export function DestinationPoliciesManager({ destination }: { destination: Desti
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
+    if (!destination?.id) {
+      setErrorMessage("Destination ID is missing. Please refresh the page.");
+      return;
+    }
+
     setIsSaving(true);
     setSuccessMessage(null);
     setErrorMessage(null);
@@ -49,17 +54,21 @@ export function DestinationPoliciesManager({ destination }: { destination: Desti
         })
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(data.error ?? "Failed to update rules and policies.");
+        throw new Error(data?.error ?? `Failed to update rules and policies (Status ${response.status}).`);
       }
 
       setSuccessMessage("Rules and policies updated successfully!");
       router.refresh();
       setTimeout(() => setSuccessMessage(null), 4000);
     } catch (err: any) {
-      setErrorMessage(err.message || "Unable to save rules and policies.");
+      if (err?.name === "TypeError" || err?.message?.includes("Failed to fetch")) {
+        setErrorMessage("Network connection issue. Please check your internet connection and try again.");
+      } else {
+        setErrorMessage(err?.message || "Unable to save rules and policies.");
+      }
     } finally {
       setIsSaving(false);
     }

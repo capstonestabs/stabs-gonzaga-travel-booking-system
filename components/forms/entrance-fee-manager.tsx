@@ -23,6 +23,11 @@ export function EntranceFeeManager({ destination }: { destination: Destination }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
+    if (!destination?.id) {
+      setErrorMessage("Destination ID is missing. Please refresh the page.");
+      return;
+    }
+
     setIsSaving(true);
     setSuccessMessage(null);
     setErrorMessage(null);
@@ -40,17 +45,21 @@ export function EntranceFeeManager({ destination }: { destination: Destination }
         })
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(data.error ?? "Failed to update entrance fee settings.");
+        throw new Error(data?.error ?? `Failed to update entrance fee settings (Status ${response.status}).`);
       }
 
       setSuccessMessage("Entrance fee settings updated successfully!");
       router.refresh();
       setTimeout(() => setSuccessMessage(null), 4000);
     } catch (err: any) {
-      setErrorMessage(err.message || "Unable to save entrance fee settings.");
+      if (err?.name === "TypeError" || err?.message?.includes("Failed to fetch")) {
+        setErrorMessage("Network connection issue. Please check your internet connection and try again.");
+      } else {
+        setErrorMessage(err?.message || "Unable to save entrance fee settings.");
+      }
     } finally {
       setIsSaving(false);
     }

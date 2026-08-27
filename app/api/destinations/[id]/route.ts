@@ -49,14 +49,15 @@ export async function PATCH(
 
     const isStatusOnly = Object.keys(body).length === 1 && "status" in body;
     const isEntranceFeeOnly =
-      "isEntranceFeeActive" in body || "entranceFeeAmount" in body || "entranceFeeTitle" in body;
-    const isPoliciesOnly = Object.keys(body).length === 1 && "policies" in body;
+      ("isEntranceFeeActive" in body || "entranceFeeAmount" in body || "entranceFeeTitle" in body) &&
+      !("title" in body);
+    const isPoliciesOnly = "policies" in body && !("title" in body);
 
     const data = isStatusOnly
       ? {
           status: destinationStatusSchema.parse(body).status
         }
-      : isEntranceFeeOnly && !("title" in body)
+      : isEntranceFeeOnly
         ? {
             entrance_fee_amount:
               body.entranceFeeAmount !== undefined
