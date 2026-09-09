@@ -61,7 +61,7 @@ export function DashboardGlassSidebar({ role }: { role: "user" | "staff" | "admi
   return (
     <aside
       className={cn(
-        "dashboard-glass-sidebar fixed inset-y-0 left-0 z-30 hidden flex-col transition-[width] duration-200 ease-out md:flex",
+        "dashboard-glass-sidebar fixed inset-y-0 left-0 z-30 hidden flex-col rounded-r-md transition-[width] duration-200 ease-out md:flex",
         collapsed ? "w-[4.5rem]" : "w-64"
       )}
     >
