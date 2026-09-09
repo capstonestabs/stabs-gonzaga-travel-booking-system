@@ -10,8 +10,9 @@ export function PageTransitionShell({
   const pathname = usePathname();
   const isAdminRoute = pathname.startsWith("/admin");
   const isStaffRoute = pathname.startsWith("/staff");
+  const isDashboardRoute = pathname.startsWith("/dashboard");
 
-  if (isAdminRoute || isStaffRoute) {
+  if (isAdminRoute || isStaffRoute || isDashboardRoute) {
     return <div className="min-h-full">{children}</div>;
   }
 

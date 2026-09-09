@@ -24,7 +24,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <SiteHeader />
         <div className="relative min-h-screen">
           <div
-            className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat"
+            className="dashboard-background"
             style={{ backgroundImage: "url(/assets/dashboard-background.jpg)" }}
           />
           <div className="fixed inset-0 -z-10 bg-white/20" />
