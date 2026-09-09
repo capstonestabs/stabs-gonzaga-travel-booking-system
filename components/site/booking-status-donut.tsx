@@ -38,9 +38,9 @@ function ChartTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
   const entry = payload[0];
   return (
-    <div className="rounded-[0.75rem] border border-border/70 bg-card px-3 py-2 shadow-[0_10px_24px_rgba(22,74,47,0.10)]">
+    <div className="rounded-[0.75rem] border border-white/60 bg-white/70 px-3 py-2 shadow-[0_10px_24px_rgba(22,74,47,0.10)]">
       <p className="flex items-center gap-1.5 text-xs font-medium text-foreground">
-        <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: entry.payload.color }} />
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: entry.payload.color }} />
         {entry.name}: <span className="font-semibold">{entry.value}</span>
       </p>
     </div>

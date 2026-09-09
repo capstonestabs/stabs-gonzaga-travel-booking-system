@@ -14,7 +14,7 @@ function ChartTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   const value = payload[0].value as number;
   return (
-    <div className="rounded-[0.75rem] border border-border/70 bg-card px-3 py-2 shadow-[0_10px_24px_rgba(22,74,47,0.10)]">
+    <div className="rounded-[0.75rem] border border-white/60 bg-white/70 px-3 py-2 shadow-[0_10px_24px_rgba(22,74,47,0.10)]">
       <p className="text-xs font-semibold text-foreground">{label}</p>
       <p className="mt-1 text-xs text-muted-foreground">
         Revenue: <span className="font-semibold text-foreground">{formatPesoCompact(value)}</span>

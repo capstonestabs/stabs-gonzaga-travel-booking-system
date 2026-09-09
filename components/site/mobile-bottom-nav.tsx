@@ -37,7 +37,7 @@ export function MobileBottomNav({ role }: MobileBottomNavProps) {
     return (
       <nav
         aria-label="Mobile Navigation"
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 px-2 py-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] backdrop-blur-md md:hidden"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 px-2 py-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] backdrop-blur-md lg:hidden"
       >
         <div className="mx-auto flex max-w-lg items-center justify-around">
           {publicItems.map((item) => {
@@ -83,7 +83,7 @@ export function MobileBottomNav({ role }: MobileBottomNavProps) {
     return (
       <nav
         aria-label="Staff Bottom Navigation"
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 px-1 py-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] backdrop-blur-md md:hidden"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 px-1 py-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] backdrop-blur-md lg:hidden"
       >
         <div className="mx-auto flex max-w-lg items-center justify-between">
           {staffItems.map((item) => {
@@ -144,7 +144,7 @@ export function MobileBottomNav({ role }: MobileBottomNavProps) {
     return (
       <nav
         aria-label="Admin Bottom Navigation"
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 px-1 py-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] backdrop-blur-md md:hidden"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 px-1 py-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] backdrop-blur-md lg:hidden"
       >
         <div className="mx-auto flex max-w-lg items-center justify-between">
           {adminItems.map((item) => {
@@ -205,7 +205,7 @@ export function MobileBottomNav({ role }: MobileBottomNavProps) {
   return (
     <nav
       aria-label="Tourist Bottom Navigation"
-      className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 px-1 py-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] backdrop-blur-md md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 px-1 py-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] backdrop-blur-md lg:hidden"
     >
       <div className="mx-auto flex max-w-lg items-center justify-between">
         {userItems.map((item) => {

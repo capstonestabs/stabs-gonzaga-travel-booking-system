@@ -37,7 +37,7 @@ export default function RootLayout({
           <SiteHeaderGate>
             <SiteHeader />
           </SiteHeaderGate>
-          <main className="flex-1 pb-16 md:pb-0">
+          <main className="flex-1 pb-16 lg:pb-0">
             <PageTransitionShell>{children}</PageTransitionShell>
           </main>
           <SiteMobileNav />

@@ -36,7 +36,7 @@ export function TouristDashboardShell({
   feedbackPrompts: TouristFeedbackPrompt[];
 }) {
   return (
-    <div className="space-y-4">
+    <div className="tourist-dashboard space-y-4">
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Total spent + mini stats */}
         <Card className="lg:col-span-1">
@@ -66,15 +66,15 @@ export function TouristDashboardShell({
             </div>
 
             <div className="grid grid-cols-3 gap-2 border-t border-border/70 pt-4">
-              <div className="rounded-[0.9rem] border border-border/70 bg-muted/20 p-2.5 text-center">
+              <div className="tourist-glass-subpanel rounded-[0.9rem] border p-2.5 text-center">
                 <p className="text-lg font-bold text-foreground">{stats.totalBookings}</p>
                 <p className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">Bookings</p>
               </div>
-              <div className="rounded-[0.9rem] border border-border/70 bg-muted/20 p-2.5 text-center">
+              <div className="tourist-glass-subpanel rounded-[0.9rem] border p-2.5 text-center">
                 <p className="text-lg font-bold text-foreground">{stats.destinationsVisited}</p>
                 <p className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">Visited</p>
               </div>
-              <div className="rounded-[0.9rem] border border-border/70 bg-muted/20 p-2.5 text-center">
+              <div className="tourist-glass-subpanel rounded-[0.9rem] border p-2.5 text-center">
                 <p className="text-lg font-bold text-foreground">{stats.upcomingTripsCount}</p>
                 <p className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">Upcoming</p>
               </div>
@@ -267,7 +267,7 @@ export function TouristDashboardShell({
               {feedbackPrompts.map((prompt) => (
                 <div
                   key={prompt.destinationId}
-                  className="overflow-hidden rounded-[0.9rem] border border-border/70 bg-muted/15"
+                  className="tourist-glass-subpanel overflow-hidden rounded-[0.9rem] border"
                 >
                   <div className="h-24 w-full overflow-hidden bg-muted/40">
                     {prompt.serviceImageUrl || prompt.coverUrl ? (

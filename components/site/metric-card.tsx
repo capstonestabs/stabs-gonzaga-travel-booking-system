@@ -47,13 +47,13 @@ function getMetricVisual(label: string) {
   return { icon: Banknote, bg: "bg-muted", fg: "text-muted-foreground" };
 }
 
-export function MetricCard({ metric }: { metric: DashboardMetric }) {
+export function MetricCard({ metric, className }: { metric: DashboardMetric; className?: string }) {
   const { icon: Icon, bg, fg } = getMetricVisual(metric.label);
   const trend = metric.trend;
 
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="space-y-2 p-3.5 sm:p-4">
+    <div className={cn("dashboard-glass-panel overflow-hidden", className)}>
+      <div className="space-y-2 p-3.5 sm:p-4">
         <div className="flex items-center gap-3">
           <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.85rem]", bg, fg)}>
             <Icon className="h-4.5 w-4.5" />
@@ -89,7 +89,7 @@ export function MetricCard({ metric }: { metric: DashboardMetric }) {
           ) : null}
           <span className="text-muted-foreground">{metric.helper}</span>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

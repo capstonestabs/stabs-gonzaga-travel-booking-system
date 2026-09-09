@@ -51,7 +51,7 @@ export function TouristSpendingChart({ data }: { data: TouristSpendPoint[] }) {
           <p className="mt-0.5 text-xs text-muted-foreground">Your trip spending over time</p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1 rounded-[0.7rem] border border-border/70 bg-muted/40 p-1">
+        <div className="tourist-glass-subpanel flex shrink-0 items-center gap-1 rounded-[0.7rem] border p-1">
           {RANGE_OPTIONS.map((option) => (
             <Button
               key={option.value}
@@ -59,7 +59,7 @@ export function TouristSpendingChart({ data }: { data: TouristSpendPoint[] }) {
               variant="ghost"
               size="sm"
               className={`h-7 min-h-7 rounded-[0.55rem] px-2.5 text-xs font-medium ${
-                range === option.value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                range === option.value ? "bg-white/45 text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
               }`}
               onClick={() => setRange(option.value)}
             >
@@ -109,7 +109,7 @@ export function TouristSpendingChart({ data }: { data: TouristSpendPoint[] }) {
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="flex h-64 items-center justify-center rounded-[0.9rem] border border-dashed border-border/70 text-sm text-muted-foreground">
+          <div className="tourist-glass-subpanel flex h-64 items-center justify-center rounded-[0.9rem] border border-dashed text-sm text-muted-foreground">
             No completed trips in this period yet.
           </div>
         )}

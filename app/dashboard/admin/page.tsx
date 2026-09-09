@@ -81,6 +81,7 @@ export default async function AdminDashboardPage({
       title="Overview"
       description=""
     >
+      <div className="admin-dashboard space-y-4">
       <section aria-labelledby="admin-overview-metrics" className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -228,6 +229,7 @@ export default async function AdminDashboardPage({
           ))}
         </div>
       </section>
+      </div>
     </DashboardShell>
   );
 }

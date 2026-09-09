@@ -10,7 +10,7 @@ export function StaffHeader({
   account: { name: string; email: string; avatarUrl: string | null } | null;
 }) {
   return (
-    <header className="sticky top-0 z-20 bg-white/95 px-4 py-2.5 backdrop-blur sm:px-6">
+    <header className="dashboard-glass-topbar sticky top-0 z-20 px-4 py-2.5 backdrop-blur sm:px-6">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <Link href={"/staff" as Route} prefetch className="flex items-center gap-2.5">

@@ -82,7 +82,7 @@ export default async function TouristTicketsPage() {
                         ? "Already used"
                         : ticketState === "expired"
                           ? "Expired pass"
-                          : "Awaiting confirmation"}
+                          : "Waiting confirmation"}
                   </Badge>
                 </CardHeader>
                 <CardContent className="space-y-5">

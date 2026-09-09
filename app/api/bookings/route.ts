@@ -330,14 +330,16 @@ export async function POST(request: NextRequest) {
               ...(serviceImage ? { image: serviceImage } : {})
             });
           }
-        } else {
-          lineItems.push({
-            name: `${destination.title} — ${service.title}`,
-            amount: pesoAmountToCentavos(service.price_amount),
-            quantity: 1,
-            ...(serviceImage ? { image: serviceImage } : {})
-          });
-        }
+          } else {
+            const bookingReference = booking.id.split("-")[0].toUpperCase();
+
+            lineItems.push({
+              name: `${destination.title} — ${service.title} (Ref #${bookingReference}, ${payload.serviceDate})`,
+              amount: pesoAmountToCentavos(service.price_amount),
+              quantity: 1,
+              ...(serviceImage ? { image: serviceImage } : {})
+            });
+          }
 
         if (isEntranceFeeActive && entranceFeeUnitAmount > 0) {
           lineItems.push({
@@ -356,12 +358,20 @@ export async function POST(request: NextRequest) {
           });
         }
 
+        const bookingReference = booking.id.split("-")[0].toUpperCase();
+        const guestNamesSummary = guestDetails.map((guest) => guest.name).join(", ");
+
+        const orderSummaryDescription = [
+          `Guest: ${guestNamesSummary}`,
+          `Total guests: ${payload.guestCount}`,
+          `Ref: #${bookingReference}`,
+          `Visit date: ${payload.serviceDate}`
+        ].join(" • ");
+
         const session = await createCheckoutSession({
           bookingId: booking.id,
           title: `${destination.title} — ${mergedAbramRatePlan?.title ?? service.title}`,
-          description: mergedAbramRatePlan
-            ? `${adultGuestCount} Adult, ${childGuestCount} Child — ${payload.serviceDate}`
-            : destination.summary,
+          description: orderSummaryDescription,
           amount: totalAmount,
           customerName: payload.contactName,
           customerEmail: payload.contactEmail,

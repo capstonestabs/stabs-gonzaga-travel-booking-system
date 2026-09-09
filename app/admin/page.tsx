@@ -62,11 +62,18 @@ export default async function AdminDashboardPage({
   const bookingStatusBreakdown = buildBookingStatusBreakdown(data.bookingActivity);
 
   return (
-    <DashboardShell
-      role="admin"
-      title="Overview"
-      description=""
-    >
+    <div className="relative min-h-screen">
+      <div
+        className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url(/assets/dashboard-background.jpg)" }}
+      />
+      <div className="fixed inset-0 -z-10 bg-white/20" />
+      <DashboardShell
+        role="admin"
+        title="Overview"
+        description=""
+      >
+      <div className="admin-dashboard space-y-4">
       <section aria-labelledby="admin-overview-metrics" className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -80,27 +87,30 @@ export default async function AdminDashboardPage({
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
           {overviewMetrics.map((metric) => (
-            <MetricCard key={metric.label} metric={metric} />
+            <MetricCard key={metric.label} metric={metric} className="dashboard-glass-panel" />
           ))}
         </div>
       </section>
 
-      <div className="grid gap-4 2xl:grid-cols-2">
+        <div className="grid gap-4 2xl:grid-cols-2">
         <BookingOverviewChart data={data.bookingActivitySeries} />
 
-        <Card className="flex h-full flex-col overflow-hidden">
-          <div className="flex items-center justify-between gap-3 px-4 pb-1 pt-3.5">
-            <CardTitle className="inline-flex items-center gap-2">
-              Top Destinations
-            </CardTitle>
+        <Card className="dashboard-glass-panel flex h-full flex-col overflow-hidden">
+          <CardHeader className="border-b border-white/40 bg-white/30 py-4">
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle className="inline-flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-primary" />
+                Top Destinations
+              </CardTitle>
 
-            <Link
-              href={"/admin/destination-financials" as Route}
-              className="text-xs font-semibold text-primary hover:underline"
-            >
-              View all
-            </Link>
-          </div>
+              <Link
+                href={"/admin/destination-financials" as Route}
+                className="text-xs font-semibold text-primary hover:underline"
+              >
+                View all
+              </Link>
+            </div>
+          </CardHeader>
 
           <div className="flex-1 px-3.5 pb-3.5">
             <TopDestinationsList destinations={data.destinationRevenue} />
@@ -117,8 +127,8 @@ export default async function AdminDashboardPage({
         </div> */}
 
         <div className="grid gap-4 xl:grid-cols-3">
-          <Card className="flex h-full flex-col overflow-hidden">
-            <CardHeader className="border-b border-border/70 py-4">
+          <Card className="dashboard-glass-panel flex h-full flex-col overflow-hidden">
+            <CardHeader className="border-b border-white/40 bg-white/30 py-4">
               <CardTitle className="inline-flex items-center gap-2">
                 {/* <PieChartIcon className="h-5 w-5 text-primary" /> */}
                 Booking Status
@@ -129,8 +139,8 @@ export default async function AdminDashboardPage({
             </CardContent>
           </Card>
 
-          <Card className="flex h-full flex-col overflow-hidden">
-            <CardHeader className="border-b border-border/70 py-4">
+          <Card className="dashboard-glass-panel flex h-full flex-col overflow-hidden">
+            <CardHeader className="border-b border-white/40 bg-white/30 py-4">
               <div className="flex items-center justify-between gap-3">
                 <CardTitle className="inline-flex items-center gap-2">
                   {/* <BarChart3 className="h-5 w-5 text-primary" /> */}
@@ -149,8 +159,8 @@ export default async function AdminDashboardPage({
             </CardContent>
           </Card>
 
-          <Card className="flex h-full flex-col overflow-hidden">
-            <CardHeader className="border-b border-border/70 py-4">
+          <Card className="dashboard-glass-panel flex h-full flex-col overflow-hidden">
+            <CardHeader className="border-b border-white/40 bg-white/30 py-4">
               <CardTitle className="inline-flex items-center gap-2">
                 {/* <Activity className="h-5 w-5 text-primary" /> */}
                 Recent Activities
@@ -173,7 +183,7 @@ export default async function AdminDashboardPage({
             <Link
               key={href}
               href={href as Route}
-              className="group flex items-center gap-3 rounded-[1rem] border border-border/70 bg-card p-3.5 transition hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-[0_10px_24px_rgba(22,74,47,0.06)]"
+              className="group flex items-center gap-3 rounded-[1rem] border border-white/60 dashboard-glass-panel p-3.5 transition hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-[0_10px_24px_rgba(22,74,47,0.06)]"
             >
               <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.85rem] bg-secondary text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
                 <Icon className="h-4 w-4" />
@@ -187,6 +197,8 @@ export default async function AdminDashboardPage({
           ))}
         </div>
       </section>
+      </div>
     </DashboardShell>
+    </div>
   );
 }

@@ -13,7 +13,7 @@ export function TasksRemindersPanel({ tasks }: { tasks: StaffTaskReminder[] }) {
   if (!tasks.length) return null;
 
   return (
-    <section aria-label="Tasks and reminders" className="rounded-xl border border-slate-200 bg-white p-5">
+    <section aria-label="Tasks and reminders" className="dashboard-glass-panel p-5">
       <h2 className="text-sm font-semibold text-slate-900">Tasks &amp; Reminders</h2>
       <div className="mt-3 divide-y divide-slate-100">
         {tasks.map((task) => {

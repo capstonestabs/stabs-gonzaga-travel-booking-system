@@ -15,7 +15,8 @@ import { cn } from "@/lib/utils";
 
 export function SiteHeaderClient({
   role,
-  account
+  account,
+  showSidebarToggle
 }: {
   role: "user" | "staff" | "admin" | null;
   account: {
@@ -23,6 +24,7 @@ export function SiteHeaderClient({
     email: string;
     avatarUrl: string | null;
   } | null;
+  showSidebarToggle?: boolean;
 }) {
   
   const pathname = usePathname();
@@ -93,7 +95,7 @@ export function SiteHeaderClient({
         <div className={cn( isScenicPage ? "page-shell pt-3.5 sm:pt-5 lg:pt-6" : role === "admin" ? "w-full px-4 py-2.5 sm:px-5" : "page-shell py-2.5" )} >
           <div className="flex min-h-[3.5rem] w-full items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-                       {role === "admin" ? (
+            {role === "admin" && showSidebarToggle ? (
               <>
                 <Button
                   type="button"
@@ -116,7 +118,7 @@ export function SiteHeaderClient({
                   {isMobileMenuOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
                 </Button>
               </>
-            ) : (
+            ) : role === "staff" || role === "admin" ? null : (
               <Button
                 type="button"
                 variant="outline"

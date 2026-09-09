@@ -51,7 +51,7 @@ export function DashboardShell({
           </div>
         </header> */}
 
-        <div className="mt-4 min-w-0 space-y-4">{children}</div>
+        <div className="dashboard-glass-panel mt-4 min-w-0 space-y-2 p-4">{children}</div>
       </div>
     );
   }
@@ -59,14 +59,14 @@ export function DashboardShell({
   if (role === "staff") {
     return (
       <div className="page-shell py-4 sm:py-5">
-        <div className="min-w-0 space-y-3 sm:space-y-[1.125rem]">{children}</div>
+        <div className="dashboard-glass-panel min-w-0 space-y-3 sm:space-y-[1.125rem] p-4">{children}</div>
       </div>
     );
   }
 
   return (
     <div className="page-shell space-y-3 py-4 sm:space-y-3.5 sm:py-5">
-      <div className="panel p-3 sm:p-3.5">
+      <div className="dashboard-glass-panel p-3 sm:p-3.5">
         <div className="space-y-2">
           <Badge className="inline-flex items-center gap-1.5">
             <RoleIcon className="h-3.5 w-3.5" />
@@ -86,7 +86,7 @@ export function DashboardShell({
         </div>
       </div>
 
-      <div className="min-w-0 space-y-3 sm:space-y-[1.125rem]">{children}</div>
+      <div className="dashboard-glass-panel min-w-0 space-y-3 sm:space-y-[1.125rem] p-4">{children}</div>
     </div>
   );
 }
