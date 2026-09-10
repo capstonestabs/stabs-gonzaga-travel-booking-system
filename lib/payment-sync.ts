@@ -52,12 +52,15 @@ export async function applyPaymentStateUpdate(input: {
     return;
   }
 
+  // Staff declines are terminal; an old PayMongo session must not reopen them.
+  if (existingBooking.status === "declined") {
+    return;
+  }
+
   let finalPaymentStatus = input.paymentStatus;
   let finalBookingStatus: typeof existingBooking.status =
     finalPaymentStatus === "paid"
-      ? existingBooking.status === "cancelled"
-        ? "confirmed"
-        : existingBooking.status
+      ? "completed"
       : finalPaymentStatus === "pending"
         ? "pending_payment"
         : "cancelled";
@@ -97,7 +100,7 @@ export async function applyPaymentStateUpdate(input: {
   }
 
   const ticketCode =
-    finalBookingStatus === "confirmed" ? await ensureBookingTicketCode(input.bookingId) : null;
+    finalBookingStatus === "completed" ? await ensureBookingTicketCode(input.bookingId) : null;
 
   const paymentUpdate = {
     status: finalPaymentStatus,
@@ -111,12 +114,12 @@ export async function applyPaymentStateUpdate(input: {
   };
 
   const bookingUpdate =
-    finalBookingStatus === "confirmed"
+    finalBookingStatus === "completed"
       ? {
           status: finalBookingStatus,
           ticket_code: ticketCode,
-          confirmed_at: input.paidAt ?? new Date().toISOString(),
-          completed_at: null,
+          confirmed_at: existingBooking.confirmed_at ?? input.paidAt ?? new Date().toISOString(),
+          completed_at: input.paidAt ?? new Date().toISOString(),
           cancelled_at: null
         }
       : finalBookingStatus === "pending_payment"
@@ -161,7 +164,7 @@ export async function applyPaymentStateUpdate(input: {
   if (finalPaymentStatus === "paid") {
     await upsertFinancialRecordForBooking(input.bookingId);
 
-    if (finalBookingStatus === "confirmed" && existingBooking.status !== "confirmed" && existingBooking.status !== "completed") {
+    if (existingBooking.status !== "completed") {
       try {
         await sendBookingReceiptEmail(input.bookingId);
       } catch (receiptError) {

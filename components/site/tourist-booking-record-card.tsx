@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { CancelBookingButton } from "@/components/forms/cancel-booking-button";
 import { DeleteBookingButton } from "@/components/forms/delete-booking-button";
+import { OnsiteReceiptCard } from "@/components/site/onsite-receipt-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,9 +19,12 @@ import { formatCurrency } from "@/lib/utils";
 
 const bookingBadgeVariantByStatus = {
   pending_payment: "warning",
+  awaiting_confirmation: "warning",
   confirmed: "success",
+  awaiting_onsite_payment: "warning",
   completed: "success",
-  cancelled: "destructive"
+  cancelled: "destructive",
+  declined: "destructive"
 } as const;
 
 const paymentBadgeVariantByStatus = {
@@ -39,7 +43,9 @@ export function TouristBookingRecordCard({
   mode?: "active" | "history";
 }) {
   const isExpiredPass = isBookingTicketExpired(booking);
-  const canOpenTicket = Boolean(booking.ticket_code && booking.status !== "cancelled");
+  const canOpenTicket = Boolean(
+    booking.ticket_code && booking.status !== "cancelled" && booking.status !== "declined"
+  );
   const canClearHistory =
     booking.status === "completed" ||
     booking.status === "cancelled" ||
@@ -105,6 +111,12 @@ export function TouristBookingRecordCard({
             <p className="mt-1 font-medium">{formatCurrency(booking.total_amount)}</p>
           </div>
           <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3">
+            <p className="text-muted-foreground">Payment method</p>
+            <p className="mt-1 font-medium">
+              {booking.payment_mode === "onsite" ? "Onsite payment" : "Online payment"}
+            </p>
+          </div>
+          <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3">
             <p className="text-muted-foreground">Ticket</p>
             <p className="mt-1 font-medium">
               {booking.status === "cancelled"
@@ -141,11 +153,22 @@ export function TouristBookingRecordCard({
           ) : null}
         </div>
 
-        {mode === "active" && booking.status === "pending_payment" ? (
+        {mode === "active" && (booking.status === "pending_payment" || booking.status === "awaiting_confirmation") ? (
           <p className="rounded-[0.95rem] border border-border/70 bg-muted/35 px-3.5 py-3 text-sm text-muted-foreground">
-            This reservation is still waiting for confirmation. If checkout is not completed, the
-            5-minute slot hold will expire automatically and the record will move to history.
+            {booking.status === "awaiting_confirmation"
+              ? "Your booking is on hold while our staff reviews it. Please wait for the email or visit this page again after the staff confirm your reservations."
+              : "Your booking is confirmed and ready for online payment. Complete checkout before the one-day payment hold expires."}
           </p>
+        ) : null}
+
+        {booking.status === "declined" ? (
+          <p className="rounded-[0.95rem] border border-rose-200 bg-rose-50 px-3.5 py-3 text-sm text-rose-900">
+            This booking request was declined.{booking.decline_reason ? ` Reason: ${booking.decline_reason}` : ""}
+          </p>
+        ) : null}
+
+        {booking.status === "awaiting_onsite_payment" ? (
+          <OnsiteReceiptCard booking={booking} />
         ) : null}
 
         {booking.payment?.refund_status ? (
@@ -163,12 +186,12 @@ export function TouristBookingRecordCard({
           </p>
         ) : null}
 
-        {booking.status === "pending_payment" || booking.status === "confirmed" || canOpenTicket || (mode === "history" && canClearHistory) ? (
+        {booking.status === "pending_payment" || booking.status === "confirmed" || booking.status === "awaiting_onsite_payment" || canOpenTicket || (mode === "history" && canClearHistory) ? (
           <div className="grid gap-2.5 border-t border-border/60 pt-3.5 sm:flex sm:flex-wrap">
             {booking.status === "pending_payment" && booking.payment?.checkout_url ? (
               <>
                 <a href={booking.payment.checkout_url}>
-                  <Button>Continue reservation</Button>
+                  <Button>Proceed to payment</Button>
                 </a>
                 <CancelBookingButton bookingId={booking.id} />
               </>

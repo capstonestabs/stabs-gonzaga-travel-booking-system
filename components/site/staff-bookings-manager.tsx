@@ -18,7 +18,8 @@ import {
   CalendarCheck2,
   AlertTriangle,
   ArrowLeft,
-  MoreVertical
+  MoreVertical,
+  ChevronDown
 } from "lucide-react";
 
 import { CompleteBookingButton } from "@/components/forms/complete-booking-button";
@@ -27,11 +28,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { Input } from "@/components/ui/input";
+import { Modal } from "@/components/ui/modal";
 import { Textarea } from "@/components/ui/textarea";
 import { isBookingTicketExpired } from "@/lib/booking-state";
 import { getBookingGuestTickets } from "@/lib/guest-tickets";
 import type { Booking } from "@/lib/types";
-import { cn, formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency, pesoAmountToCentavos } from "@/lib/utils";
 
 const ITEMS_PER_PAGE = 7;
 
@@ -46,14 +48,17 @@ const todayString = (() => {
   return `${value.year}-${value.month}-${value.day}`;
 })();
 
-type Tab = "all" | "pending_payment" | "confirmed" | "completed" | "cancelled";
+type Tab = "all" | "awaiting_confirmation" | "pending_payment" | "confirmed" | "awaiting_onsite_payment" | "completed" | "declined" | "cancelled";
 
 const TABS: { value: Tab; label: string }[] = [
   { value: "all", label: "All" },
+  { value: "awaiting_confirmation", label: "Awaiting review" },
   { value: "pending_payment", label: "Pending" },
   { value: "confirmed", label: "Confirmed" },
+  { value: "awaiting_onsite_payment", label: "Onsite" },
   { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Declined" }
+  { value: "declined", label: "Declined" },
+  { value: "cancelled", label: "Cancelled" }
 ];
 
 function statusStyle(status: string): { label: string; className: string } {
@@ -64,6 +69,12 @@ function statusStyle(status: string): { label: string; className: string } {
       return { label: "Completed", className: "border-emerald-200 bg-emerald-50 text-emerald-700" };
     case "pending_payment":
       return { label: "Pending", className: "border-yellow-200 bg-yellow-50 text-yellow-700" };
+    case "awaiting_confirmation":
+      return { label: "Awaiting review", className: "border-yellow-200 bg-yellow-50 text-yellow-700" };
+    case "awaiting_onsite_payment":
+      return { label: "Onsite payment", className: "border-amber-200 bg-amber-50 text-amber-700" };
+    case "declined":
+      return { label: "Declined", className: "border-rose-200 bg-rose-50 text-rose-700" };
     case "cancelled":
       return { label: "Declined", className: "border-rose-200 bg-rose-50 text-rose-700" };
     default:
@@ -109,11 +120,23 @@ export function StaffBookingsManager({
   const [staffActionPending, setStaffActionPending] = useState<"confirm" | "decline" | null>(null);
   const [staffActionError, setStaffActionError] = useState<string | null>(null);
   const [staffActionSuccess, setStaffActionSuccess] = useState<string | null>(null);
+  const [staffActionMessageOpen, setStaffActionMessageOpen] = useState(false);
+  const [onsitePaymentOpen, setOnsitePaymentOpen] = useState(false);
+  const [onsiteReceiptCode, setOnsiteReceiptCode] = useState("");
+  const [onsiteAmount, setOnsiteAmount] = useState("");
+  const [onsitePaymentNotes, setOnsitePaymentNotes] = useState("");
+  const [onsitePaymentPending, setOnsitePaymentPending] = useState(false);
+  const [onsitePaymentError, setOnsitePaymentError] = useState<string | null>(null);
   const [bulkPending, setBulkPending] = useState<"confirm" | "decline" | "delete" | null>(null);
   const [bulkDialogMode, setBulkDialogMode] = useState<"confirm" | "decline" | "delete" | null>(null);
   const [bulkError, setBulkError] = useState<string | null>(null);
   const [bulkMenuOpen, setBulkMenuOpen] = useState(false);
   const bulkMenuRef = useRef<HTMLDivElement | null>(null);
+  const [tabDropdownOpen, setTabDropdownOpen] = useState(false);
+  const tabDropdownRef = useRef<HTMLDivElement | null>(null);
+  const [resendEmailPending, setResendEmailPending] = useState(false);
+  const [resendEmailError, setResendEmailError] = useState<string | null>(null);
+  const [resendEmailSuccess, setResendEmailSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (!bulkMenuOpen) return;
@@ -127,10 +150,27 @@ export function StaffBookingsManager({
   }, [bulkMenuOpen]);
 
   useEffect(() => {
+    if (!tabDropdownOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (tabDropdownRef.current && !tabDropdownRef.current.contains(event.target as Node)) {
+        setTabDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [tabDropdownOpen]);
+
+  useEffect(() => {
     if (!staffActionSuccess) return;
     const timer = setTimeout(() => setStaffActionSuccess(null), 3000);
     return () => clearTimeout(timer);
   }, [staffActionSuccess]);
+
+  useEffect(() => {
+    if (!resendEmailSuccess) return;
+    const timer = setTimeout(() => setResendEmailSuccess(null), 3000);
+    return () => clearTimeout(timer);
+  }, [resendEmailSuccess]);
   const duplicateBookingIds = useMemo(() => {
     const groups = new Map<string, string[]>();
     for (const booking of bookings) {
@@ -148,9 +188,12 @@ export function StaffBookingsManager({
   const tabCounts = useMemo(
     () => ({
       all: bookings.length,
+      awaiting_confirmation: bookings.filter((b) => b.status === "awaiting_confirmation").length,
       pending_payment: bookings.filter((b) => b.status === "pending_payment").length,
       confirmed: bookings.filter((b) => b.status === "confirmed").length,
+      awaiting_onsite_payment: bookings.filter((b) => b.payment_mode === "onsite").length,
       completed: bookings.filter((b) => b.status === "completed").length,
+      declined: bookings.filter((b) => b.status === "declined").length,
       cancelled: bookings.filter((b) => b.status === "cancelled").length
     }),
     [bookings]
@@ -159,7 +202,11 @@ export function StaffBookingsManager({
   const filteredBookings = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     return bookings.filter((booking) => {
-      const matchesTab = activeTab === "all" || booking.status === activeTab;
+      const matchesTab =
+        activeTab === "all" ||
+        (activeTab === "awaiting_onsite_payment"
+          ? booking.payment_mode === "onsite"
+          : booking.status === activeTab);
       if (!matchesTab) return false;
       if (!normalized) return true;
 
@@ -193,10 +240,43 @@ export function StaffBookingsManager({
     setRemarksDraft("");
     setStaffActionError(null);
     setStaffActionSuccess(null);
+    setStaffActionMessageOpen(false);
+    setOnsitePaymentOpen(false);
+    setOnsiteReceiptCode(booking.onsite_receipt?.receipt_code ?? "");
+    setOnsiteAmount((booking.total_amount / 100).toFixed(2));
+    setOnsitePaymentNotes("");
+    setOnsitePaymentError(null);
   }
 
   function closeBooking() {
     setSelectedBookingId(null);
+  }
+
+  async function handleOnsitePayment() {
+    if (!selectedBooking) return;
+    setOnsitePaymentPending(true);
+    setOnsitePaymentError(null);
+
+    try {
+      const response = await fetch(`/api/bookings/${selectedBooking.id}/onsite-payment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: pesoAmountToCentavos(onsiteAmount),
+          receiptCode: onsiteReceiptCode,
+          notes: onsitePaymentNotes
+        })
+      });
+      const body = (await response.json()) as { error?: string };
+      if (!response.ok) throw new Error(body.error ?? "Unable to record onsite payment.");
+      setOnsitePaymentOpen(false);
+      setStaffActionSuccess("Onsite cash payment recorded.");
+      router.refresh();
+    } catch (error) {
+      setOnsitePaymentError(error instanceof Error ? error.message : "Unable to record onsite payment.");
+    } finally {
+      setOnsitePaymentPending(false);
+    }
   }
 
   // Lock body scroll when the mobile detail overlay is open
@@ -237,8 +317,16 @@ export function StaffBookingsManager({
       const response = await fetch(
         action === "confirm"
           ? `/api/bookings/${selectedBooking.id}/confirm`
-          : `/api/bookings/${selectedBooking.id}/cancel`,
-        { method: "POST" }
+          : `/api/bookings/${selectedBooking.id}/decline`,
+        {
+          method: "POST",
+          ...(action === "decline"
+            ? {
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ declineReason: remarksDraft })
+              }
+            : {})
+        }
       );
       const body = (await response.json()) as { error?: string; message?: string };
 
@@ -248,10 +336,9 @@ export function StaffBookingsManager({
         );
       }
 
-      setStaffActionSuccess(
-        action === "confirm" ? "Reservation confirmed." : "Reservation declined."
-      );
-      router.refresh();
+      const message = action === "confirm" ? "Reservation confirmed." : "Reservation declined.";
+      setStaffActionSuccess(message);
+      setStaffActionMessageOpen(true);
     } catch (err) {
       setStaffActionError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -259,12 +346,40 @@ export function StaffBookingsManager({
     }
   }
 
+  async function handleResendEmail() {
+    if (!selectedBooking) return;
+    setResendEmailPending(true);
+    setResendEmailError(null);
+    setResendEmailSuccess(null);
+    try {
+      const response = await fetch(`/api/bookings/${selectedBooking.id}/resend-email`, {
+        method: "POST"
+      });
+      const body = (await response.json()) as { error?: string; message?: string };
+      if (!response.ok) throw new Error(body.error ?? "Unable to resend booking email.");
+      setResendEmailSuccess(body.message ?? "Booking email resent.");
+    } catch (err) {
+      setResendEmailError(err instanceof Error ? err.message : "Unable to resend booking email.");
+    } finally {
+      setResendEmailPending(false);
+    }
+  }
+
+  function closeStaffActionMessage() {
+    setStaffActionMessageOpen(false);
+    setSelectedBookingId(null);
+    router.refresh();
+  }
+
   const bulkConfirmIds = selectedIds.filter(
-    (id) => bookings.find((b) => b.id === id)?.status === "pending_payment"
+    (id) => {
+      const status = bookings.find((b) => b.id === id)?.status;
+      return status === "pending_payment" || status === "awaiting_confirmation";
+    }
   );
   const bulkDeclineIds = selectedIds.filter((id) => {
     const status = bookings.find((b) => b.id === id)?.status;
-    return status === "pending_payment" || status === "confirmed";
+    return status === "pending_payment" || status === "awaiting_confirmation" || status === "confirmed";
   });
   const bulkDeleteIds = selectedIds.filter((id) => {
     const status = bookings.find((b) => b.id === id)?.status;
@@ -312,8 +427,14 @@ export function StaffBookingsManager({
     try {
       const results = await Promise.all(
         targetIds.map((id) =>
-          fetch(mode === "confirm" ? `/api/bookings/${id}/confirm` : `/api/bookings/${id}/cancel`, {
-            method: "POST"
+          fetch(mode === "confirm" ? `/api/bookings/${id}/confirm` : `/api/bookings/${id}/decline`, {
+            method: "POST",
+            ...(mode === "decline"
+              ? {
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ declineReason: "Declined during bulk review." })
+                }
+              : {})
           })
         )
       );
@@ -455,6 +576,17 @@ export function StaffBookingsManager({
             <dd className="font-semibold text-slate-800">{formatCurrency(selectedBooking.total_amount)}</dd>
           </div>
         </dl>
+        <button
+          type="button"
+          onClick={handleResendEmail}
+          disabled={resendEmailPending}
+          className="mt-2 inline-flex items-center gap-1.5 rounded-sm border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+        >
+          <Mail className="h-3.5 w-3.5" />
+          {resendEmailPending ? "Sending..." : "Resend email"}
+        </button>
+        {resendEmailError ? <p className="mt-1 text-xs text-destructive">{resendEmailError}</p> : null}
+        {resendEmailSuccess ? <p className="mt-1 text-xs text-emerald-700">{resendEmailSuccess}</p> : null}
       </div>
 
       {selectedBooking.ticket_code ? (
@@ -525,7 +657,7 @@ export function StaffBookingsManager({
       <div className="space-y-3 rounded-sm border border-slate-200 bg-slate-50 p-3.5">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Staff action</p>
 
-        {selectedBooking.status === "pending_payment" ? (
+        {selectedBooking.status === "pending_payment" || selectedBooking.status === "awaiting_confirmation" ? (
           <>
             <p className="text-xs text-slate-500">Please review the reservation and take action.</p>
             <div className="flex flex-col gap-2">
@@ -565,10 +697,23 @@ export function StaffBookingsManager({
               </span>
             </label>
           </>
-        ) : selectedBooking.status === "confirmed" ? (
+        ) : selectedBooking.status === "confirmed" || selectedBooking.status === "awaiting_onsite_payment" ? (
           <div className="space-y-2">
-            <p className="text-xs text-slate-500">This reservation is confirmed.</p>
-            {!isBookingTicketExpired(selectedBooking) ? (
+            <p className="text-xs text-slate-500">
+              {selectedBooking.status === "awaiting_onsite_payment"
+                ? "Confirm the tourist&apos;s receipt before recording the cash payment."
+                : "This reservation is confirmed."}
+            </p>
+            {selectedBooking.status === "awaiting_onsite_payment" ? (
+              <Button
+                type="button"
+                className="w-full rounded-sm"
+                onClick={() => setOnsitePaymentOpen(true)}
+                disabled={staffActionPending !== null}
+              >
+                Record cash payment
+              </Button>
+            ) : !isBookingTicketExpired(selectedBooking) ? (
               <div className="[&>div]:w-full [&_button]:w-full [&_button]:rounded-sm">
                 <CompleteBookingButton bookingId={selectedBooking.id} />
               </div>
@@ -576,7 +721,7 @@ export function StaffBookingsManager({
               <p className="text-xs text-slate-500">The visit date has passed; this pass is now expired.</p>
             )}
           </div>
-        ) : selectedBooking.status === "cancelled" || selectedBooking.status === "completed" ? (
+        ) : selectedBooking.status === "cancelled" || selectedBooking.status === "declined" || selectedBooking.status === "completed" ? (
           <div className="space-y-2">
             <p className="text-xs text-slate-500">
               This reservation is {statusStyle(selectedBooking.status).label.toLowerCase()}.
@@ -606,22 +751,43 @@ export function StaffBookingsManager({
             <p className="mt-1 text-sm text-slate-500">Review, confirm, or decline incoming reservations.</p>
           </div>
 
-          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0 sm:pb-0">
-            {TABS.map((tab) => (
-              <button
-                key={tab.value}
-                type="button"
-                onClick={() => switchTab(tab.value)}
-                className={cn(
-                  "shrink-0 rounded-sm border px-3.5 py-1.5 text-xs font-semibold transition-colors",
-                  activeTab === tab.value
-                    ? "border-emerald-700 bg-emerald-50 text-emerald-700"
-                    : "border-slate-200 text-slate-500 hover:bg-slate-50"
-                )}
-              >
-                {tab.label} {tabCounts[tab.value === "all" ? "all" : tab.value]}
-              </button>
-            ))}
+          <div ref={tabDropdownRef} className="relative inline-block">
+            <button
+              type="button"
+              onClick={() => setTabDropdownOpen((v) => !v)}
+              className={cn(
+                "flex items-center gap-1.5 rounded-sm border px-3.5 py-1.5 text-xs font-semibold transition-colors",
+                "border-emerald-700 bg-emerald-50 text-emerald-700"
+              )}
+            >
+              {TABS.find((tab) => tab.value === activeTab)?.label} {tabCounts[activeTab === "all" ? "all" : activeTab]}
+              <ChevronDown className="h-3.5 w-3.5" />
+            </button>
+            {tabDropdownOpen ? (
+              <div className="absolute left-0 top-[calc(100%+0.35rem)] z-20 w-48 overflow-hidden rounded-sm border border-slate-200 bg-white shadow-lg">
+                {TABS.map((tab) => (
+                  <button
+                    key={tab.value}
+                    type="button"
+                    onClick={() => {
+                      switchTab(tab.value);
+                      setTabDropdownOpen(false);
+                    }}
+                    className={cn(
+                      "flex w-full items-center justify-between px-3 py-2 text-left text-xs font-medium transition-colors",
+                      activeTab === tab.value
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "text-slate-700 hover:bg-slate-50"
+                    )}
+                  >
+                    <span>{tab.label}</span>
+                    <span className={cn("rounded-sm px-1.5 py-0.5 text-[10px]", activeTab === tab.value ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500")}>
+                      {tabCounts[tab.value === "all" ? "all" : tab.value]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <label className="relative block w-full">
@@ -768,7 +934,10 @@ export function StaffBookingsManager({
                             {booking.service_snapshot?.title ?? "Standard service"}
                           </p>
                         </td>
-                        <td className="px-2 py-3 text-slate-700">{date}</td>
+                        <td className="px-2 py-3 text-slate-700">
+                          {date}
+                          <p className="text-xs capitalize text-slate-400">{booking.payment_mode}</p>
+                        </td>
                         <td className="px-2 py-3 text-slate-700">{booking.guest_count}</td>
                         <td className="px-2 py-3">
                           <StatusPill status={booking.status} />
@@ -821,6 +990,7 @@ export function StaffBookingsManager({
                       <p className="mt-1 text-xs text-slate-400">
                         {date} &bull; {booking.guest_count} pax
                       </p>
+                      <p className="text-[11px] capitalize text-slate-400">{booking.payment_mode}</p>
                     </div>
                   </div>
                 );
@@ -895,6 +1065,55 @@ export function StaffBookingsManager({
           <div className="flex-1 overflow-y-auto p-4">{detailContent}</div>
         </div>
       ) : null}
+
+      <Modal
+        open={onsitePaymentOpen}
+        onClose={() => {
+          if (!onsitePaymentPending) setOnsitePaymentOpen(false);
+        }}
+        title="Record Cash Payment"
+      >
+        <div className="space-y-4">
+          <p className="text-sm leading-6 text-muted-foreground">
+            Confirm this matches the tourist&apos;s receipt before recording the payment.
+          </p>
+          <label className="block space-y-1.5">
+            <span className="text-sm font-medium">Receipt code</span>
+            <Input value={onsiteReceiptCode} onChange={(event) => setOnsiteReceiptCode(event.target.value)} required />
+          </label>
+          <label className="block space-y-1.5">
+            <span className="text-sm font-medium">Amount received (PHP)</span>
+            <Input type="number" min="0.01" step="0.01" value={onsiteAmount} onChange={(event) => setOnsiteAmount(event.target.value)} required />
+          </label>
+          <label className="block space-y-1.5">
+            <span className="text-sm font-medium">Notes <span className="font-normal text-muted-foreground">(optional)</span></span>
+            <Textarea value={onsitePaymentNotes} onChange={(event) => setOnsitePaymentNotes(event.target.value)} className="min-h-20 resize-y" />
+          </label>
+          {onsitePaymentError ? <p className="text-sm text-destructive">{onsitePaymentError}</p> : null}
+          <Button type="button" className="w-full" onClick={() => void handleOnsitePayment()} disabled={onsitePaymentPending || !onsiteReceiptCode || !onsiteAmount}>
+            {onsitePaymentPending ? "Recording payment..." : "Record Payment"}
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        open={staffActionMessageOpen}
+        onClose={closeStaffActionMessage}
+        title={staffActionSuccess?.includes("declined") ? "Reservation Declined" : "Reservation Confirmed"}
+      >
+        <div className="space-y-4">
+          <p className="text-sm leading-6 text-muted-foreground">
+            {staffActionSuccess}
+          </p>
+          <Button
+            type="button"
+            className="w-full"
+            onClick={closeStaffActionMessage}
+          >
+            Got it
+          </Button>
+        </div>
+      </Modal>
 
       <ConfirmationDialog
         open={bulkDialogMode === "confirm"}

@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CalendarDays, ChevronRight, Minus, Plus } from "lucide-react";
 
 import { AvailabilityCalendarPanel } from "@/components/forms/availability-calendar-panel";
 import { AbramBookingWizard } from "@/components/forms/abram-booking-wizard";
+import { PaymentModeModal } from "@/components/site/payment-mode-modal";
 import { ServiceImagePreview } from "@/components/site/service-image-preview";
 import { Button } from "@/components/ui/button";
 import { ExpandableText } from "@/components/ui/expandable-text";
@@ -16,7 +18,9 @@ import { getAvailabilityState } from "@/lib/availability";
 import { formatServiceWindowLabel } from "@/lib/booking-state";
 import { formatServiceTypeLabel } from "@/lib/service-types";
 import { getAbramMergedGuestRatePlan } from "@/lib/guest-pricing";
-import type { AvailabilitySnapshot, DestinationService, ListingCategory, UserRole } from "@/lib/types";
+import { calculateDailyServiceTotal, getBookingDayCount } from "@/lib/booking-pricing";
+import { writeOnsiteBookingDraft } from "@/lib/onsite-booking-draft";
+import type { AvailabilitySnapshot, DestinationService, ListingCategory, PaymentMode, UserRole } from "@/lib/types";
 import { formatCurrency, formatPesoCurrency, pesoAmountToCentavos } from "@/lib/utils";
 
 export function BookingForm({
@@ -56,13 +60,17 @@ export function BookingForm({
   isEntranceFeeActive?: boolean;
   entranceFeeTitle?: string;
 }) {
+  const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [serviceDate, setServiceDate] = useState("");
   const [checkOutDate, setCheckOutDate] = useState("");
   const [checkOutTime, setCheckOutTime] = useState("12:00");
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const [isPaymentModeModalOpen, setIsPaymentModeModalOpen] = useState(false);
+  const [isSubmittedModalOpen, setIsSubmittedModalOpen] = useState(false);
   const hasCheckInRef = useRef(false);
+  const pendingFormDataRef = useRef<FormData | null>(null);
   const [guestCount, setGuestCount] = useState(1);
   const [guestNames, setGuestNames] = useState<string[]>([defaultContactName ?? ""]);
   const bookableServices = services.filter((service) => service.is_active);
@@ -76,9 +84,16 @@ export function BookingForm({
 
   const selectedService = bookableServices.find((s) => s.id === selectedServiceId) ?? null;
 
-  const basePriceCentavos = selectedService
+  const dailyBasePriceCentavos = selectedService
     ? pesoAmountToCentavos(selectedService.price_amount)
     : 0;
+
+  const bookingDayCount = serviceDate && checkOutDate
+    ? getBookingDayCount(serviceDate, checkOutDate)
+    : 1;
+  const basePriceCentavos = serviceDate && checkOutDate
+    ? calculateDailyServiceTotal(dailyBasePriceCentavos, serviceDate, checkOutDate)
+    : dailyBasePriceCentavos;
 
   const entranceFeeCentavos = isEntranceFeeActive && entranceFeeAmount > 0
     ? pesoAmountToCentavos(entranceFeeAmount) * guestCount
@@ -176,14 +191,13 @@ export function BookingForm({
     setCheckOutDate(checkOut);
   }
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(formData: FormData, paymentMode?: PaymentMode) {
     if (viewerRole && viewerRole !== "user") {
       setError("Bookings can only be completed with a traveler account.");
       return;
     }
 
     setError(null);
-    setIsPending(true);
 
     try {
       const availabilityState = getAvailabilityState(availability, guestCount);
@@ -211,6 +225,12 @@ export function BookingForm({
         throw new Error("Enter the full name of every guest so each QR pass can be issued correctly.");
       }
 
+      if (!paymentMode) {
+        pendingFormDataRef.current = formData;
+        setIsPaymentModeModalOpen(true);
+        return;
+      }
+
       const payload = {
         destinationId,
         serviceId: selectedService.id,
@@ -223,12 +243,29 @@ export function BookingForm({
         contactEmail: String(formData.get("contactEmail") ?? ""),
         contactPhone: String(formData.get("contactPhone") ?? ""),
         notes: String(formData.get("notes") ?? ""),
-        termsAccepted: true,
+        paymentMode,
+        termsAccepted: true as const,
         additionalServices: additionalServices.map((service) => ({
           id: service.id,
           quantity: 1
         }))
       };
+
+      if (paymentMode === "onsite") {
+        writeOnsiteBookingDraft({
+          payload,
+          destinationTitle,
+          locationText,
+          serviceTitle: selectedService.title,
+          totalAmount: localGrandTotalCentavos
+        });
+        setIsPaymentModeModalOpen(false);
+        pendingFormDataRef.current = null;
+        router.push("/checkout/onsite");
+        return;
+      }
+
+      setIsPending(true);
 
       const response = await fetch("/api/bookings", {
         method: "POST",
@@ -241,12 +278,10 @@ export function BookingForm({
         throw new Error(body.error ?? "Unable to create booking.");
       }
 
-      const body = (await response.json()) as { checkoutUrl?: string };
-      if (!body.checkoutUrl) {
-        throw new Error("Payment session was not created.");
-      }
-
-      window.location.href = body.checkoutUrl;
+      await response.json();
+      setIsPaymentModeModalOpen(false);
+      pendingFormDataRef.current = null;
+      setIsSubmittedModalOpen(true);
     } catch (submissionError) {
       setError(
         submissionError instanceof Error
@@ -256,6 +291,18 @@ export function BookingForm({
     } finally {
       setIsPending(false);
     }
+  }
+
+  function handlePaymentModeSelect(paymentMode: PaymentMode) {
+    const formData = pendingFormDataRef.current;
+    if (formData) {
+      void handleSubmit(formData, paymentMode);
+    }
+  }
+
+  function goToCurrentBookings() {
+    setIsSubmittedModalOpen(false);
+    router.push("/account/current");
   }
 
   const availabilityState = getAvailabilityState(availability, guestCount);
@@ -292,6 +339,7 @@ export function BookingForm({
         : "Tap to choose your dates";
 
   return (
+    <>
     <form
       onSubmit={(event) => {
         event.preventDefault();
@@ -480,7 +528,7 @@ export function BookingForm({
               {serviceDate && checkOutDate ? (
                 <label className="block space-y-1.5">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
-                    Check-out time
+                    Check-In time
                   </span>
                   <Input
                     type="time"
@@ -644,7 +692,7 @@ export function BookingForm({
 
                 <div className="grid grid-cols-[minmax(0,0.72fr),minmax(10rem,1fr)] gap-2">
                   <div className="flex flex-wrap items-center justify-between gap-2 rounded-[0.9rem] border-2 border-primary/20 bg-background px-3 py-2.5">
-                    <span className="text-xs font-medium">Total</span>
+                    <span className="text-xs font-medium">Total · {bookingDayCount} day{bookingDayCount === 1 ? "" : "s"}</span>
                     <span className="font-display text-lg font-semibold text-primary">
                       {formatCurrency(localGrandTotalCentavos)}
                     </span>
@@ -662,7 +710,7 @@ export function BookingForm({
                       !checkOutTime
                     }
                   >
-                    {isPending ? "Saving checkout..." : "Continue to checkout"}
+                    {isPending ? "Saving checkout..." : "Continue to check-in"}
                   </Button>
                 </div>
               </div>
@@ -692,5 +740,27 @@ export function BookingForm({
         </div>
       )}
     </form>
+    <PaymentModeModal
+      open={isPaymentModeModalOpen}
+      onClose={() => setIsPaymentModeModalOpen(false)}
+      onSelect={handlePaymentModeSelect}
+      isPending={isPending}
+    />
+    <Modal
+      open={isSubmittedModalOpen}
+      onClose={goToCurrentBookings}
+      title="Booking Submitted"
+    >
+      <div className="space-y-4">
+        <p className="text-sm leading-6 text-muted-foreground">
+          Your booking is now on hold while our staff reviews it. Please wait for staff confirmation;
+          you&apos;ll receive an email once it&apos;s confirmed.
+        </p>
+        <Button type="button" className="w-full" onClick={goToCurrentBookings}>
+          Go to Current bookings
+        </Button>
+      </div>
+    </Modal>
+    </>
   );
 }

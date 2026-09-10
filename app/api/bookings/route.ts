@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { attachCheckoutSessionToSlotLock, createBookingSlotLock, getServiceAvailabilitySnapshot } from "@/lib/availability";
+import { createBookingSlotLock, getServiceAvailabilitySnapshot } from "@/lib/availability";
 import { getCurrentUserContext } from "@/lib/auth";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { bookingSchema } from "@/lib/schemas";
 import { getDestinationById } from "@/lib/repositories";
-import { createCheckoutSession } from "@/lib/paymongo";
-import { createBookingReturnToken } from "@/lib/booking-return-token";
-import { getSiteUrl, hasPayMongoEnv, hasSupabaseServiceEnv } from "@/lib/env";
+import { hasSupabaseServiceEnv } from "@/lib/env";
 import { normalizeServiceTypeLabel } from "@/lib/service-types";
 import { pesoAmountToCentavos } from "@/lib/utils";
 import { calculateGuestTotal, getAbramMergedGuestRatePlan } from "@/lib/guest-pricing";
+import { calculateDailyServiceTotal, getBookingDayCount } from "@/lib/booking-pricing";
 
 export async function POST(request: NextRequest) {
   try {
@@ -199,8 +198,12 @@ export async function POST(request: NextRequest) {
     }
 
     const baseTotalAmount = mergedAbramRatePlan
-      ? pesoAmountToCentavos(calculateGuestTotal(guestTypes ?? [], mergedAbramRatePlan))
-      : unitAmount;
+      ? calculateDailyServiceTotal(
+          pesoAmountToCentavos(calculateGuestTotal(guestTypes ?? [], mergedAbramRatePlan)),
+          payload.serviceDate,
+          payload.checkOutDate
+        )
+      : calculateDailyServiceTotal(unitAmount, payload.serviceDate, payload.checkOutDate);
 
     const isEntranceFeeActive = destination.is_entrance_fee_active ?? false;
     const entranceFeeUnitAmount = destination.entrance_fee_amount ?? 0;
@@ -217,7 +220,8 @@ export async function POST(request: NextRequest) {
         user_id: user.authUserId,
         destination_id: destination.id,
         staff_id: destination.staff_id,
-        status: "pending_payment",
+        status: "awaiting_confirmation",
+        payment_mode: payload.paymentMode,
         service_date: payload.serviceDate,
         check_out_date: payload.checkOutDate,
         check_out_time: payload.checkOutTime,
@@ -297,121 +301,18 @@ export async function POST(request: NextRequest) {
         userId: user.authUserId,
         serviceDate: payload.serviceDate,
         guestCount: payload.guestCount,
-        expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString()
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
       });
     } catch (lockError) {
       await supabase.from("bookings").delete().eq("id", booking.id);
       throw lockError;
     }
 
-    const returnToken = createBookingReturnToken(booking.id);
-    let checkoutUrl = `${getSiteUrl()}/bookings/${booking.id}/status?access=${returnToken}`;
-    let checkoutSessionId: string | null = null;
-
-    try {
-      if (hasPayMongoEnv()) {
-        const serviceImage = service.image_url ?? destination.cover_url ?? undefined;
-
-        const lineItems = [];
-        if (mergedAbramRatePlan) {
-          if (adultGuestCount > 0) {
-            lineItems.push({
-              name: `${destination.title} — ${mergedAbramRatePlan.adult.title}`,
-              amount: pesoAmountToCentavos(mergedAbramRatePlan.adult.priceAmount),
-              quantity: 1,
-              ...(serviceImage ? { image: serviceImage } : {})
-            });
-          }
-          if (childGuestCount > 0) {
-            lineItems.push({
-              name: `${destination.title} — ${mergedAbramRatePlan.child.title}`,
-              amount: pesoAmountToCentavos(mergedAbramRatePlan.child.priceAmount),
-              quantity: 1,
-              ...(serviceImage ? { image: serviceImage } : {})
-            });
-          }
-          } else {
-            const bookingReference = booking.id.split("-")[0].toUpperCase();
-
-            lineItems.push({
-              name: `${destination.title} — ${service.title} (Ref #${bookingReference}, ${payload.serviceDate})`,
-              amount: pesoAmountToCentavos(service.price_amount),
-              quantity: 1,
-              ...(serviceImage ? { image: serviceImage } : {})
-            });
-          }
-
-        if (isEntranceFeeActive && entranceFeeUnitAmount > 0) {
-          lineItems.push({
-            name: `${destination.title} — ${entranceFeeTitle}`,
-            amount: pesoAmountToCentavos(entranceFeeUnitAmount),
-            quantity: payload.guestCount
-          });
-        }
-
-        for (const addon of validatedAdditionalServices) {
-          lineItems.push({
-            name: addon.title,
-            amount: pesoAmountToCentavos(addon.price_amount),
-            quantity: 1,
-            ...(serviceImage ? { image: serviceImage } : {})
-          });
-        }
-
-        const bookingReference = booking.id.split("-")[0].toUpperCase();
-        const guestNamesSummary = guestDetails.map((guest) => guest.name).join(", ");
-
-        const orderSummaryDescription = [
-          `Guest: ${guestNamesSummary}`,
-          `Total guests: ${payload.guestCount}`,
-          `Ref: #${bookingReference}`,
-          `Visit date: ${payload.serviceDate}`
-        ].join(" • ");
-
-        const session = await createCheckoutSession({
-          bookingId: booking.id,
-          title: `${destination.title} — ${mergedAbramRatePlan?.title ?? service.title}`,
-          description: orderSummaryDescription,
-          amount: totalAmount,
-          customerName: payload.contactName,
-          customerEmail: payload.contactEmail,
-          customerPhone: payload.contactPhone,
-          lineItems
-        });
-
-        checkoutUrl = session.data.attributes.checkout_url;
-        checkoutSessionId = session.data.id;
-      }
-
-      const { data: payment, error: paymentError } = await supabase
-        .from("payments")
-        .insert({
-          booking_id: booking.id,
-          paymongo_checkout_session_id: checkoutSessionId,
-          checkout_url: checkoutUrl,
-          status: "pending",
-          amount: totalAmount,
-          currency: "PHP",
-          livemode: false
-        })
-        .select("id")
-        .single();
-
-      if (paymentError || !payment) {
-        throw new Error(paymentError?.message ?? "Unable to create payment record.");
-      }
-
-      await attachCheckoutSessionToSlotLock(booking.id, checkoutSessionId);
-
-      return NextResponse.json({
-        bookingId: booking.id,
-        paymentId: payment.id,
-        checkoutUrl
-      });
-    } catch (checkoutError) {
-      await supabase.from("bookings").delete().eq("id", booking.id);
-      throw checkoutError;
-    }
+    return NextResponse.json({
+      bookingId: booking.id,
+      status: "awaiting_confirmation",
+      paymentMode: payload.paymentMode
+    });
   } catch (error) {
     return NextResponse.json(
       {

@@ -1,4 +1,4 @@
-import { env, hasBookingEmailEnv } from "@/lib/env";
+import { env, getSiteUrl, hasBookingEmailEnv } from "@/lib/env";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { formatCurrency, pesoAmountToCentavos } from "@/lib/utils";
 
@@ -155,4 +155,170 @@ export async function sendBookingReceiptEmail(bookingId: string) {
   }
 
   return { sent: true } as const;
+}
+
+async function sendBookingStatusEmail(input: {
+  bookingId: string;
+  subject: string;
+  heading: string;
+  body: string;
+  actionLabel?: string;
+  actionHref?: string;
+}) {
+  if (!hasBookingEmailEnv()) {
+    return { sent: false, reason: "Booking email is not configured." } as const;
+  }
+
+  const supabase = createAdminSupabaseClient();
+  const { data: booking, error } = await supabase
+    .from("bookings")
+    .select("id, contact_name, contact_email, destination_snapshot")
+    .eq("id", input.bookingId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!booking) return { sent: false, reason: "Booking was not found." } as const;
+
+  const destinationTitle = (booking.destination_snapshot as { title?: string } | null)?.title ?? "STABS";
+  const supportEmail = env.bookingSupportEmail || env.bookingReceiptFromEmail;
+  const action = input.actionLabel && input.actionHref
+    ? `<p style="margin:24px 0"><a href="${escapeHtml(input.actionHref)}" style="display:inline-block;padding:12px 18px;background:#22643f;color:#fff;text-decoration:none;border-radius:8px;font-weight:700">${escapeHtml(input.actionLabel)}</a></p>`
+    : "";
+  const htmlContent = `
+    <!doctype html><html><body style="margin:0;background:#f2f7f3;font-family:Arial,sans-serif;color:#183b2a">
+      <div style="max-width:680px;margin:0 auto;padding:32px 16px">
+        <div style="background:#173f2d;border-radius:18px 18px 0 0;padding:28px;color:#fff">
+          <p style="margin:0 0 8px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#cce5d4">STABS booking update</p>
+          <h1 style="margin:0;font-size:28px">${escapeHtml(input.heading)}</h1>
+        </div>
+        <div style="background:#fff;border:1px solid #d8e4db;border-top:0;padding:28px;border-radius:0 0 18px 18px">
+          <p style="margin:0 0 16px">Hi ${escapeHtml(booking.contact_name)},</p>
+          <p style="line-height:1.7">${escapeHtml(input.body).replace(/\n/g, "<br />")}</p>
+          ${action}
+          <p style="margin:24px 0 0;color:#607368;font-size:12px;line-height:1.6">Booking reference: ${escapeHtml(booking.id)}<br />Questions? Contact <a href="mailto:${escapeHtml(supportEmail)}">${escapeHtml(supportEmail)}</a>.</p>
+        </div>
+      </div>
+    </body></html>`;
+
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json", "api-key": env.brevoApiKey },
+    body: JSON.stringify({
+      sender: { name: "STABS Gonzaga Travel Bookings", email: env.bookingReceiptFromEmail },
+      to: [{ email: booking.contact_email, name: booking.contact_name }],
+      replyTo: { email: supportEmail, name: "STABS Support" },
+      subject: `${input.subject} - ${destinationTitle}`,
+      htmlContent
+    }),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new Error(payload?.message ?? "Unable to send the booking status email.");
+  }
+
+  return { sent: true } as const;
+}
+
+export async function sendBookingConfirmedEmail(bookingId: string) {
+  const supabase = createAdminSupabaseClient();
+  const { data: booking, error } = await supabase
+    .from("bookings")
+    .select("contact_email, payment_mode, onsite_receipt:onsite_receipts(receipt_code), destination_snapshot, service_date, guest_count, total_amount, currency")
+    .eq("id", bookingId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+
+  const receipt = Array.isArray(booking?.onsite_receipt)
+    ? booking.onsite_receipt[0]
+    : booking?.onsite_receipt;
+  const isOnsite = booking?.payment_mode === "onsite";
+
+  const destinationTitle = (booking?.destination_snapshot as { title?: string } | null)?.title ?? "STABS";
+  const serviceDate = booking?.service_date
+    ? new Date(booking.service_date + "T00:00:00").toLocaleDateString("en-PH", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        timeZone: "Asia/Manila"
+      })
+    : "the scheduled date";
+  const guestCount = booking?.guest_count ?? 1;
+  const totalAmount = booking?.total_amount != null ? formatCurrency(booking.total_amount, booking?.currency || "PHP") : null;
+
+  const details = [
+    `Destination: ${destinationTitle}`,
+    `Date: ${serviceDate}`,
+    `Guests: ${guestCount}`,
+    ...(totalAmount ? [`Total amount: ${totalAmount}`] : [])
+  ].join("\n");
+
+  const receiptLine = isOnsite && receipt?.receipt_code
+    ? `Your receipt code is ${receipt.receipt_code}. Please present this at check-in and pay in cash on the day of your visit.`
+    : isOnsite
+      ? "Your receipt is being prepared. Please present proof of this booking at check-in and pay in cash on the day of your visit."
+      : "You can now complete your payment using the button below.";
+
+  return sendBookingStatusEmail({
+    bookingId,
+    subject: "Your booking has been confirmed",
+    heading: "Your booking is confirmed",
+    body: [
+      `Your reservation with ${destinationTitle} has been confirmed by our team.`,
+      "",
+      ...details.split("\n"),
+      "",
+      receiptLine
+    ].join("\n"),
+    actionLabel: isOnsite ? "View my booking" : "Proceed to payment",
+    actionHref: `${getSiteUrl()}/account/current`
+  });
+}
+
+export async function sendBookingDeclinedEmail(bookingId: string) {
+  const supabase = createAdminSupabaseClient();
+  const { data: booking, error } = await supabase
+    .from("bookings")
+    .select("decline_reason, destination_snapshot, service_date, guest_count, total_amount, currency")
+    .eq("id", bookingId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+
+  const destinationTitle = (booking?.destination_snapshot as { title?: string } | null)?.title ?? "STABS";
+  const serviceDate = booking?.service_date
+    ? new Date(booking.service_date + "T00:00:00").toLocaleDateString("en-PH", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        timeZone: "Asia/Manila"
+      })
+    : "the scheduled date";
+  const guestCount = booking?.guest_count ?? 1;
+  const totalAmount = booking?.total_amount != null ? formatCurrency(booking.total_amount, booking?.currency || "PHP") : null;
+
+  const details = [
+    `Destination: ${destinationTitle}`,
+    `Date: ${serviceDate}`,
+    `Guests: ${guestCount}`,
+    ...(totalAmount ? [`Total amount: ${totalAmount}`] : [])
+  ].join("\n");
+
+  const reasonLine = booking?.decline_reason ? `\n\nReason: ${booking.decline_reason}` : "";
+
+  return sendBookingStatusEmail({
+    bookingId,
+    subject: "Update on your booking request",
+    heading: "Update on your booking request",
+    body: [
+      `We are sorry, but your booking request with ${destinationTitle} could not be confirmed at this time.`,
+      "",
+      ...details.split("\n"),
+      reasonLine,
+      "",
+      "Please browse other available dates or destinations if you would like to try again."
+    ].join("\n")
+  });
 }

@@ -89,6 +89,78 @@ export async function upsertFinancialRecordForBooking(bookingId: string) {
   }
 }
 
+export async function createOnsiteFinancialRecord(input: {
+  bookingId: string;
+  amount: number;
+  receiptCode: string;
+  notes?: string | null;
+}) {
+  if (!hasSupabaseServiceEnv()) {
+    return;
+  }
+
+  const supabase = createAdminSupabaseClient();
+  const { data: booking, error: bookingError } = await supabase
+    .from("bookings")
+    .select("id, destination_id, staff_id, user_id, service_date, guest_count, contact_name, contact_email, total_amount, currency, ticket_code, payment_mode, destination_snapshot")
+    .eq("id", input.bookingId)
+    .maybeSingle();
+
+  if (bookingError) throw new Error(bookingError.message);
+  if (!booking) return;
+
+  const [{ data: staffUser, error: staffError }, { data: touristUser, error: touristError }] =
+    await Promise.all([
+      supabase.from("users").select("full_name").eq("id", booking.staff_id).maybeSingle(),
+      supabase.from("users").select("full_name, email").eq("id", booking.user_id).maybeSingle()
+    ]);
+
+  if (staffError || touristError) {
+    throw new Error(staffError?.message ?? touristError?.message ?? "Unable to load financial identities.");
+  }
+
+  const destinationSnapshot = (booking.destination_snapshot ?? {}) as {
+    title?: string;
+    category?: "tour" | "stay";
+    location_text?: string;
+  };
+
+  const { data: existingRecord, error: existingError } = await supabase
+    .from("financial_records")
+    .select("id")
+    .eq("booking_id", booking.id)
+    .maybeSingle();
+  if (existingError) throw new Error(existingError.message);
+  if (existingRecord) return;
+
+  const { error: insertError } = await supabase.from("financial_records").insert({
+    booking_id: booking.id,
+    payment_id: null,
+    destination_id: booking.destination_id,
+    staff_id: booking.staff_id,
+    user_id: booking.user_id,
+    destination_title: destinationSnapshot.title ?? "Destination",
+    destination_location_text: destinationSnapshot.location_text ?? "Gonzaga",
+    destination_category: destinationSnapshot.category ?? "tour",
+    staff_name: staffUser?.full_name ?? null,
+    tourist_name: touristUser?.full_name ?? booking.contact_name,
+    tourist_email: touristUser?.email ?? booking.contact_email,
+    service_date: booking.service_date,
+    guest_count: booking.guest_count,
+    amount: input.amount,
+    currency: booking.currency,
+    payment_method_type: "cash",
+    payment_mode: "onsite",
+    ticket_code: booking.ticket_code ?? null,
+    paid_at: new Date().toISOString(),
+    receipt_reference: input.receiptCode,
+    settlement_notes: input.notes || null,
+    settlement_status: "unsettled"
+  });
+
+  if (insertError) throw new Error(insertError.message);
+}
+
 export async function markFinancialRecordBookingDeleted(bookingId: string) {
   if (!hasSupabaseServiceEnv()) {
     return;

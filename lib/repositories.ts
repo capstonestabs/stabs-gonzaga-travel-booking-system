@@ -309,6 +309,17 @@ function normalizeBookingPayment(booking: Booking) {
   return (rawPayment as Booking["payment"]) ?? null;
 }
 
+function normalizeBookingOnsiteReceipt(booking: Booking) {
+  const rawReceipt = booking.onsite_receipt as unknown;
+
+  return {
+    ...booking,
+    onsite_receipt: Array.isArray(rawReceipt)
+      ? rawReceipt[0] ?? null
+      : rawReceipt ?? null
+  };
+}
+
 async function syncBookingPaymentStates(bookings: Booking[]) {
   if (!bookings.length || !hasSupabaseServiceEnv() || !hasPayMongoEnv()) {
     return false;
@@ -317,6 +328,9 @@ async function syncBookingPaymentStates(bookings: Booking[]) {
   let didUpdate = false;
   const syncCandidates = bookings
     .filter((booking) => {
+      if (booking.status === "declined") {
+        return false;
+      }
       const payment = normalizeBookingPayment(booking);
       return Boolean(payment?.paymongo_checkout_session_id) && payment?.status !== "paid";
     })
@@ -408,12 +422,12 @@ async function attachFinancialBookingSnapshots(records: FinancialRecord[]) {
 }
 
 async function hydrateBookings(bookings: Booking[]) {
-  const withTickets = await hydrateBookingTickets(bookings);
+  const withTickets = await hydrateBookingTickets(bookings.map(normalizeBookingOnsiteReceipt));
   return attachBookingFinancialRecords(withTickets);
 }
 
 async function hydrateUserBookings(bookings: Booking[]) {
-  return hydrateBookingTickets(bookings);
+  return hydrateBookingTickets(bookings.map(normalizeBookingOnsiteReceipt));
 }
 
 function buildDestinationRevenueSummaries(
@@ -838,7 +852,7 @@ export async function getBookingsForStaff(staffId: string, limit = 50) {
   const supabase = createAdminSupabaseClient();
   const { data, error } = await supabase
     .from("bookings")
-    .select("*, destination:destinations(*), payment:payments(*), visits:booking_guest_visits(*)")
+    .select("*, destination:destinations(*), payment:payments(*), onsite_receipt:onsite_receipts(*), visits:booking_guest_visits(*)")
     .eq("staff_id", staffId)
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -853,7 +867,7 @@ export async function getBookingsForStaff(staffId: string, limit = 50) {
   if (didSync) {
     const { data: refreshedData, error: refreshedError } = await supabase
       .from("bookings")
-      .select("*, destination:destinations(*), payment:payments(*), visits:booking_guest_visits(*)")
+      .select("*, destination:destinations(*), payment:payments(*), onsite_receipt:onsite_receipts(*), visits:booking_guest_visits(*)")
       .eq("staff_id", staffId)
       .order("created_at", { ascending: false })
       .limit(limit);
@@ -1875,7 +1889,7 @@ export async function getBookingsForUser(userId: string) {
   const supabase = createAdminSupabaseClient();
   const { data, error } = await supabase
     .from("bookings")
-    .select("*, destination:destinations(*), payment:payments(*)")
+    .select("*, destination:destinations(*), payment:payments(*), onsite_receipt:onsite_receipts(*)")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
@@ -1889,7 +1903,7 @@ export async function getBookingsForUser(userId: string) {
   if (didSync) {
     const { data: refreshedData, error: refreshedError } = await supabase
       .from("bookings")
-      .select("*, destination:destinations(*), payment:payments(*)")
+      .select("*, destination:destinations(*), payment:payments(*), onsite_receipt:onsite_receipts(*)")
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
@@ -1913,7 +1927,7 @@ export async function getBookingForUserById(userId: string, bookingId: string) {
   const supabase = createAdminSupabaseClient();
   const { data, error } = await supabase
     .from("bookings")
-    .select("*, destination:destinations(*), payment:payments(*)")
+    .select("*, destination:destinations(*), payment:payments(*), onsite_receipt:onsite_receipts(*)")
     .eq("user_id", userId)
     .eq("id", bookingId)
     .maybeSingle();
@@ -1932,7 +1946,7 @@ export async function getBookingForUserById(userId: string, bookingId: string) {
   if (didSync) {
     const { data: refreshedData, error: refreshedError } = await supabase
       .from("bookings")
-      .select("*, destination:destinations(*), payment:payments(*)")
+      .select("*, destination:destinations(*), payment:payments(*), onsite_receipt:onsite_receipts(*)")
       .eq("user_id", userId)
       .eq("id", bookingId)
       .maybeSingle();

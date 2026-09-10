@@ -3,13 +3,17 @@ import type { Route } from "next";
 export type UserRole = "user" | "staff" | "admin";
 export type ListingCategory = "tour" | "stay";
 export type BookingType = "online" | "walk-in";
+export type PaymentMode = "online" | "onsite";
 export type ServiceType = string;
 export type ListingStatus = "draft" | "published" | "archived";
 export type BookingStatus =
   | "pending_payment"
+  | "awaiting_confirmation"
   | "confirmed"
+  | "awaiting_onsite_payment"
   | "completed"
-  | "cancelled";
+  | "cancelled"
+  | "declined";
 export type PaymentStatus =
   | "pending"
   | "paid"
@@ -145,12 +149,27 @@ export interface FinancialRecordSummary {
   deleted_booking_at?: string | null;
 }
 
+export interface OnsiteReceipt {
+  id: string;
+  booking_id: string;
+  receipt_code: string;
+  receipt_issued_at: string;
+  recorded_by_staff_id: string | null;
+  recorded_at: string | null;
+  amount_recorded: number | null;
+  payment_method: "cash";
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Booking {
   id: string;
   user_id: string;
   destination_id: string;
   staff_id: string;
   status: BookingStatus;
+  payment_mode: PaymentMode;
   ticket_code: string | null;
   service_date: string;
   check_out_date: string | null;
@@ -206,8 +225,12 @@ export interface Booking {
   confirmed_at: string | null;
   completed_at: string | null;
   cancelled_at: string | null;
+  decline_reason: string | null;
+  declined_at: string | null;
+  declined_by: string | null;
   destination?: Destination | null;
   payment?: Payment | null;
+  onsite_receipt?: OnsiteReceipt | null;
   financial_record?: FinancialRecordSummary | null;
   visits?: BookingGuestVisit[];
 }
@@ -223,6 +246,7 @@ export interface Payment {
   amount: number;
   currency: "PHP";
   payment_method_type: string | null;
+  payment_mode: PaymentMode;
   raw_payload: Record<string, unknown> | null;
   livemode: boolean;
   paid_at: string | null;

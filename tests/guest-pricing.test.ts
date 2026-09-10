@@ -5,6 +5,7 @@ import {
   getAbramMergedGuestRatePlan,
   isAbramBeachResort
 } from "@/lib/guest-pricing";
+import { calculateDailyServiceTotal, getBookingDayCount } from "@/lib/booking-pricing";
 import type { DestinationService } from "@/lib/types";
 
 function service(
@@ -46,6 +47,17 @@ describe("Abram merged guest pricing", () => {
 });
 
 describe("Destination entrance fee calculation", () => {
+  it("counts checkout as exclusive for multi-day service pricing", () => {
+    expect(getBookingDayCount("2026-09-10", "2026-09-13")).toBe(3);
+    expect(getBookingDayCount("2026-09-10", "2026-09-15")).toBe(5);
+    expect(getBookingDayCount("2026-09-10", "2026-09-10")).toBe(1);
+  });
+
+  it("multiplies the daily service price by billable days", () => {
+    expect(calculateDailyServiceTotal(50000, "2026-09-10", "2026-09-13")).toBe(150000);
+    expect(calculateDailyServiceTotal(50000, "2026-09-10", "2026-09-15")).toBe(250000);
+  });
+
   it("calculates total payment correctly with entrance fee, stay package, and add-ons", () => {
     const guestCount = 2;
     const entranceFeePerGuest = 50;

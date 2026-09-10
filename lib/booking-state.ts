@@ -1,4 +1,4 @@
-import type { Booking } from "@/lib/types";
+import type { Booking, BookingStatus } from "@/lib/types";
 import { formatDateKey } from "@/lib/utils";
 
 function getTodayDateKey(now = new Date()) {
@@ -7,6 +7,18 @@ function getTodayDateKey(now = new Date()) {
 
 export function isBookingDateInPast(serviceDate: string, now = new Date()) {
   return serviceDate < getTodayDateKey(now);
+}
+
+export function canConfirmBooking(status: BookingStatus) {
+  return status === "awaiting_confirmation" || status === "pending_payment";
+}
+
+export function canDeclineBooking(status: BookingStatus) {
+  return status === "awaiting_confirmation" || status === "pending_payment";
+}
+
+export function canRecordOnsitePayment(status: BookingStatus) {
+  return status === "awaiting_onsite_payment";
 }
 
 export function isBookingTicketExpired(
@@ -26,11 +38,15 @@ export function isBookingTicketExpired(
 export function getBookingTicketState(
   booking: Pick<Booking, "status" | "service_date" | "completed_at">
 ) {
-  if (booking.status === "cancelled") {
+  if (booking.status === "cancelled" || booking.status === "declined") {
     return "cancelled" as const;
   }
 
-  if (booking.status === "pending_payment") {
+  if (
+    booking.status === "pending_payment" ||
+    booking.status === "awaiting_confirmation" ||
+    booking.status === "awaiting_onsite_payment"
+  ) {
     return "pending" as const;
   }
 
@@ -49,12 +65,18 @@ export function formatBookingStatusLabel(status: Booking["status"]) {
   switch (status) {
     case "pending_payment":
       return "Awaiting confirmation";
+    case "awaiting_confirmation":
+      return "Awaiting staff confirmation";
     case "confirmed":
       return "Confirmed";
+    case "awaiting_onsite_payment":
+      return "Awaiting onsite payment";
     case "completed":
       return "Completed";
     case "cancelled":
       return "Cancelled";
+    case "declined":
+      return "Declined";
   }
 }
 

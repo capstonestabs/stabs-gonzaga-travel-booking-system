@@ -5,10 +5,9 @@ import { History, LayoutDashboard } from "lucide-react";
 
 import { ClearBookingHistoryButton } from "@/components/forms/clear-booking-history-button";
 import { DashboardShell } from "@/components/site/dashboard-shell";
-import { TouristBookingRecordCard } from "@/components/site/tourist-booking-record-card";
+import { TouristBookingHistoryBrowser } from "@/components/site/tourist-booking-history-browser";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ProgressiveList } from "@/components/ui/progressive-list";
 import { getCurrentUserContext } from "@/lib/auth";
 import { getBookingsForUser } from "@/lib/repositories";
 import { getTouristHistoryBookings } from "@/lib/tourist-bookings";
@@ -48,17 +47,7 @@ export default async function TouristBookingHistoryPage() {
           </CardContent>
         </Card>
       ) : (
-        <ProgressiveList
-          initialCount={4}
-          step={4}
-          maxHeightClass="max-h-[min(74vh,42rem)]"
-          showMoreLabel="Show more history"
-          showLessLabel="Show fewer history items"
-        >
-          {historyBookings.map((booking) => (
-            <TouristBookingRecordCard key={booking.id} booking={booking} mode="history" />
-          ))}
-        </ProgressiveList>
+        <TouristBookingHistoryBrowser bookings={historyBookings} />
       )}
     </DashboardShell>
   );

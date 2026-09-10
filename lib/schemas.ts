@@ -44,6 +44,7 @@ export const setPasswordSchema = z
   });
 
 export const guestTypeSchema = z.enum(["adult", "child"]);
+export const paymentModeSchema = z.enum(["online", "onsite"]);
 export const bookingGuestSchema = z.object({
   name: z.string().trim().min(2, "Enter each guest's full name.").max(120),
   type: guestTypeSchema
@@ -59,6 +60,7 @@ export const bookingSchema = z
     guestTypes: z.array(guestTypeSchema).min(1).max(200).optional(),
     guestDetails: z.array(bookingGuestSchema).min(1).max(200).optional(),
     serviceId: z.string().uuid(),
+    paymentMode: paymentModeSchema,
     contactName: z.string().min(2).max(120),
     contactEmail: z.string().email(),
     contactPhone: z.string().min(7).max(20),
@@ -96,6 +98,33 @@ export const bookingSchema = z
       });
     }
   });
+
+export const staffBookingActionSchema = z
+  .object({
+    bookingId: z.string().uuid(),
+    action: z.enum(["confirm", "decline"]),
+    declineReason: z.string().trim().max(1000).optional().or(z.literal(""))
+  })
+  .superRefine((value, context) => {
+    if (value.action === "decline" && !value.declineReason) {
+      return;
+    }
+
+    if (value.action === "confirm" && value.declineReason) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["declineReason"],
+        message: "A decline reason can only be provided when declining a booking."
+      });
+    }
+  });
+
+export const recordOnsitePaymentSchema = z.object({
+  bookingId: z.string().uuid(),
+  amount: z.coerce.number().int().positive(),
+  receiptCode: z.string().trim().min(4).max(40),
+  notes: z.string().trim().max(1000).optional().or(z.literal(""))
+});
 
 export const checkoutDraftSchema = z.object({
   destinationId: z.string().uuid(),

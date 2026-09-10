@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
@@ -17,15 +18,19 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { PaymentModeModal } from "@/components/site/payment-mode-modal";
 import { AvailabilityCalendarPanel } from "@/components/forms/availability-calendar-panel";
 import { Input } from "@/components/ui/input";
+import { Modal } from "@/components/ui/modal";
 import { Textarea } from "@/components/ui/textarea";
 import {
   calculateGuestTotal,
   type GuestType,
   type MergedGuestRatePlan
 } from "@/lib/guest-pricing";
-import type { AvailabilitySnapshot, ListingCategory, UserRole } from "@/lib/types";
+import type { AvailabilitySnapshot, ListingCategory, PaymentMode, UserRole } from "@/lib/types";
+import { writeOnsiteBookingDraft } from "@/lib/onsite-booking-draft";
+import { getBookingDayCount } from "@/lib/booking-pricing";
 import { formatPesoCurrency, pesoAmountToCentavos } from "@/lib/utils";
 
 interface GuestEntry {
@@ -66,6 +71,7 @@ export function AbramBookingWizard({
   defaultContactPhone?: string;
   policies?: string[];
 }) {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [serviceDate, setServiceDate] = useState("");
   const [checkOutDate, setCheckOutDate] = useState("");
@@ -77,6 +83,9 @@ export function AbramBookingWizard({
   const [nextGuestId, setNextGuestId] = useState(2);
   const [isChecking, setIsChecking] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isPaymentModeModalOpen, setIsPaymentModeModalOpen] = useState(false);
+  const [isSubmittedModalOpen, setIsSubmittedModalOpen] = useState(false);
+  const pendingFormDataRef = useRef<FormData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const guestTypes = guests.map((guest) => guest.type);
@@ -87,7 +96,10 @@ export function AbramBookingWizard({
     [guestTypes, ratePlan]
   );
 
-  const grandTotalAmount = totalAmount;
+  const bookingDayCount = serviceDate && checkOutDate
+    ? getBookingDayCount(serviceDate, checkOutDate)
+    : 1;
+  const grandTotalAmount = totalAmount * bookingDayCount;
   const canFitGuests = Boolean(
     availability?.is_open && guests.length <= availability.remaining_guests
   );
@@ -170,9 +182,7 @@ export function AbramBookingWizard({
     setError(null);
   }
 
-  async function handleGuestDetailsSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+  async function handleGuestDetailsSubmit(formData: FormData, paymentMode?: PaymentMode) {
     if (!availability?.is_open || !canFitGuests) {
       setError("The selected date does not have enough slots for all guests.");
       return;
@@ -183,7 +193,6 @@ export function AbramBookingWizard({
       return;
     }
 
-    const formData = new FormData(event.currentTarget);
     const contactName = String(formData.get("contactName") ?? "").trim();
     const contactEmail = String(formData.get("contactEmail") ?? "").trim();
     const contactPhone = String(formData.get("contactPhone") ?? "").trim();
@@ -213,7 +222,12 @@ export function AbramBookingWizard({
     }
 
     setError(null);
-    setIsSaving(true);
+
+    if (!paymentMode) {
+      pendingFormDataRef.current = formData;
+      setIsPaymentModeModalOpen(true);
+      return;
+    }
 
     try {
       const payload = {
@@ -229,9 +243,26 @@ export function AbramBookingWizard({
         contactEmail,
         contactPhone,
         notes: String(formData.get("notes") ?? "").trim(),
-        termsAccepted: true,
+        paymentMode,
+        termsAccepted: true as const,
         additionalServices: []
       };
+
+      if (paymentMode === "onsite") {
+        writeOnsiteBookingDraft({
+          payload,
+          destinationTitle,
+          locationText,
+          serviceTitle: ratePlan.title,
+          totalAmount: pesoAmountToCentavos(grandTotalAmount)
+        });
+        pendingFormDataRef.current = null;
+        setIsPaymentModeModalOpen(false);
+        router.push("/checkout/onsite");
+        return;
+      }
+
+      setIsSaving(true);
 
       const response = await fetch("/api/bookings", {
         method: "POST",
@@ -244,16 +275,26 @@ export function AbramBookingWizard({
         throw new Error(body.error ?? "Unable to create booking.");
       }
 
-      const body = (await response.json()) as { checkoutUrl?: string };
-      if (!body.checkoutUrl) {
-        throw new Error("Payment session was not created.");
-      }
-
-      window.location.href = body.checkoutUrl;
+      await response.json();
+      pendingFormDataRef.current = null;
+      setIsPaymentModeModalOpen(false);
+      setIsSubmittedModalOpen(true);
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Unable to save the reservation.");
       setIsSaving(false);
     }
+  }
+
+  function handlePaymentModeSelect(paymentMode: PaymentMode) {
+    const formData = pendingFormDataRef.current;
+    if (!formData) return;
+
+    void handleGuestDetailsSubmit(formData, paymentMode);
+  }
+
+  function goToCurrentBookings() {
+    setIsSubmittedModalOpen(false);
+    router.push("/account/current");
   }
 
   return (
@@ -381,7 +422,13 @@ export function AbramBookingWizard({
       ) : null}
 
       {step === 2 ? (
-        <form onSubmit={handleGuestDetailsSubmit} className="space-y-5">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleGuestDetailsSubmit(new FormData(event.currentTarget));
+          }}
+          className="space-y-5"
+        >
           <div className="flex items-start gap-3 rounded-[0.95rem] border border-emerald-200 bg-emerald-50 p-3 text-emerald-900">
             <CircleCheckBig className="mt-0.5 h-4 w-4 shrink-0" />
             <div className="text-sm">
@@ -443,6 +490,7 @@ export function AbramBookingWizard({
             <div className="sm:text-right">
               <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Total</p>
               <p className="mt-1 font-display text-xl font-semibold text-primary">{formatPesoCurrency(grandTotalAmount)}</p>
+              <p className="text-[11px] text-muted-foreground">{bookingDayCount} day{bookingDayCount === 1 ? "" : "s"}</p>
             </div>
           </div>
 
@@ -488,6 +536,28 @@ export function AbramBookingWizard({
           Opening the secure payment step…
         </div>
       ) : null}
+
+      <PaymentModeModal
+        open={isPaymentModeModalOpen}
+        onClose={() => setIsPaymentModeModalOpen(false)}
+        onSelect={handlePaymentModeSelect}
+        isPending={isSaving}
+      />
+      <Modal
+        open={isSubmittedModalOpen}
+        onClose={goToCurrentBookings}
+        title="Booking Submitted"
+      >
+        <div className="space-y-4">
+          <p className="text-sm leading-6 text-muted-foreground">
+            Your booking is now on hold while our staff reviews it. Please wait for staff confirmation;
+            you&apos;ll receive an email once it&apos;s confirmed.
+          </p>
+          <Button type="button" className="w-full" onClick={goToCurrentBookings}>
+            Go to Current bookings
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

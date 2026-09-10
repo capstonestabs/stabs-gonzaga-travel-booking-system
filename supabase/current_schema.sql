@@ -21,7 +21,7 @@ begin
   end if;
 
   if not exists (select 1 from pg_type where typname = 'booking_status') then
-    create type public.booking_status as enum ('pending_payment', 'confirmed', 'completed', 'cancelled');
+    create type public.booking_status as enum ('pending_payment', 'awaiting_confirmation', 'confirmed', 'awaiting_onsite_payment', 'completed', 'cancelled', 'declined');
   end if;
 
   if not exists (select 1 from pg_type where typname = 'payment_status') then
@@ -157,6 +157,8 @@ create table if not exists public.bookings (
   destination_id uuid not null references public.destinations (id) on delete cascade,
   staff_id uuid not null references public.users (id) on delete cascade,
   status public.booking_status not null default 'pending_payment',
+  payment_mode text not null default 'online'
+    check (payment_mode in ('online', 'onsite')),
   service_id uuid references public.destination_services (id) on delete set null,
   service_date date not null,
   guest_count integer not null check (guest_count > 0),
@@ -172,8 +174,30 @@ create table if not exists public.bookings (
   confirmed_at timestamptz,
   completed_at timestamptz,
   cancelled_at timestamptz,
+  decline_reason text,
+  declined_at timestamptz,
+  declined_by uuid references public.users (id) on delete set null,
   created_at timestamptz not null default timezone('utc'::text, now()),
   updated_at timestamptz not null default timezone('utc'::text, now())
+);
+
+create table if not exists public.onsite_receipts (
+  id uuid primary key default gen_random_uuid(),
+  booking_id uuid not null unique references public.bookings (id) on delete cascade,
+  receipt_code text not null unique,
+  receipt_issued_at timestamptz not null default timezone('utc'::text, now()),
+  recorded_by_staff_id uuid references public.users (id) on delete set null,
+  recorded_at timestamptz,
+  amount_recorded integer check (amount_recorded is null or amount_recorded > 0),
+  payment_method text not null default 'cash',
+  notes text,
+  created_at timestamptz not null default timezone('utc'::text, now()),
+  updated_at timestamptz not null default timezone('utc'::text, now()),
+  constraint onsite_receipts_payment_method_check check (payment_method = 'cash'),
+  constraint onsite_receipts_recording_fields_check check (
+    (recorded_at is null and recorded_by_staff_id is null and amount_recorded is null)
+    or (recorded_at is not null and recorded_by_staff_id is not null and amount_recorded is not null)
+  )
 );
 
 create table if not exists public.payments (
@@ -187,6 +211,8 @@ create table if not exists public.payments (
   amount integer not null check (amount > 0),
   currency text not null default 'PHP',
   payment_method_type text,
+  payment_mode text not null default 'online'
+    check (payment_mode in ('online', 'onsite')),
   raw_payload jsonb,
   livemode boolean not null default false,
   paid_at timestamptz,
@@ -442,6 +468,9 @@ create index if not exists bookings_destination_date_status_idx
 create index if not exists bookings_service_date_status_idx
   on public.bookings (service_id, service_date, status);
 
+create index if not exists bookings_payment_mode_status_idx
+  on public.bookings (payment_mode, status);
+
 create unique index if not exists bookings_ticket_code_key
   on public.bookings (ticket_code)
   where ticket_code is not null;
@@ -466,6 +495,9 @@ create index if not exists financial_records_destination_idx
 
 create index if not exists financial_records_settlement_idx
   on public.financial_records (settlement_status, paid_at desc);
+
+create index if not exists financial_records_payment_mode_idx
+  on public.financial_records (payment_mode, paid_at desc);
 
 create index if not exists financial_records_archived_idx
   on public.financial_records (archived_at, paid_at desc);
@@ -533,6 +565,11 @@ for each row execute function public.touch_updated_at();
 drop trigger if exists bookings_touch_updated_at on public.bookings;
 create trigger bookings_touch_updated_at
 before update on public.bookings
+for each row execute function public.touch_updated_at();
+
+drop trigger if exists onsite_receipts_touch_updated_at on public.onsite_receipts;
+create trigger onsite_receipts_touch_updated_at
+before update on public.onsite_receipts
 for each row execute function public.touch_updated_at();
 
 drop trigger if exists payments_touch_updated_at on public.payments;
@@ -610,7 +647,7 @@ begin
     from public.booking_slot_locks
     where expires_at <= timezone('utc'::text, now())
   )
-    and status = 'pending_payment';
+    and status in ('pending_payment', 'awaiting_confirmation');
 
   delete from public.booking_slot_locks
   where expires_at <= timezone('utc'::text, now());
@@ -675,7 +712,7 @@ begin
     from public.bookings b
     where b.service_id = p_service_id
       and b.service_date = p_service_date
-      and b.status in ('confirmed', 'completed')
+      and b.status in ('confirmed', 'awaiting_onsite_payment', 'completed')
   ), 0);
 
   locked_guests := coalesce((
@@ -833,6 +870,9 @@ alter table public.payments enable row level security;
 alter table public.feedback_entries enable row level security;
 alter table public.booking_slot_locks enable row level security;
 alter table public.financial_records enable row level security;
+alter table public.onsite_receipts enable row level security;
+revoke all on table public.onsite_receipts from anon, authenticated;
+grant all on table public.onsite_receipts to service_role;
 alter table public.service_availability_closures enable row level security;
 revoke all privileges on table public.users from anon;
 revoke insert, update, delete, truncate, references, trigger
@@ -914,6 +954,19 @@ create policy "Users can read own bookings"
 on public.bookings
 for select
 using (auth.uid() = user_id or auth.uid() = staff_id);
+
+drop policy if exists "Users can read own onsite receipts" on public.onsite_receipts;
+create policy "Users can read own onsite receipts"
+on public.onsite_receipts
+for select
+using (
+  exists (
+    select 1
+    from public.bookings
+    where public.bookings.id = public.onsite_receipts.booking_id
+      and (public.bookings.user_id = auth.uid() or public.bookings.staff_id = auth.uid())
+  )
+);
 
 drop policy if exists "Users can read own payments" on public.payments;
 create policy "Users can read own payments"
