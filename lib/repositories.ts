@@ -1302,6 +1302,36 @@ export async function getFinancialRecordsForStaff(staffId: string): Promise<Fina
 
   const supabase = createAdminSupabaseClient();
 
+  async function attachBookingStatuses(records: Array<Record<string, unknown>>) {
+    const bookingIds = records
+      .map((record) => record.booking_id)
+      .filter((id): id is string => typeof id === "string");
+
+    if (bookingIds.length === 0) {
+      return records.map((record) => ({ ...record, booking_status: undefined }));
+    }
+
+    const { data: bookings, error: bookingsError } = await supabase
+      .from("bookings")
+      .select("id, status")
+      .in("id", bookingIds);
+
+    if (bookingsError) {
+      throw new Error(bookingsError.message ?? "Unable to load booking statuses.");
+    }
+
+    const statusByBookingId = new Map(
+      (bookings ?? []).map((booking) => [booking.id as string, booking.status as FinancialRecord["booking_status"]])
+    );
+
+    return records.map((record) => ({
+      ...record,
+      booking_status: typeof record.booking_id === "string"
+        ? statusByBookingId.get(record.booking_id)
+        : undefined
+    }));
+  }
+
   const response = await supabase
     .from("financial_records")
     .select("*")
@@ -1322,7 +1352,7 @@ export async function getFinancialRecordsForStaff(staffId: string): Promise<Fina
       throw new Error(fallback.error.message ?? "Unable to load financial records.");
     }
 
-    return (fallback.data ?? []) as FinancialRecord[];
+    return (await attachBookingStatuses((fallback.data ?? []) as Array<Record<string, unknown>>)) as FinancialRecord[];
   }
 
   if (isMissingFinancialArchiveColumn(response.error)) {
@@ -1336,14 +1366,14 @@ export async function getFinancialRecordsForStaff(staffId: string): Promise<Fina
       throw new Error(fallback.error.message ?? "Unable to load financial records.");
     }
 
-    return (fallback.data ?? []) as FinancialRecord[];
+    return (await attachBookingStatuses((fallback.data ?? []) as Array<Record<string, unknown>>)) as FinancialRecord[];
   }
 
   if (response.error) {
     throw new Error(response.error.message ?? "Unable to load financial records.");
   }
 
-  return (response.data ?? []) as FinancialRecord[];
+  return (await attachBookingStatuses((response.data ?? []) as Array<Record<string, unknown>>)) as FinancialRecord[];
 }
 export async function getServiceCoverPhotos(
   serviceIds: string[]

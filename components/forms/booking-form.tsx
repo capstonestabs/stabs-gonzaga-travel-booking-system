@@ -69,6 +69,7 @@ export function BookingForm({
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const [isPaymentModeModalOpen, setIsPaymentModeModalOpen] = useState(false);
   const [isSubmittedModalOpen, setIsSubmittedModalOpen] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const hasCheckInRef = useRef(false);
   const pendingFormDataRef = useRef<FormData | null>(null);
   const [guestCount, setGuestCount] = useState(1);
@@ -194,10 +195,12 @@ export function BookingForm({
   async function handleSubmit(formData: FormData, paymentMode?: PaymentMode) {
     if (viewerRole && viewerRole !== "user") {
       setError("Bookings can only be completed with a traveler account.");
+      setIsErrorModalOpen(true);
       return;
     }
 
     setError(null);
+    setIsPaymentModeModalOpen(false);
 
     try {
       const availabilityState = getAvailabilityState(availability, guestCount);
@@ -288,6 +291,8 @@ export function BookingForm({
           ? submissionError.message
           : "Unable to prepare your checkout."
       );
+      setIsErrorModalOpen(true);
+      setIsPaymentModeModalOpen(false);
     } finally {
       setIsPending(false);
     }
@@ -667,8 +672,6 @@ export function BookingForm({
                   </label>
                 </div>
 
-                {error ? <p className="text-sm text-destructive">{error}</p> : null}
-
                 {(entranceFeeCentavos > 0 || additionalServicesTotalCentavos > 0) ? (
                   <div className="rounded-[0.95rem] border border-border/70 bg-muted/40 p-3 text-xs space-y-1.5">
                     <div className="flex justify-between text-muted-foreground">
@@ -758,6 +761,18 @@ export function BookingForm({
         </p>
         <Button type="button" className="w-full" onClick={goToCurrentBookings}>
           Go to Current bookings
+        </Button>
+      </div>
+    </Modal>
+    <Modal
+      open={isErrorModalOpen}
+      onClose={() => setIsErrorModalOpen(false)}
+      title="Unable to continue"
+    >
+      <div className="space-y-4">
+        <p className="text-sm leading-6 text-destructive">{error}</p>
+        <Button type="button" className="w-full" onClick={() => setIsErrorModalOpen(false)}>
+          Got it
         </Button>
       </div>
     </Modal>

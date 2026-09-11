@@ -19,7 +19,12 @@ import {
   AlertTriangle,
   ArrowLeft,
   MoreVertical,
-  ChevronDown
+  ChevronDown,
+  Receipt,
+  CreditCard,
+  CircleDollarSign,
+  Calendar,
+  HandCoins
 } from "lucide-react";
 
 import { CompleteBookingButton } from "@/components/forms/complete-booking-button";
@@ -33,7 +38,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { isBookingTicketExpired } from "@/lib/booking-state";
 import { getBookingGuestTickets } from "@/lib/guest-tickets";
 import type { Booking } from "@/lib/types";
-import { cn, formatCurrency, pesoAmountToCentavos } from "@/lib/utils";
+import { cn, formatCurrency, formatPesoCurrency, pesoAmountToCentavos } from "@/lib/utils";
 
 const ITEMS_PER_PAGE = 7;
 
@@ -122,6 +127,7 @@ export function StaffBookingsManager({
   const [staffActionSuccess, setStaffActionSuccess] = useState<string | null>(null);
   const [staffActionMessageOpen, setStaffActionMessageOpen] = useState(false);
   const [onsitePaymentOpen, setOnsitePaymentOpen] = useState(false);
+  const [onsitePaymentSuccessOpen, setOnsitePaymentSuccessOpen] = useState(false);
   const [onsiteReceiptCode, setOnsiteReceiptCode] = useState("");
   const [onsiteAmount, setOnsiteAmount] = useState("");
   const [onsitePaymentNotes, setOnsitePaymentNotes] = useState("");
@@ -270,7 +276,7 @@ export function StaffBookingsManager({
       const body = (await response.json()) as { error?: string };
       if (!response.ok) throw new Error(body.error ?? "Unable to record onsite payment.");
       setOnsitePaymentOpen(false);
-      setStaffActionSuccess("Onsite cash payment recorded.");
+      setOnsitePaymentSuccessOpen(true);
       router.refresh();
     } catch (error) {
       setOnsitePaymentError(error instanceof Error ? error.message : "Unable to record onsite payment.");
@@ -1071,26 +1077,241 @@ export function StaffBookingsManager({
         onClose={() => {
           if (!onsitePaymentPending) setOnsitePaymentOpen(false);
         }}
-        title="Record Cash Payment"
+        title="Onsite Payment"
+        description="Record the online receipt provided by the guest. This will be added to the onsite payments and viewable under Financials."
+        icon={<HandCoins className="h-4.5 w-4.5" />}
+        className="sm:max-w-3xl md:max-w-4xl lg:max-w-5xl md:max-h-[92vh]"
       >
-        <div className="space-y-4">
-          <p className="text-sm leading-6 text-muted-foreground">
-            Confirm this matches the tourist&apos;s receipt before recording the payment.
-          </p>
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium">Receipt code</span>
-            <Input value={onsiteReceiptCode} onChange={(event) => setOnsiteReceiptCode(event.target.value)} required />
-          </label>
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium">Amount received (PHP)</span>
-            <Input type="number" min="0.01" step="0.01" value={onsiteAmount} onChange={(event) => setOnsiteAmount(event.target.value)} required />
-          </label>
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium">Notes <span className="font-normal text-muted-foreground">(optional)</span></span>
-            <Textarea value={onsitePaymentNotes} onChange={(event) => setOnsitePaymentNotes(event.target.value)} className="min-h-20 resize-y" />
-          </label>
-          {onsitePaymentError ? <p className="text-sm text-destructive">{onsitePaymentError}</p> : null}
-          <Button type="button" className="w-full" onClick={() => void handleOnsitePayment()} disabled={onsitePaymentPending || !onsiteReceiptCode || !onsiteAmount}>
+        {selectedBooking ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-5 md:gap-4">
+          {/* LEFT COLUMN — wider */}
+          <div className="space-y-4 md:col-span-3 md:space-y-3">
+            {/* 1. Search Guest */}
+            <div className="rounded-md border border-emerald-100 bg-emerald-50/40 p-4 md:p-3">
+              <h3 className="mb-2 text-sm font-semibold text-slate-900 md:mb-1.5">1. Search Guest</h3>
+              <div className="relative mb-2 md:mb-1.5">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                <Input
+                  value={selectedBooking.contact_name}
+                  readOnly
+                  aria-label="Guest"
+                  className="h-9 rounded-sm border-slate-200 bg-white pl-8 pr-8 text-sm text-slate-600 md:h-8"
+                />
+                <X className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-300" />
+              </div>
+              <div className="rounded-sm border border-emerald-200 bg-emerald-100/50 p-3 md:p-2.5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 md:h-9 md:w-9">
+                      <UserRound className="h-5 w-5 md:h-4 md:w-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-slate-900">{selectedBooking.contact_name}</p>
+                      <p className="truncate text-xs text-slate-500">{selectedBooking.contact_email}</p>
+                    </div>
+                  </div>
+                  <span className="shrink-0 rounded-sm bg-emerald-200/80 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
+                    Booking #{selectedBooking.ticket_code ?? selectedBooking.id.slice(0, 8)}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setOnsitePaymentOpen(false)}
+                  className="mt-1.5 inline-flex items-center gap-0.5 text-xs font-medium text-emerald-700 hover:text-emerald-800 md:mt-1"
+                >
+                  View booking details <span className="text-base leading-none">→</span>
+                </button>
+              </div>
+            </div>
+
+            {/* 2. Online Receipt Details */}
+            <div className="rounded-md border border-slate-200 bg-white p-4 md:p-3">
+              <h3 className="mb-2 text-sm font-semibold text-slate-900 md:mb-1.5">2. Online Receipt Details</h3>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-2.5">
+                <label className="block space-y-1 md:space-y-0.5">
+                  <span className="text-[11px] font-medium text-slate-500">Receipt Number *</span>
+                  <div className="relative">
+                    <Receipt className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                    <Input
+                      value={onsiteReceiptCode}
+                      onChange={(event) => setOnsiteReceiptCode(event.target.value)}
+                      required
+                      className="h-8 rounded-sm pl-8 text-xs"
+                    />
+                  </div>
+                </label>
+                <label className="block space-y-1 md:space-y-0.5">
+                  <span className="text-[11px] font-medium text-slate-500">Payment Method *</span>
+                  <div className="relative">
+                    <CreditCard className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                    <Input value="Cash" readOnly className="h-8 rounded-sm bg-slate-50 pl-8 text-xs" />
+                  </div>
+                </label>
+                <label className="block space-y-1 md:space-y-0.5">
+                  <span className="text-[11px] font-medium text-slate-500">Amount Paid *</span>
+                  <div className="relative">
+                    <CircleDollarSign className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                    <Input
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      value={onsiteAmount}
+                      onChange={(event) => setOnsiteAmount(event.target.value)}
+                      required
+                      className="h-8 rounded-sm pl-8 text-xs"
+                    />
+                  </div>
+                </label>
+                <label className="block space-y-1 md:space-y-0.5">
+                  <span className="text-[11px] font-medium text-slate-500">Payment Date & Time *</span>
+                  <div className="relative">
+                    <Calendar className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                    <Input
+                      value={new Date().toLocaleString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit"
+                      })}
+                      readOnly
+                      className="h-8 rounded-sm bg-slate-50 pl-8 text-xs"
+                    />
+                  </div>
+                </label>
+              </div>
+
+              {/* Notes */}
+              <label className="mt-3 block space-y-1 md:mt-2.5 md:space-y-0.5">
+                <span className="text-xs font-medium text-slate-600">Notes <span className="font-normal text-muted-foreground">(optional)</span></span>
+                <Textarea
+                  value={onsitePaymentNotes}
+                  onChange={(event) => setOnsitePaymentNotes(event.target.value)}
+                  className="min-h-20 resize-y rounded-sm text-sm md:min-h-14"
+                />
+                <span className="text-[11px] text-slate-400">{onsitePaymentNotes.length}/500</span>
+              </label>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN — narrower */}
+          <div className="space-y-3 rounded-md border border-slate-200 bg-slate-50/70 p-4 md:col-span-2 md:space-y-2.5 md:p-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-slate-900">Booking Summary</h3>
+              <span className="rounded-sm border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                Confirmed
+              </span>
+            </div>
+            <div className="space-y-1.5 rounded-sm border border-slate-200 bg-white p-3 md:space-y-1 md:p-2.5">
+              <div className="flex items-center gap-3 text-xs">
+                <span className="w-24 shrink-0 text-slate-500">Guest Name</span>
+                <span className="flex-1 text-center font-medium text-slate-800">{selectedBooking.contact_name}</span>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="w-24 shrink-0 text-slate-500">Email</span>
+                <span className="flex-1 break-all text-center text-slate-800">{selectedBooking.contact_email}</span>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="w-24 shrink-0 text-slate-500">Contact No.</span>
+                <span className="flex-1 text-center text-slate-800">{selectedBooking.contact_phone}</span>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="w-24 shrink-0 text-slate-500">Check-in</span>
+                <span className="flex-1 text-center text-slate-800">
+                  {new Date(selectedBooking.service_date).toLocaleString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit"
+                  })}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="w-24 shrink-0 text-slate-500">Check-out</span>
+                <span className="flex-1 text-center text-slate-800">
+                  {selectedBooking.check_out_date
+                    ? new Date(selectedBooking.check_out_date).toLocaleString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit"
+                      })
+                    : "—"}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="w-24 shrink-0 text-slate-500">Guests pax</span>
+                <span className="flex-1 text-center text-slate-800">{selectedBooking.guest_count}</span>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="w-24 shrink-0 text-slate-500">Receipt Code</span>
+                <span className="flex-1 text-center text-slate-800">{onsiteReceiptCode || "—"}</span>
+              </div>
+            </div>
+
+            {/* Room / Accommodation */}
+            <div className="border-t border-slate-200 pt-3 md:pt-2.5">
+              <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500 md:mb-1">Room / Accommodation</h4>
+              <div className="space-y-1">
+                {selectedBooking.service_snapshot && (
+                  <div className="flex justify-between gap-3 text-xs">
+                    <span className="text-slate-600">
+                      {selectedBooking.service_snapshot.title} (x {selectedBooking.guest_count})
+                    </span>
+                    <span className="text-right text-slate-800">
+                      {formatPesoCurrency(selectedBooking.service_snapshot.price_amount)}
+                    </span>
+                  </div>
+                )}
+                {selectedBooking.service_snapshot?.entrance_fee?.is_active && (
+                  <div className="flex justify-between gap-3 text-xs">
+                    <span className="text-slate-600">
+                      {selectedBooking.service_snapshot.entrance_fee.title} (₱{selectedBooking.service_snapshot.entrance_fee.price_amount} x {selectedBooking.service_snapshot.entrance_fee.guest_count} guest{selectedBooking.service_snapshot.entrance_fee.guest_count !== 1 ? 's' : ''})
+                    </span>
+                    <span className="text-right text-slate-800">
+                      {formatPesoCurrency(selectedBooking.service_snapshot.entrance_fee.price_amount * selectedBooking.service_snapshot.entrance_fee.guest_count)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Total Amount */}
+            <div className="space-y-1.5 md:space-y-1">
+              <div className="flex justify-between gap-3 border-t border-slate-200 pt-1.5 text-sm md:pt-1 mb-8">
+                <span className="font-semibold text-slate-900">Total Amount</span>
+                <span className="font-bold text-emerald-700">{formatCurrency(selectedBooking.total_amount)}</span>
+              </div>
+              <div className="flex items-start gap-2 rounded-sm border border-emerald-100 bg-emerald-50/70 p-2 md:p-1.5 mt-8">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                <p className="text-xs text-emerald-800 ">
+                  This payment will be added to the Onsite Total Under Financials.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        ) : null}
+
+        {onsitePaymentError ? <p className="mt-3 text-sm text-destructive md:mt-2.5">{onsitePaymentError}</p> : null}
+        <div className="mt-4 flex flex-col-reverse gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:justify-end sm:gap-3 md:mt-3 md:pt-2.5">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full rounded-sm sm:w-auto"
+            onClick={() => setOnsitePaymentOpen(false)}
+            disabled={onsitePaymentPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            className="w-full rounded-sm sm:w-auto"
+            onClick={() => void handleOnsitePayment()}
+            disabled={onsitePaymentPending || !onsiteReceiptCode || !onsiteAmount}
+          >
             {onsitePaymentPending ? "Recording payment..." : "Record Payment"}
           </Button>
         </div>
@@ -1111,6 +1332,31 @@ export function StaffBookingsManager({
             onClick={closeStaffActionMessage}
           >
             Got it
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        open={onsitePaymentSuccessOpen}
+        onClose={() => {
+          setOnsitePaymentSuccessOpen(false);
+          setSelectedBookingId(null);
+        }}
+        title="Payment recorded"
+      >
+        <div className="space-y-4">
+          <p className="text-sm leading-6 text-muted-foreground">
+            Onsite cash payment has been recorded successfully.
+          </p>
+          <Button
+            type="button"
+            className="w-full"
+            onClick={() => {
+              setOnsitePaymentSuccessOpen(false);
+              setSelectedBookingId(null);
+            }}
+          >
+            Done
           </Button>
         </div>
       </Modal>

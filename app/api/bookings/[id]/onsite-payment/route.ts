@@ -90,6 +90,59 @@ export async function POST(
       return NextResponse.json({ error: "Booking status changed; payment was not recorded." }, { status: 409 });
     }
 
+    const { data: existingPayment } = await supabase
+      .from("payments")
+      .select("id")
+      .eq("booking_id", id)
+      .maybeSingle();
+
+    let paymentWasCreated = false;
+    if (existingPayment) {
+      const { error: paymentUpdateError } = await supabase
+        .from("payments")
+        .update({ status: "paid", paid_at: now, payment_method_type: "cash" })
+        .eq("id", existingPayment.id);
+      if (paymentUpdateError) {
+        await supabase
+          .from("bookings")
+          .update({ status: "awaiting_onsite_payment", completed_at: null })
+          .eq("id", id)
+          .eq("status", "completed");
+        await supabase
+          .from("onsite_receipts")
+          .update({ recorded_by_staff_id: null, recorded_at: null, amount_recorded: null, notes: null })
+          .eq("id", receipt.id)
+          .eq("recorded_by_staff_id", staffContext.authUserId);
+        throw new Error(paymentUpdateError.message);
+      }
+    } else {
+      paymentWasCreated = true;
+      const { error: paymentInsertError } = await supabase
+        .from("payments")
+        .insert({
+          booking_id: id,
+          status: "paid",
+          amount: booking.total_amount,
+          currency: "PHP",
+          payment_method_type: "cash",
+          paid_at: now,
+          livemode: false
+        });
+      if (paymentInsertError) {
+        await supabase
+          .from("bookings")
+          .update({ status: "awaiting_onsite_payment", completed_at: null })
+          .eq("id", id)
+          .eq("status", "completed");
+        await supabase
+          .from("onsite_receipts")
+          .update({ recorded_by_staff_id: null, recorded_at: null, amount_recorded: null, notes: null })
+          .eq("id", receipt.id)
+          .eq("recorded_by_staff_id", staffContext.authUserId);
+        throw new Error(paymentInsertError.message);
+      }
+    }
+
     try {
       await createOnsiteFinancialRecord({
         bookingId: id,
@@ -103,6 +156,15 @@ export async function POST(
         .update({ status: "awaiting_onsite_payment", completed_at: null })
         .eq("id", id)
         .eq("status", "completed");
+      if (paymentWasCreated) {
+        await supabase.from("payments").delete().eq("booking_id", id).eq("status", "paid");
+      } else {
+        await supabase
+          .from("payments")
+          .update({ status: "pending", paid_at: null })
+          .eq("booking_id", id)
+          .eq("status", "paid");
+      }
       await supabase
         .from("onsite_receipts")
         .update({ recorded_by_staff_id: null, recorded_at: null, amount_recorded: null, notes: null })

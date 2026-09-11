@@ -35,9 +35,7 @@ export const adminNavSections: AdminNavSection[] = [
     items: [
       { href: "/admin", label: "Overview", icon: "home" },
       { href: "/admin/tourists", label: "Tourists", icon: "tourists" },
-      { href: "/admin/destination-financials", label: "Destinations", icon: "pin" },    
-      // { href: "/admin/financials", label: "Financials", icon: "financials" }, 
-    // { href: "/admin/financials/history", label: "Payout history", icon: "history" },
+      { href: "/admin/destination-financials", label: "Destinations", icon: "pin" },
       { href: "/admin/staff", label: "Staff", icon: "staff", matchHrefs: ["/admin/staff/create"] },
       { href: "/admin/reports", label: "Reports & Analytics", icon: "reports" }
     ]

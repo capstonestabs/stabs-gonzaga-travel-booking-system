@@ -200,7 +200,7 @@ export function DateRangePicker({
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
                   <Calendar
                     mode="range"
-                    numberOfMonths={2}
+                    numberOfMonths={1}
                     defaultMonth={currentFrom}
                     selected={draftRange}
                     onSelect={setDraftRange}

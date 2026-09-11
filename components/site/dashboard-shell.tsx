@@ -59,7 +59,13 @@ export function DashboardShell({
   if (role === "staff") {
     return (
       <div className="page-shell py-4 sm:py-5">
-        <div className="dashboard-glass-panel min-w-0 space-y-3 sm:space-y-[1.125rem] p-4">{children}</div>
+        <div className="dashboard-glass-panel min-w-0 space-y-3 sm:space-y-[1.125rem] p-4">
+          <div className="space-y-1">
+            <p className="font-display text-[1.18rem] font-semibold tracking-tight">{title}</p>
+            <p className="text-xs text-muted-foreground sm:text-sm">{description}</p>
+          </div>
+        </div>
+        <div className="dashboard-glass-panel mt-3 min-w-0 space-y-3 sm:space-y-[1.125rem] p-4">{children}</div>
       </div>
     );
   }

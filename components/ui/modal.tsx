@@ -10,12 +10,16 @@ export function Modal({
   open,
   onClose,
   title,
+  description,
+  icon,
   children,
   className
 }: {
   open: boolean;
   onClose: () => void;
   title?: string;
+  description?: string;
+  icon?: ReactNode;
   children: ReactNode;
   className?: string;
 }) {
@@ -70,16 +74,28 @@ export function Modal({
           className
         )}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border/70 bg-card/95 px-4 py-3 backdrop-blur-sm sm:px-5">
+        <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-border/70 bg-card/95 px-4 py-3 backdrop-blur-sm sm:px-5">
           {title ? (
-            <h2 className="font-display text-base font-semibold sm:text-lg">{title}</h2>
+            <div className="flex min-w-0 items-start gap-3">
+              {icon ? (
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                  {icon}
+                </span>
+              ) : null}
+              <div className="min-w-0">
+                <h2 className="font-display text-base font-semibold sm:text-lg">{title}</h2>
+                {description ? (
+                  <p className="mt-0.5 text-xs leading-5 text-muted-foreground sm:text-sm">{description}</p>
+                ) : null}
+              </div>
+            </div>
           ) : (
             <span />
           )}
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
+            className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
             aria-label="Close"
           >
             <X className="h-4 w-4" />

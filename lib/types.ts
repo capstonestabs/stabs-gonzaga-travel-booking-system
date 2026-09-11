@@ -377,6 +377,8 @@ export interface FinancialRecord {
   amount: number;
   currency: "PHP";
   payment_method_type: string | null;
+  payment_mode: PaymentMode;
+  booking_status?: BookingStatus;
   ticket_code: string | null;
   paid_at: string;
   settlement_status: FinancialSettlementStatus;
