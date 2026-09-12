@@ -7,9 +7,9 @@ import { Clock3, ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { optimizeImageToWebp } from "@/lib/browser-image";
-import { formatServiceWindowLabel } from "@/lib/booking-state";
 import {
   formatServiceTypeLabel,
   normalizeServiceTypeLabel,
@@ -17,6 +17,7 @@ import {
 } from "@/lib/service-types";
 import type { DestinationService, ListingCategory } from "@/lib/types";
 import { DEFAULT_OPEN_WEEKDAYS, WEEKDAYS } from "@/lib/service-schedule";
+import { ServiceDateRangePicker } from "./service-date-range-picker";
 
 function createServiceRow(
   source?: Partial<DestinationService>,
@@ -36,12 +37,15 @@ function createServiceRow(
     priceAmount: (source?.price_amount ?? 0) as number | string,
     serviceType: normalizeServiceTypeLabel(source?.service_type, destinationCategory),
     dailyCapacity: source?.daily_capacity ?? 10,
+    pricingBasis: source?.pricing_basis ?? "per_day",
     imagePath: source?.image_path ?? "",
     imageUrl: source?.image_url ?? "",
     imagePaths,
     imageUrls,
     availabilityStartDate: source?.availability_start_date ?? "",
     availabilityEndDate: source?.availability_end_date ?? "",
+    availabilityStartTime: source?.availability_start_time?.slice(0, 5) ?? "08:00",
+    availabilityEndTime: source?.availability_end_time?.slice(0, 5) ?? "17:00",
     openingTime: source?.opening_time?.slice(0, 5) ?? "08:00",
     closingTime: source?.closing_time?.slice(0, 5) ?? "17:00",
     openWeekdays: source?.open_weekdays?.length ? source.open_weekdays : DEFAULT_OPEN_WEEKDAYS,
@@ -205,6 +209,17 @@ export function ServicesEditorForm({
           throw new Error(`The end date for "${row.title || "this service"}" must be on or after the start date.`);
         }
 
+        if (
+          row.availabilityStartDate &&
+          row.availabilityEndDate &&
+          row.availabilityStartDate === row.availabilityEndDate &&
+          row.availabilityStartTime &&
+          row.availabilityEndTime &&
+          row.availabilityStartTime >= row.availabilityEndTime
+        ) {
+          throw new Error(`The end time for "${row.title || "this service"}" must be after its start time on the same day.`);
+        }
+
         if (row.openingTime && row.closingTime && row.openingTime >= row.closingTime) {
           throw new Error(`The closing time for "${row.title || "this service"}" must be after its opening time.`);
         }
@@ -223,6 +238,7 @@ export function ServicesEditorForm({
             title: row.title.trim(),
             description: row.description.trim(),
             priceAmount: Number(row.priceAmount || 0),
+            pricingBasis: row.pricingBasis,
             dailyCapacity: Number(row.dailyCapacity || 10),
             serviceType: normalizeServiceTypeLabel(row.serviceType, destinationCategory),
             imagePath: row.imagePath || null,
@@ -231,6 +247,8 @@ export function ServicesEditorForm({
             imageUrls: row.imageUrls,
             availabilityStartDate: row.availabilityStartDate || null,
             availabilityEndDate: row.availabilityEndDate || null,
+            availabilityStartTime: row.availabilityStartTime || null,
+            availabilityEndTime: row.availabilityEndTime || null,
             openingTime: row.openingTime || null,
             closingTime: row.closingTime || null,
             unitCount: row.unitCount === "" ? null : Number(row.unitCount),
@@ -271,7 +289,7 @@ export function ServicesEditorForm({
           The configured slot count stays as your total daily capacity. Existing bookings only reduce live availability, not this saved value.
         </p>
       </CardHeader>
-      <CardContent className="space-y-6 p-5">
+      <CardContent className="space-y-5 p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <p className="font-medium text-foreground">
             {hideAddRow ? "Service details" : "New service details"}
@@ -302,7 +320,7 @@ export function ServicesEditorForm({
               key={row._uiId}
               className={`grid gap-4 rounded-[1rem] border border-border/70 p-4 transition-colors ${row.isActive ? "bg-muted/15" : "bg-muted/40 opacity-75"}`}
             >
-              <div className="grid gap-4 lg:grid-cols-[180px,minmax(0,1fr)]">
+              <div className="grid gap-4 lg:grid-cols-[200px,minmax(0,1fr)]">
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-2">
                     {row.imageUrls.map((url, photoIndex) => (
@@ -354,34 +372,35 @@ export function ServicesEditorForm({
                 </div>
 
                 <div className="grid gap-4">
-                  <div className="grid gap-4 sm:grid-cols-[1.5fr,1fr,1fr,1fr]">
-                    <label className="space-y-2">
-                      <span className="text-sm font-medium">Service name</span>
-                      <Input
-                        placeholder="e.g. Standard Entrance, Group Package"
-                        value={row.title}
-                        onChange={(event) => updateRow(index, { title: event.target.value })}
-                      />
-                    </label>
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-[1.5fr,1fr,1.2fr,1fr]">
+                  <label className="space-y-2">
+                    <span className="text-sm font-medium">Service name</span>
+                    <Input
+                      placeholder="e.g. Standard Entrance, Group Package"
+                      value={row.title}
+                      onChange={(event) => updateRow(index, { title: event.target.value })}
+                    />
+                  </label>
 
-                    <label className="space-y-2">
-                      <span className="text-sm font-medium">Service type</span>
-                      <Input
-                        maxLength={SERVICE_TYPE_MAX_LENGTH}
-                        placeholder="person"
-                        value={row.serviceType}
-                        onChange={(event) => updateRow(index, { serviceType: event.target.value })}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Displayed beside the price as{" "}
-                        {formatServiceTypeLabel(row.serviceType, {
-                          category: destinationCategory,
-                          includeSlash: true
-                        })}
-                        .
-                      </p>
-                    </label>
+                  <label className="space-y-2">
+                    <span className="text-sm font-medium">Service type</span>
+                    <Input
+                      maxLength={SERVICE_TYPE_MAX_LENGTH}
+                      placeholder="person"
+                      value={row.serviceType}
+                      onChange={(event) => updateRow(index, { serviceType: event.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Displayed beside the price as{" "}
+                      {formatServiceTypeLabel(row.serviceType, {
+                        category: destinationCategory,
+                        includeSlash: true
+                      })}
+                      .
+                    </p>
+                  </label>
 
+                  <div className="space-y-3">
                     <label className="space-y-2">
                       <span className="text-sm font-medium">Price ({currency})</span>
                       <Input
@@ -396,22 +415,79 @@ export function ServicesEditorForm({
                       />
                     </label>
 
-                    <label className="space-y-2">
-                      <span className="text-sm font-medium">Configured daily slots</span>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={row.dailyCapacity}
-                        onChange={(event) =>
-                          updateRow(index, { dailyCapacity: Number(event.target.value) })
-                        }
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        This is the total number of guests this package can accept per available day.
-                        Occupied bookings reduce live availability separately.
-                      </p>
-                    </label>
+                    <div className="space-y-2">
+                      <span className="text-sm font-medium">Pricing Basis</span>
+                      <div className="flex rounded-[0.85rem] border border-primary/50 p-0.5">
+                        <button
+                          type="button"
+                          onClick={() => updateRow(index, { pricingBasis: "per_night" })}
+                          className={`flex-1 rounded-[0.7rem] px-3 py-1.5 text-xs font-semibold transition-colors ${
+                            row.pricingBasis === "per_night"
+                              ? "bg-primary text-primary-foreground"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          Per Night
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateRow(index, { pricingBasis: "per_day" })}
+                          className={`flex-1 rounded-[0.7rem] px-3 py-1.5 text-xs font-semibold transition-colors ${
+                            row.pricingBasis === "per_day"
+                              ? "bg-primary text-primary-foreground"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          Per Day
+                        </button>
+                      </div>
+                    </div>
                   </div>
+
+                  <label className="space-y-2">
+                    <span className="text-sm font-medium">Configured daily slots</span>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={row.dailyCapacity}
+                      onChange={(event) =>
+                        updateRow(index, { dailyCapacity: Number(event.target.value) })
+                      }
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      This is the total number of guests this package can accept per available day.
+                      Occupied bookings reduce live availability separately.
+                    </p>
+                  </label>
+                </div>
+
+                <div className="rounded-[0.95rem] border border-emerald-200/70 bg-emerald-50/60 px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-foreground">
+                    Price calculation
+                  </p>
+                  <div className="mt-2 space-y-1.5 text-sm text-muted-foreground">
+                    <p>
+                      Rate: <span className="font-semibold text-foreground">₱{row.priceAmount || 0} / {row.pricingBasis === "per_night" ? "night" : "day"}</span>
+                    </p>
+                    <p>
+                      Example:
+                    </p>
+                    <ul className="list-inside list-disc space-y-1 pl-1">
+                      <li>2 days (day rate) = ₱{(Number(row.priceAmount || 0) * 2).toLocaleString()}</li>
+                      <li>2 days + 1 night (night rate) = ₱{Number(row.priceAmount || 0).toLocaleString()}</li>
+                    </ul>
+                  </div>
+                  <p className="mt-2 flex items-start gap-2 text-xs text-muted-foreground">
+                    <span className="mt-0.5 inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 16v-4" />
+                        <path d="M12 8h.01" />
+                      </svg>
+                    </span>
+                    The system will multiply the rate based on the selected stay duration and rate type (per day or per night).
+                  </p>
+                </div>
 
                   <label className="space-y-2">
                     <span className="text-sm font-medium">Description</span>
@@ -499,45 +575,18 @@ export function ServicesEditorForm({
                     )}
                   </label>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="space-y-2">
-                      <span className="text-sm font-medium">Booking start date</span>
-                      <Input
-                        type="date"
-                        value={row.availabilityStartDate}
-                        onChange={(event) =>
-                          updateRow(index, { availabilityStartDate: event.target.value })
-                        }
-                      />
-                    </label>
-
-                    <label className="space-y-2">
-                      <span className="text-sm font-medium">Booking end date</span>
-                      <Input
-                        type="date"
-                        min={row.availabilityStartDate || undefined}
-                        value={row.availabilityEndDate}
-                        onChange={(event) =>
-                          updateRow(index, { availabilityEndDate: event.target.value })
-                        }
-                      />
-                    </label>
-                  </div>
-
-                  <div className="rounded-[0.95rem] border border-border/70 bg-card px-4 py-3">
-                    <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                      Booking window
-                    </p>
-                    <p className="mt-1 text-sm text-foreground">
-                      {formatServiceWindowLabel({
-                        availabilityStartDate: row.availabilityStartDate || null,
-                        availabilityEndDate: row.availabilityEndDate || null
-                      })}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Outside this window, the service calendar will show the dates as unavailable.
-                    </p>
-                  </div>
+                  <ServiceDateRangePicker
+                    startDate={row.availabilityStartDate}
+                    endDate={row.availabilityEndDate}
+                    startTime={row.availabilityStartTime}
+                    endTime={row.availabilityEndTime}
+                    onStartDateChange={(value) => updateRow(index, { availabilityStartDate: value })}
+                    onEndDateChange={(value) => updateRow(index, { availabilityEndDate: value })}
+                    onStartTimeChange={(value) => updateRow(index, { availabilityStartTime: value })}
+                    onEndTimeChange={(value) => updateRow(index, { availabilityEndTime: value })}
+                    minStartDate={undefined}
+                    maxEndDate={undefined}
+                  />
 
                   <div className="space-y-4 rounded-[0.95rem] border border-border/70 bg-card px-4 py-4">
                     <div>

@@ -22,6 +22,7 @@ function service(
     service_type: "person",
     service_category: "core",
     daily_capacity: 100,
+    pricing_basis: "per_day",
     is_active: true,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z"
@@ -56,6 +57,13 @@ describe("Destination entrance fee calculation", () => {
   it("multiplies the daily service price by billable days", () => {
     expect(calculateDailyServiceTotal(50000, "2026-09-10", "2026-09-13")).toBe(150000);
     expect(calculateDailyServiceTotal(50000, "2026-09-10", "2026-09-15")).toBe(250000);
+  });
+
+  it("calculates per-night pricing correctly", () => {
+    expect(calculateDailyServiceTotal(70000, "2026-09-12", "2026-09-13", "per_night")).toBe(70000);
+    expect(calculateDailyServiceTotal(70000, "2026-09-12", "2026-09-14", "per_night")).toBe(140000);
+    expect(calculateDailyServiceTotal(70000, "2026-09-12", "2026-09-15", "per_night")).toBe(210000);
+    expect(calculateDailyServiceTotal(70000, "2026-09-12", "2026-09-12", "per_night")).toBe(0);
   });
 
   it("calculates total payment correctly with entrance fee, stay package, and add-ons", () => {

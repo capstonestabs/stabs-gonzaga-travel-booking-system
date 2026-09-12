@@ -23,7 +23,11 @@ interface AvailabilityCalendarPanelProps {
   /** range mode */
   checkInDate?: string;
   checkOutDate?: string;
+  checkInTime?: string;
+  checkOutTime?: string;
   onRangeChange?: (next: { checkIn: string; checkOut: string }) => void;
+  onCheckInTimeChange?: (value: string) => void;
+  onCheckOutTimeChange?: (value: string) => void;
   /** Optional availability status message to show below the calendar. */
   availabilityMessage?: string;
   availabilityTone?: "success" | "warning" | "destructive" | "muted";
@@ -40,7 +44,11 @@ export function AvailabilityCalendarPanel({
   onSelectDate,
   checkInDate = "",
   checkOutDate = "",
+  checkInTime,
+  checkOutTime,
   onRangeChange,
+  onCheckInTimeChange,
+  onCheckOutTimeChange,
   availabilityMessage,
   availabilityTone,
   availabilityStartDate,
@@ -313,6 +321,33 @@ export function AvailabilityCalendarPanel({
           classNames={{ selected: "", ...compactClassNames }}
           className={compactDesktop ? "xl:p-2" : undefined}
         />
+
+        {checkInDate && checkOutDate ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-[0.12em] text-foreground">
+                Check-in time
+              </label>
+              <input
+                type="time"
+                value={checkInTime ?? ""}
+                onChange={(event) => onCheckInTimeChange?.(event.target.value)}
+                className="h-9 w-full rounded-[0.85rem] border border-border/70 bg-background px-2.5 text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-[0.12em] text-foreground">
+                Check-out time
+              </label>
+              <input
+                type="time"
+                value={checkOutTime ?? ""}
+                onChange={(event) => onCheckOutTimeChange?.(event.target.value)}
+                className="h-9 w-full rounded-[0.85rem] border border-border/70 bg-background px-2.5 text-sm"
+              />
+            </div>
+          </div>
+        ) : null}
 
         {rangeNotice ? <p className="text-xs text-destructive">{rangeNotice}</p> : null}
 

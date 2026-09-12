@@ -11,6 +11,7 @@ export interface CheckoutDraft {
   category: "tour" | "stay";
   priceAmount: number;
   serviceDate: string;
+  checkInTime: string;
   checkOutDate: string;
   checkOutTime: string;
   guestCount: number;

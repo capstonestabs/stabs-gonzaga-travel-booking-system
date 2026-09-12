@@ -22,6 +22,7 @@ export type PaymentStatus =
   | "cancelled";
 export type FinancialSettlementStatus = "unsettled" | "settled";
 export type ServiceCategory = "core" | "additional";
+export type PricingBasis = "per_day" | "per_night";
 
 export interface AppUser {
   id: string;
@@ -71,6 +72,7 @@ export interface DestinationService {
   price_amount: number;
   service_type: ServiceType;
   daily_capacity: number;
+  pricing_basis: PricingBasis;
   service_category: ServiceCategory;
   image_path?: string | null;
   image_url?: string | null;
@@ -78,6 +80,8 @@ export interface DestinationService {
   image_urls?: string[];
   availability_start_date?: string | null;
   availability_end_date?: string | null;
+  availability_start_time?: string | null;
+  availability_end_time?: string | null;
   opening_time?: string | null;
   closing_time?: string | null;
   open_weekdays?: number[];
@@ -172,6 +176,7 @@ export interface Booking {
   payment_mode: PaymentMode;
   ticket_code: string | null;
   service_date: string;
+  check_in_time: string | null;
   check_out_date: string | null;
   check_out_time: string | null;
   guest_count: number;
@@ -187,6 +192,7 @@ export interface Booking {
     title: string;
     description: string | null;
     price_amount: number;
+    pricing_basis: PricingBasis;
     service_type: ServiceType;
     guest_breakdown?: {
       adult_count: number;

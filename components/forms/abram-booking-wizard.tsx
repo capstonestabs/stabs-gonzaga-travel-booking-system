@@ -74,6 +74,7 @@ export function AbramBookingWizard({
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [serviceDate, setServiceDate] = useState("");
+  const [checkInTime, setCheckInTime] = useState("08:00");
   const [checkOutDate, setCheckOutDate] = useState("");
   const [checkOutTime, setCheckOutTime] = useState("12:00");
   const [availability, setAvailability] = useState<AvailabilitySnapshot | null>(null);
@@ -230,12 +231,13 @@ export function AbramBookingWizard({
     }
 
     try {
-      const payload = {
-        destinationId,
-        serviceId: ratePlan.primaryService.id,
-        serviceDate,
-        checkOutDate,
-        checkOutTime,
+    const payload = {
+      destinationId,
+      serviceId: ratePlan.primaryService.id,
+      serviceDate,
+      checkInTime,
+      checkOutDate,
+      checkOutTime,
         guestCount: guests.length,
         guestTypes,
         guestDetails,

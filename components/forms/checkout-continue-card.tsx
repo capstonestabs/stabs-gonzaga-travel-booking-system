@@ -253,7 +253,7 @@ export function CheckoutContinueCard({
               </span>
               <span className="inline-flex items-center gap-2">
                 <CalendarDays className="h-4 w-4" />
-                Check-in {draft.serviceDate}
+                Check-in {draft.serviceDate} at {draft.checkInTime}
               </span>
               <span className="inline-flex items-center gap-2">
                 <CalendarDays className="h-4 w-4" />

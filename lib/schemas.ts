@@ -54,6 +54,7 @@ export const bookingSchema = z
   .object({
     destinationId: z.string().uuid(),
     serviceDate: z.string().min(1),
+    checkInTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
     checkOutDate: z.string().min(1),
     checkOutTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
     guestCount: z.coerce.number().int().min(1).max(200),
@@ -134,6 +135,7 @@ export const checkoutDraftSchema = z.object({
   category: z.enum(["tour", "stay"]),
   priceAmount: z.number().min(0),
   serviceDate: z.string().min(1),
+  checkInTime: z.string().min(1),
   checkOutDate: z.string().min(1),
   checkOutTime: z.string().min(1),
   guestCount: z.number().int().min(1),
@@ -203,10 +205,13 @@ export const destinationServiceSchema = z.object({
   description: z.string().max(280, "Description must be less than 280 characters").nullable().optional(),
   priceAmount: z.number().min(0, "Price cannot be negative"),
   serviceType: serviceTypeLabelSchema,
+  pricingBasis: z.enum(["per_day", "per_night"]).default("per_day"),
   imagePath: z.string().max(500).nullable().optional(),
   imageUrl: z.string().max(1000).nullable().optional(),
   availabilityStartDate: z.string().optional().nullable(),
   availabilityEndDate: z.string().optional().nullable(),
+  availabilityStartTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().optional(),
+  availabilityEndTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().optional(),
   isActive: z.boolean().default(true)
 });
 

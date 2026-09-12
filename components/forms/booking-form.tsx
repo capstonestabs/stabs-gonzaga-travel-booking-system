@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarDays, ChevronRight, Minus, Plus } from "lucide-react";
+import { CalendarDays, ChevronRight, HelpCircle, Minus, Plus } from "lucide-react";
 
 import { AvailabilityCalendarPanel } from "@/components/forms/availability-calendar-panel";
 import { AbramBookingWizard } from "@/components/forms/abram-booking-wizard";
@@ -64,9 +64,11 @@ export function BookingForm({
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [serviceDate, setServiceDate] = useState("");
+  const [checkInTime, setCheckInTime] = useState("08:00");
   const [checkOutDate, setCheckOutDate] = useState("");
   const [checkOutTime, setCheckOutTime] = useState("12:00");
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   const [isPaymentModeModalOpen, setIsPaymentModeModalOpen] = useState(false);
   const [isSubmittedModalOpen, setIsSubmittedModalOpen] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
@@ -212,6 +214,10 @@ export function BookingForm({
         throw new Error("Select a check-out date and time before continuing.");
       }
 
+      if (!checkInTime) {
+        throw new Error("Select a check-in time before continuing.");
+      }
+
       if (!availabilityState.canBook) {
         throw new Error(availabilityState.message);
       }
@@ -238,6 +244,7 @@ export function BookingForm({
         destinationId,
         serviceId: selectedService.id,
         serviceDate,
+        checkInTime,
         checkOutDate,
         checkOutTime,
         guestCount,
@@ -448,6 +455,10 @@ export function BookingForm({
                 checkInDate={serviceDate}
                 checkOutDate={checkOutDate}
                 onRangeChange={handleRangeChange}
+                checkInTime={checkInTime}
+                checkOutTime={checkOutTime}
+                onCheckInTimeChange={setCheckInTime}
+                onCheckOutTimeChange={setCheckOutTime}
                 compactDesktop
                 availabilityMessage={availabilityState.message}
                 availabilityTone={availabilityState.tone}
@@ -500,6 +511,10 @@ export function BookingForm({
                     }
                     hasCheckInRef.current = Boolean(next.checkIn);
                   }}
+                  checkInTime={checkInTime}
+                  checkOutTime={checkOutTime}
+                  onCheckInTimeChange={setCheckInTime}
+                  onCheckOutTimeChange={setCheckOutTime}
                   availabilityMessage={availabilityState.message}
                   availabilityTone={availabilityState.tone}
                   availabilityStartDate={selectedService.availability_start_date}
@@ -529,23 +544,6 @@ export function BookingForm({
                   })}.`}
                 </p>
               </div>
-
-              {serviceDate && checkOutDate ? (
-                <label className="block space-y-1.5">
-                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
-                    Check-In time
-                  </span>
-                  <Input
-                    type="time"
-                    value={checkOutTime}
-                    onChange={(event) => {
-                      setError(null);
-                      setCheckOutTime(event.target.value);
-                    }}
-                    required
-                  />
-                </label>
-              ) : null}
 
               <div className="space-y-3 rounded-[0.9rem] border border-border/70 bg-background px-3 py-3">
                 <div className="flex h-11 items-center justify-between rounded-[0.85rem] border border-input/90 bg-card px-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
@@ -695,7 +693,18 @@ export function BookingForm({
 
                 <div className="grid grid-cols-[minmax(0,0.72fr),minmax(10rem,1fr)] gap-2">
                   <div className="flex flex-wrap items-center justify-between gap-2 rounded-[0.9rem] border-2 border-primary/20 bg-background px-3 py-2.5">
-                    <span className="text-xs font-medium">Total · {bookingDayCount} day{bookingDayCount === 1 ? "" : "s"}</span>
+                    <span className="flex items-center gap-2 text-xs font-medium">
+                      Total · {bookingDayCount} day{bookingDayCount === 1 ? "" : "s"}
+                      <button
+                        type="button"
+                        onClick={() => setIsPricingModalOpen(true)}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-2.5 py-1 text-[11px] font-semibold text-primary hover:bg-primary/10"
+                        aria-label="How pricing is calculated"
+                      >
+                        <HelpCircle className="h-3.5 w-3.5" />
+                        Pricing
+                      </button>
+                    </span>
                     <span className="font-display text-lg font-semibold text-primary">
                       {formatCurrency(localGrandTotalCentavos)}
                     </span>
@@ -716,6 +725,33 @@ export function BookingForm({
                     {isPending ? "Saving checkout..." : "Continue to check-in"}
                   </Button>
                 </div>
+
+                <Modal
+                  open={isPricingModalOpen}
+                  onClose={() => setIsPricingModalOpen(false)}
+                  title="How pricing is calculated"
+                >
+                  <div className="space-y-3 text-sm leading-6 text-muted-foreground">
+                    <p>
+                      The price depends on the <span className="font-semibold text-foreground">pricing basis</span> chosen for this service:
+                    </p>
+                    <ul className="list-inside list-disc space-y-1 pl-1">
+                      <li>
+                        <span className="font-semibold text-foreground">Per Day</span> — you are charged for each calendar day of your stay.
+                        <br />
+                        Example: check-in Sept 12, check-out Sept 14 = <span className="font-semibold text-foreground">3 days × rate</span>.
+                      </li>
+                      <li>
+                        <span className="font-semibold text-foreground">Per Night</span> — you are charged for each overnight stay.
+                        <br />
+                        Example: check-in Sept 12, check-out Sept 14 = <span className="font-semibold text-foreground">2 nights × rate</span>.
+                      </li>
+                    </ul>
+                    <p>
+                      Check-in and check-out times are recorded for your booking but do not change the pricing basis.
+                    </p>
+                  </div>
+                </Modal>
               </div>
             ) : (
               <div className="space-y-3.5">

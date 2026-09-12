@@ -117,6 +117,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (service.pricing_basis === "per_night" && payload.serviceDate === payload.checkOutDate) {
+      return NextResponse.json(
+        { error: "Same-day bookings are not available for per-night services. Choose a different check-out date or switch to a per-day service." },
+        { status: 400 }
+      );
+    }
+
     if (payload.guestCount > service.daily_capacity) {
       return NextResponse.json(
         { error: `Maximum guests for this service is ${service.daily_capacity}.` },
@@ -201,9 +208,10 @@ export async function POST(request: NextRequest) {
       ? calculateDailyServiceTotal(
           pesoAmountToCentavos(calculateGuestTotal(guestTypes ?? [], mergedAbramRatePlan)),
           payload.serviceDate,
-          payload.checkOutDate
+          payload.checkOutDate,
+          service.pricing_basis
         )
-      : calculateDailyServiceTotal(unitAmount, payload.serviceDate, payload.checkOutDate);
+      : calculateDailyServiceTotal(unitAmount, payload.serviceDate, payload.checkOutDate, service.pricing_basis);
 
     const isEntranceFeeActive = destination.is_entrance_fee_active ?? false;
     const entranceFeeUnitAmount = destination.entrance_fee_amount ?? 0;
@@ -223,6 +231,7 @@ export async function POST(request: NextRequest) {
         status: "awaiting_confirmation",
         payment_mode: payload.paymentMode,
         service_date: payload.serviceDate,
+        check_in_time: payload.checkInTime,
         check_out_date: payload.checkOutDate,
         check_out_time: payload.checkOutTime,
         guest_count: payload.guestCount,
@@ -240,6 +249,7 @@ export async function POST(request: NextRequest) {
             ? "Combined Adult and Child admission under one reservation."
             : service.description,
           price_amount: service.price_amount,
+          pricing_basis: service.pricing_basis,
           service_type: normalizeServiceTypeLabel(service.service_type, destination.category),
           guest_details: guestDetails,
           ...(mergedAbramRatePlan
