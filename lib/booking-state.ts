@@ -64,13 +64,13 @@ export function getBookingTicketState(
 export function formatBookingStatusLabel(status: Booking["status"]) {
   switch (status) {
     case "pending_payment":
-      return "Awaiting confirmation";
+      return "Waiting confirmation";
     case "awaiting_confirmation":
-      return "Awaiting staff confirmation";
+      return "Waiting staff confirmation";
     case "confirmed":
       return "Confirmed";
     case "awaiting_onsite_payment":
-      return "Awaiting onsite payment";
+      return "Waiting onsite payment";
     case "completed":
       return "Completed";
     case "cancelled":

@@ -57,7 +57,7 @@ type Tab = "all" | "awaiting_confirmation" | "pending_payment" | "confirmed" | "
 
 const TABS: { value: Tab; label: string }[] = [
   { value: "all", label: "All" },
-  { value: "awaiting_confirmation", label: "Awaiting review" },
+  { value: "awaiting_confirmation", label: "Waiting review" },
   { value: "pending_payment", label: "Pending" },
   { value: "confirmed", label: "Confirmed" },
   { value: "awaiting_onsite_payment", label: "Onsite" },
@@ -75,7 +75,7 @@ function statusStyle(status: string): { label: string; className: string } {
     case "pending_payment":
       return { label: "Pending", className: "border-yellow-200 bg-yellow-50 text-yellow-700" };
     case "awaiting_confirmation":
-      return { label: "Awaiting review", className: "border-yellow-200 bg-yellow-50 text-yellow-700" };
+      return { label: "Waiting review", className: "border-yellow-200 bg-yellow-50 text-yellow-700" };
     case "awaiting_onsite_payment":
       return { label: "Onsite payment", className: "border-amber-200 bg-amber-50 text-amber-700" };
     case "declined":

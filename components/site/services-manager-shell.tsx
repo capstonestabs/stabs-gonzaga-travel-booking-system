@@ -55,7 +55,15 @@ export function ServicesManagerShell({
   const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false);
 
   const { core, additional } = splitServicesByCategory(initialServices);
-  const services = activeTab === "core" ? core : additional;
+
+  const services = useMemo(() => {
+    const list = activeTab === "core" ? core : additional;
+    return [...list].sort((a, b) => {
+      const aTime = a.created_at ? Date.parse(a.created_at) : 0;
+      const bTime = b.created_at ? Date.parse(b.created_at) : 0;
+      return bTime - aTime;
+    });
+  }, [activeTab, core, additional]);
 
   const totalPages = Math.max(1, Math.ceil(services.length / ITEMS_PER_PAGE));
   const paginatedServices = useMemo(() => {
