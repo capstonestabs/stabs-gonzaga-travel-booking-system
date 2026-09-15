@@ -5,6 +5,7 @@ import { CalendarDays, History, UserRound } from "lucide-react";
 import { Search } from "lucide-react";
 
 import { AdminDeleteTouristForm } from "@/components/forms/admin-delete-tourist-form";
+import { AdminPermanentlyDeleteTouristForm } from "@/components/forms/admin-permanently-delete-tourist-form";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ProgressiveList } from "@/components/ui/progressive-list";
@@ -15,13 +16,15 @@ export function AdminTouristList({
   bookingActivity,
   emptyMessage,
   limit,
-  showViewAllHint = false
+  showViewAllHint = false,
+  mode = "active"
 }: {
   tourists: AppUser[];
   bookingActivity: AdminDashboardData["bookingActivity"];
   emptyMessage: string;
   limit?: number;
   showViewAllHint?: boolean;
+  mode?: "active" | "archived";
 }) {
   const [query, setQuery] = useState("");
   const filteredTourists = useMemo(() => {
@@ -111,19 +114,34 @@ export function AdminTouristList({
                   <History className="mr-1.5 h-3.5 w-3.5" />
                   {historyBookings.length} history
                 </Badge>
-                <Badge variant="muted">
-                  <UserRound className="mr-1.5 h-3.5 w-3.5" />
-                  created {new Date(tourist.created_at).toLocaleDateString()}
-                </Badge>
+                {mode === "archived" && tourist.archived_at ? (
+                  <Badge variant="muted">
+                    <UserRound className="mr-1.5 h-3.5 w-3.5" />
+                    archived {new Date(tourist.archived_at).toLocaleDateString()}
+                  </Badge>
+                ) : (
+                  <Badge variant="muted">
+                    <UserRound className="mr-1.5 h-3.5 w-3.5" />
+                    created {new Date(tourist.created_at).toLocaleDateString()}
+                  </Badge>
+                )}
               </div>
             </div>
 
             <div className="md:flex md:justify-end">
-              <AdminDeleteTouristForm
-                touristId={tourist.id}
-                touristName={tourist.full_name ?? tourist.email}
-                variant="inline"
-              />
+              {mode === "archived" ? (
+                <AdminPermanentlyDeleteTouristForm
+                  touristId={tourist.id}
+                  touristName={tourist.full_name ?? tourist.email}
+                  variant="inline"
+                />
+              ) : (
+                <AdminDeleteTouristForm
+                  touristId={tourist.id}
+                  touristName={tourist.full_name ?? tourist.email}
+                  variant="inline"
+                />
+              )}
             </div>
           </div>
         );

@@ -1480,6 +1480,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       listings: [],
       staff: [],
       tourists: [],
+      archivedTourists: [],
       bookingActivity: [],
       destinationRevenue: [],
       financialRecords: [],
@@ -1497,6 +1498,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       { data: listings, error: listingsError },
       { data: staff, error: staffError },
       { data: tourists, error: touristsError },
+      { data: archivedTourists, error: archivedTouristsError },
       { data: bookings, error: bookingsError },
       { data: payments, error: paymentsError },
       { data: financialRecords, error: financialRecordsError },
@@ -1518,6 +1520,12 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
           .is("archived_at", null)
           .order("created_at", { ascending: false }),
         supabase
+          .from("users")
+          .select("*")
+          .eq("role", "user")
+          .not("archived_at", "is", null)
+          .order("archived_at", { ascending: false }),
+        supabase
           .from("bookings")
           .select("user_id, status, created_at")
           .order("created_at", { ascending: false }),
@@ -1534,6 +1542,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       listingsError ||
       staffError ||
       touristsError ||
+      archivedTouristsError ||
       bookingsError ||
       paymentsError ||
       financialRecordsError ||
@@ -1543,6 +1552,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         listingsError?.message ??
           staffError?.message ??
           touristsError?.message ??
+          archivedTouristsError?.message ??
           bookingsError?.message ??
           paymentsError?.message ??
           financialRecordsError?.message ??
@@ -1642,6 +1652,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       listings: (listings ?? []) as Destination[],
       staff: staff as AdminDashboardData["staff"],
       tourists: (tourists ?? []) as AdminDashboardData["tourists"],
+      archivedTourists: (archivedTourists ?? []) as AdminDashboardData["archivedTourists"],
       bookingActivity: (bookings ?? []) as AdminDashboardData["bookingActivity"],
       destinationRevenue,
       financialRecords: visibleRecords,

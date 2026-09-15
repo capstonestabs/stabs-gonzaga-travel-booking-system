@@ -457,6 +457,7 @@ export interface AdminDashboardData {
   listings: Destination[];
   staff: UserWithStaffProfile[];
   tourists: AppUser[];
+  archivedTourists: AppUser[];
   bookingActivity: Array<Pick<Booking, "user_id" | "status">>;
   destinationRevenue: DestinationRevenueSummary[];
   financialRecords: FinancialRecord[];
