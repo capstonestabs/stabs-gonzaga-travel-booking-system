@@ -17,8 +17,8 @@ export default async function AdminTouristAccountsPage() {
       title="Tourist accounts"
       description="Review tourist accounts and remove access when a public account should no longer sign in."
     >
-      <Card className="overflow-hidden">
-        <CardHeader className="border-b border-border/70">
+      <Card className="dashboard-glass-panel overflow-hidden">
+        <CardHeader className="border-b border-white/30 bg-transparent">
           <div>
             <CardTitle className="inline-flex items-center gap-2">
               <UsersRound className="h-5 w-5 text-primary" />

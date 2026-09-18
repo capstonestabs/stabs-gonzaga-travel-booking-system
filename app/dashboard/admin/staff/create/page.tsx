@@ -12,10 +12,12 @@ export default async function AdminCreateStaffPage() {
       description="Create a staff login and its assigned draft destination in one guided form."
     >
       <div className="max-w-4xl space-y-3">
-        <div className="rounded-[1rem] border border-border/70 bg-secondary/45 px-4 py-3 text-sm leading-6 text-muted-foreground">
+        <div className="rounded-[1rem] border border-white/30 bg-white/15 px-4 py-3 text-sm leading-6 text-muted-foreground backdrop-blur-md">
           This creates the login and a draft destination immediately. Share the temporary password securely; no invitation email is sent.
         </div>
-        <StaffCreateForm />
+        <div className="dashboard-glass-panel overflow-hidden">
+          <StaffCreateForm />
+        </div>
       </div>
     </DashboardShell>
   );

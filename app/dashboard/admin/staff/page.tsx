@@ -21,8 +21,8 @@ export default async function AdminStaffAccountsPage() {
       title="Staff accounts"
       description="Open staff details, review assigned destinations and service counts, reset passwords, or delete inactive accounts."
     >
-      <Card className="overflow-hidden">
-        <CardHeader className="border-b border-border/70">
+      <Card className="dashboard-glass-panel overflow-hidden">
+        <CardHeader className="border-b border-white/30 bg-transparent">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle>All active staff accounts</CardTitle>

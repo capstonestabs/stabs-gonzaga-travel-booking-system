@@ -81,7 +81,7 @@ export function AdminTouristList({
         return (
           <div
             key={tourist.id}
-            className="grid gap-3 rounded-[1rem] border border-border/70 bg-card/85 p-3.5 transition hover:border-primary/15 hover:bg-card md:grid-cols-[minmax(0,1fr),minmax(0,1fr),auto] md:items-center"
+            className="dashboard-glass-panel grid gap-3 p-3.5 transition hover:border-primary/15 hover:bg-white/35 md:grid-cols-[minmax(0,1fr),minmax(0,1fr),auto] md:items-center"
           >
             <div className="flex min-w-0 items-center gap-3">
               <span className="h-10 w-10 shrink-0 overflow-hidden rounded-[0.85rem] bg-secondary">

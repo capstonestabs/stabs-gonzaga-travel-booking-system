@@ -138,7 +138,7 @@ export function DestinationFinancialsPanel({
 
   if (records.length === 0) {
     return (
-      <Card className="overflow-hidden">
+      <Card className="dashboard-glass-panel overflow-hidden">
         <CardContent className="p-5 text-sm text-muted-foreground">
           No paid bookings recorded yet for this destination.
         </CardContent>
@@ -149,7 +149,7 @@ export function DestinationFinancialsPanel({
   return (
     <div className="space-y-3.5">
       {destinationCoverUrl ? (
-        <div className="flex items-center gap-3.5 rounded-[1.1rem] border border-border/70 bg-card/90 p-3">
+        <div className="flex items-center gap-3.5 rounded-[1.1rem] border border-white/30 bg-white/15 p-3 backdrop-blur-md">
           <div className="h-14 w-14 shrink-0 overflow-hidden rounded-[0.85rem] bg-muted">
             <img src={destinationCoverUrl} alt={destinationTitle} className="h-full w-full object-cover" />
           </div>
@@ -159,8 +159,8 @@ export function DestinationFinancialsPanel({
         </div>
       ) : null}
 
-      <Card className="overflow-hidden">
-        <CardHeader className="border-b border-border/70">
+      <Card className="dashboard-glass-panel overflow-hidden">
+        <CardHeader className="border-b border-white/30 bg-transparent">
           <CardTitle className="inline-flex items-center gap-2">
             <Wallet className="h-5 w-5 text-primary" />
             Financial summary
@@ -168,7 +168,7 @@ export function DestinationFinancialsPanel({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-2.5 sm:grid-cols-3">
-            <div className="rounded-[0.95rem] border border-border/70 bg-muted/30 p-3 sm:p-3.5">
+            <div className="rounded-[0.95rem] border border-white/30 bg-white/15 p-3 sm:p-3.5">
               <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Gross paid</p>
               <p className="mt-1.5 font-display text-[1.35rem] font-semibold tracking-tight text-foreground">
                 {formatCurrency(totalGross)}
@@ -177,14 +177,14 @@ export function DestinationFinancialsPanel({
                 {records.length} booking{records.length === 1 ? "" : "s"}
               </p>
             </div>
-            <div className="rounded-[0.95rem] border border-border/70 bg-muted/30 p-3 sm:p-3.5">
+            <div className="rounded-[0.95rem] border border-white/30 bg-white/15 p-3 sm:p-3.5">
               <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Settled payout</p>
               <p className="mt-1.5 font-display text-[1.35rem] font-semibold tracking-tight text-foreground">
                 {formatCurrency(settledAmount)}
               </p>
               <p className="mt-1.5 text-sm leading-6 text-muted-foreground">Already paid out</p>
             </div>
-            <div className="rounded-[0.95rem] border border-border/70 bg-muted/30 p-3 sm:p-3.5">
+            <div className="rounded-[0.95rem] border border-white/30 bg-white/15 p-3 sm:p-3.5">
               <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Pending payout</p>
               <p className="mt-1.5 font-display text-[1.35rem] font-semibold tracking-tight text-foreground">
                 {formatCurrency(unsettledAmount)}
@@ -227,8 +227,8 @@ export function DestinationFinancialsPanel({
         />
       ) : null}
 
-      <Card className="overflow-hidden">
-        <CardHeader className="border-b border-border/70">
+      <Card className="dashboard-glass-panel overflow-hidden">
+        <CardHeader className="border-b border-white/30 bg-transparent">
           <CardTitle>Services &amp; bookings</CardTitle>
           <p className="text-sm text-muted-foreground">
             {readOnly
@@ -302,7 +302,7 @@ export function DestinationFinancialsPanel({
               {displayedGroups.map((serviceGroup) => (
                 <details
                   key={serviceGroup.key}
-                  className="group rounded-[0.95rem] border border-border/70 bg-card/90"
+                  className="group rounded-[0.95rem] border border-white/30 bg-white/10 backdrop-blur-md"
                 >
                   <summary className="list-none cursor-pointer p-3 sm:p-3.5">
                     <div className="flex min-w-0 items-start gap-3">
@@ -365,7 +365,7 @@ export function DestinationFinancialsPanel({
                         submitLabel="Payout this service"
                       />
                     ) : (
-                      <div className="rounded-[0.95rem] border border-border/70 bg-secondary/22 p-3">
+                      <div className="rounded-[0.95rem] border border-white/30 bg-white/12 p-3">
                         <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
                           Service payout
                         </p>
@@ -382,7 +382,7 @@ export function DestinationFinancialsPanel({
                       </div>
                     )}
 
-                    <div className="rounded-[0.85rem] border border-border/70 bg-card/85 p-2 sm:p-2.5">
+                    <div className="rounded-[0.85rem] border border-white/30 bg-white/10 p-2 sm:p-2.5">
                       <ProgressiveList
                         initialCount={6}
                         step={6}
@@ -394,7 +394,7 @@ export function DestinationFinancialsPanel({
                         {serviceGroup.displayedRecords.map((record) => (
                           <div
                             key={record.id}
-                            className="rounded-[0.9rem] border border-border/70 bg-muted/15 p-3"
+                            className="rounded-[0.9rem] border border-white/30 bg-white/10 p-3"
                           >
                             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                               <div className="flex min-w-0 items-center gap-2.5">
@@ -434,7 +434,7 @@ export function DestinationFinancialsPanel({
                             </div>
 
                             <div className="grid gap-2 min-[540px]:grid-cols-2 xl:grid-cols-4">
-                              <div className="rounded-[0.8rem] border border-border/65 bg-card/90 px-3 py-2.5">
+                              <div className="rounded-[0.8rem] border border-white/30 bg-white/12 px-3 py-2.5">
                                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                                   Guests
                                 </p>
@@ -442,7 +442,7 @@ export function DestinationFinancialsPanel({
                                   {record.guest_count} guest{record.guest_count === 1 ? "" : "s"}
                                 </p>
                               </div>
-                              <div className="rounded-[0.8rem] border border-border/65 bg-card/90 px-3 py-2.5">
+                              <div className="rounded-[0.8rem] border border-white/30 bg-white/12 px-3 py-2.5">
                                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                                   Ticket
                                 </p>
@@ -450,7 +450,7 @@ export function DestinationFinancialsPanel({
                                   {record.ticket_code ?? "Pending"}
                                 </p>
                               </div>
-                              <div className="rounded-[0.8rem] border border-border/65 bg-card/90 px-3 py-2.5">
+                              <div className="rounded-[0.8rem] border border-white/30 bg-white/12 px-3 py-2.5">
                                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                                   Paid
                                 </p>
@@ -458,7 +458,7 @@ export function DestinationFinancialsPanel({
                                   {new Date(record.paid_at).toLocaleDateString()}
                                 </p>
                               </div>
-                              <div className="rounded-[0.8rem] border border-border/65 bg-card/90 px-3 py-2.5">
+                              <div className="rounded-[0.8rem] border border-white/30 bg-white/12 px-3 py-2.5">
                                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                                   Status
                                 </p>

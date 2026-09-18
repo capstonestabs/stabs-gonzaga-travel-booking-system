@@ -17,13 +17,13 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta"
 });
 
-const DASHBOARD_ADMIN_PATHS = ["/admin"];
+const DASHBOARD_ADMIN_PATHS = ["/admin", "/admin/destination-financials", "/admin/staff", "/admin/reports", "/admin/settings", "/admin/activity-logs"];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [account, setAccount] = useState<{ name: string; email: string; avatarUrl: string | null } | null>(null);
 
-  const isDashboardAdmin = DASHBOARD_ADMIN_PATHS.includes(pathname);
+  const isDashboardAdmin = DASHBOARD_ADMIN_PATHS.includes(pathname) || pathname.startsWith("/admin/tourists");
 
   useEffect(() => {
     async function loadUser() {
@@ -51,6 +51,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className={`${plusJakartaSans.variable} font-admin min-h-screen`}>
+      {isDashboardAdmin && (
+        <>
+          <div
+            className="dashboard-background"
+            style={{ backgroundImage: "url(/assets/dashboard-background.jpg)" }}
+          />
+          <div className="fixed inset-0 -z-10 bg-white/20" />
+        </>
+      )}
       {isDashboardAdmin ? (
         <DashboardGlassSidebar role="admin" />
       ) : (

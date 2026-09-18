@@ -6,17 +6,20 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 export function AdminDestinationAssignmentForm({
   staffId,
   defaultDestinationTitle,
   defaultLocationText,
-  hasDestination
+  hasDestination,
+  className
 }: {
   staffId: string;
   defaultDestinationTitle?: string;
   defaultLocationText?: string;
   hasDestination: boolean;
+  className?: string;
 }) {
   const router = useRouter();
   const initialDestinationTitle = useMemo(
@@ -72,8 +75,8 @@ export function AdminDestinationAssignmentForm({
   }
 
   return (
-    <Card id="destination-assignment" className="overflow-hidden">
-      <CardHeader className="border-b border-border/70">
+    <Card id="destination-assignment" className={cn("overflow-hidden", className)}>
+      <CardHeader className="border-b border-white/30 bg-transparent">
         <CardTitle>{hasDestination ? "Destination assignment" : "Assign destination"}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

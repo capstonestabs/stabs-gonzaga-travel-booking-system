@@ -19,13 +19,13 @@ export function AdminTouristAccountsPanel({
 
   return (
     <div className="space-y-4">
-      <div className="inline-flex rounded-sm border border-slate-200 bg-slate-50 p-0.5">
+      <div className="inline-flex rounded-sm border border-white/40 bg-white/15 p-0.5 backdrop-blur-md">
         <button
           type="button"
           onClick={() => setView("active")}
           className={cn(
             "rounded-sm px-3 py-1.5 text-xs font-semibold transition-colors",
-            view === "active" ? "bg-white text-emerald-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+            view === "active" ? "bg-white/35 text-emerald-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
           )}
         >
           Active ({activeTourists.length})
@@ -35,7 +35,7 @@ export function AdminTouristAccountsPanel({
           onClick={() => setView("archived")}
           className={cn(
             "rounded-sm px-3 py-1.5 text-xs font-semibold transition-colors",
-            view === "archived" ? "bg-white text-emerald-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+            view === "archived" ? "bg-white/35 text-emerald-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
           )}
         >
           Archived ({archivedTourists.length})

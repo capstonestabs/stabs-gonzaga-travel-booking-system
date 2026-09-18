@@ -83,10 +83,10 @@ export function AdminStaffList({
         return (
           <div
             key={staffMember.id}
-            className="grid gap-3 rounded-[1rem] border border-border/70 bg-card/85 p-3.5 transition hover:border-primary/15 hover:bg-card md:grid-cols-[minmax(0,1fr),minmax(0,1fr),auto] md:items-center"
+            className="grid gap-3 rounded-[1rem] border border-white/30 bg-white/10 p-3.5 transition hover:border-primary/15 hover:bg-white/15 md:grid-cols-[minmax(0,1fr),minmax(0,1fr),auto] md:items-center"
           >
             <div className="flex min-w-0 items-center gap-3">
-              <span className="h-10 w-10 shrink-0 overflow-hidden rounded-[0.85rem] bg-secondary">
+              <span className="h-10 w-10 shrink-0 overflow-hidden rounded-[0.85rem] bg-white/40">
                 {staffMember.avatar_url ? (
                   <img
                     src={staffMember.avatar_url}
@@ -135,7 +135,7 @@ export function AdminStaffList({
                   >
                     {assignedDestination?.status ?? "unassigned"}
                   </Badge>
-                                   {assignedDestination ? (
+                                 {assignedDestination ? (
                     <Badge variant="muted">
                       {assignedDestination.destination_services?.length ?? 0} service
                       {(assignedDestination.destination_services?.length ?? 0) === 1 ? "" : "s"}

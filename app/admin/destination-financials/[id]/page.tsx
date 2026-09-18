@@ -86,54 +86,54 @@ export default async function AdminDestinationFinancialsDetailPage({
       </div>
 
       {summary.staff_name ? (
-        <Card className="overflow-hidden">
-          {staffId ? (
-            <Link
-              href={`/admin/staff/${staffId}` as Route}
-              className="flex items-center gap-3.5 p-4 transition-colors hover:bg-muted/25 sm:p-4.5"
-            >
-              <span className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-border/70 bg-secondary/65">
-                {staffAvatarUrl ? (
-                  <img
-                    src={staffAvatarUrl}
-                    alt={summary.staff_name ?? "Staff"}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span className="flex h-full w-full items-center justify-center text-primary">
-                    <UserRound className="h-5 w-5" />
-                  </span>
-                )}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-                  Assigned staff
-                </p>
-                <p className="mt-0.5 truncate font-display text-[1.05rem] font-semibold tracking-tight text-foreground">
-                  {summary.staff_name}
-                </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  View profile and manage this destination
-                </p>
-              </div>
-              <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-            </Link>
-          ) : (
-            <CardContent className="flex items-center gap-3.5 p-4 sm:p-4.5">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border/70 bg-secondary/65 text-primary">
-                <UserRound className="h-5 w-5" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-                  Assigned staff
-                </p>
-                <p className="mt-0.5 truncate font-display text-[1.05rem] font-semibold tracking-tight text-foreground">
-                  {summary.staff_name}
-                </p>
-              </div>
-            </CardContent>
-          )}
-        </Card>
+      <Card className="dashboard-glass-panel overflow-hidden">
+        {staffId ? (
+          <Link
+            href={`/admin/staff/${staffId}` as Route}
+            className="flex items-center gap-3.5 p-4 transition-colors hover:bg-muted/25 sm:p-4.5"
+          >
+            <span className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-white/40 bg-secondary/65">
+              {staffAvatarUrl ? (
+                <img
+                  src={staffAvatarUrl}
+                  alt={summary.staff_name ?? "Staff"}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center text-primary">
+                  <UserRound className="h-5 w-5" />
+                </span>
+              )}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+                Assigned staff
+              </p>
+              <p className="mt-0.5 truncate font-display text-[1.05rem] font-semibold tracking-tight text-foreground">
+                {summary.staff_name}
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                View profile and manage this destination
+              </p>
+            </div>
+            <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+          </Link>
+        ) : (
+          <CardContent className="flex items-center gap-3.5 p-4 sm:p-4.5">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/40 bg-secondary/65 text-primary">
+              <UserRound className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+                Assigned staff
+              </p>
+              <p className="mt-0.5 truncate font-display text-[1.05rem] font-semibold tracking-tight text-foreground">
+                {summary.staff_name}
+              </p>
+            </div>
+          </CardContent>
+        )}
+      </Card>
       ) : null}
 
       <DestinationFinancialsPanel

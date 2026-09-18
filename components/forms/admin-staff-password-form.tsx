@@ -6,8 +6,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PasswordInput } from "@/components/ui/password-input";
+import { cn } from "@/lib/utils";
 
-export function AdminStaffPasswordForm({ staffId }: { staffId: string }) {
+export function AdminStaffPasswordForm({ staffId, className }: { staffId: string; className?: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -48,8 +49,8 @@ export function AdminStaffPasswordForm({ staffId }: { staffId: string }) {
   }
 
   return (
-    <Card className="h-fit">
-      <CardHeader>
+    <Card className={cn("h-fit dashboard-glass-panel overflow-hidden", className)}>
+      <CardHeader className="border-b border-white/30 bg-transparent">
         <CardTitle>Reset password</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -71,7 +72,7 @@ export function AdminStaffPasswordForm({ staffId }: { staffId: string }) {
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
           {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
 
-          <div className="border-t border-border/60 pt-4">
+          <div className="border-t border-white/30 pt-4">
             <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
               {isPending ? "Resetting..." : "Reset password"}
             </Button>

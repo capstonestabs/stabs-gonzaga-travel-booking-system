@@ -87,8 +87,8 @@ export function AdminDeleteStaffForm({
   }
 
   return (
-    <Card className={cn("h-fit", className)}>
-      <CardHeader>
+    <Card className={cn("h-fit dashboard-glass-panel overflow-hidden", className)}>
+      <CardHeader className="border-b border-white/30 bg-transparent">
         <CardTitle>Delete staff account</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

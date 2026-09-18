@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
+import { cn } from "@/lib/utils";
 
-export function StaffCreateForm() {
+export function StaffCreateForm({ className }: { className?: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -51,8 +52,8 @@ export function StaffCreateForm() {
   }
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="border-b border-border/70">
+    <Card className={cn("overflow-hidden dashboard-glass-panel", className)}>
+      <CardHeader className="border-b border-white/30 bg-transparent">
         <CardTitle>Create a staff account</CardTitle>
       </CardHeader>
       <CardContent>
@@ -94,7 +95,7 @@ export function StaffCreateForm() {
           {error ? <p className="text-sm text-destructive md:col-span-2">{error}</p> : null}
           {message ? <p className="text-sm text-emerald-700 md:col-span-2">{message}</p> : null}
 
-          <div className="border-t border-border/60 pt-4 md:col-span-2">
+          <div className="border-t border-white/30 pt-4 md:col-span-2">
             <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
               {isPending ? "Creating..." : "Create staff account"}
             </Button>

@@ -7,7 +7,7 @@ export function DashboardTopbar({
   account: { name: string; email: string; avatarUrl: string | null };
 }) {
   return (
-    <header className={cn("flex h-16 items-center justify-end px-4 sm:px-6")}>
+    <header className={cn("dashboard-glass-topbar flex h-16 items-center justify-end px-4 sm:px-6")}>
       <DashboardAccountButton account={account} />
     </header>
   );

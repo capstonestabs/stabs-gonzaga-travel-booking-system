@@ -44,8 +44,8 @@ export default async function AdminDestinationFinancialsPage() {
       title="Destination financials"
       description="Pick a destination to review its full payout history, grouped by service."
     >
-      <Card className="overflow-hidden">
-        <CardHeader className="border-b border-border/70">
+      <Card className="dashboard-glass-panel overflow-hidden">
+        <CardHeader className="border-b border-white/30 bg-transparent">
           <CardTitle className="inline-flex items-center gap-2">
             <Landmark className="h-5 w-5 text-primary" />
             Destinations
