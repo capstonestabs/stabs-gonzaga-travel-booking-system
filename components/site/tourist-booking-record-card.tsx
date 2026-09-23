@@ -198,7 +198,7 @@ export function TouristBookingRecordCard({
 
         {booking.status === "pending_payment" || booking.status === "confirmed" || booking.status === "awaiting_onsite_payment" || canOpenTicket || (mode === "history" && canClearHistory) ? (
           <div className="grid gap-2.5 border-t border-border/60 pt-3.5 sm:flex sm:flex-wrap">
-            {booking.status === "pending_payment" && booking.payment?.checkout_url ? (
+            {(booking.status === "pending_payment" || booking.status === "confirmed") && booking.payment?.checkout_url ? (
               <>
                 <a href={booking.payment.checkout_url}>
                   <Button>Proceed to payment</Button>
@@ -206,7 +206,7 @@ export function TouristBookingRecordCard({
                 <CancelBookingButton bookingId={booking.id} />
               </>
             ) : null}
-            {booking.status === "confirmed" ? (
+            {booking.status === "confirmed" && !booking.payment?.checkout_url ? (
               <CancelBookingButton
                 bookingId={booking.id}
                 label="Cancel and request refund"
