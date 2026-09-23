@@ -1,17 +1,15 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
-import { Ticket } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TouristTicketWalletBrowser } from "@/components/site/tourist-ticket-wallet-browser";
 import { getCurrentUserContext } from "@/lib/auth";
 import { getBookingsForUser } from "@/lib/repositories";
 import { getTouristTicketBookings } from "@/lib/tourist-bookings";
-import { DashboardShell } from "@/components/site/dashboard-shell";
+import { TouristTicketsClient } from "./TouristTicketsClient";
 
-export default async function TouristTicketsPage() {
+export default async function TouristTicketsPage({
+  searchParams
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const user = await getCurrentUserContext();
   if (!user) {
     redirect("/sign-in");
@@ -21,31 +19,11 @@ export default async function TouristTicketsPage() {
     redirect((user.role === "admin" ? "/admin" : "/staff") as Route);
   }
 
+  const resolvedSearchParams = await searchParams;
+  const currentPage = Math.max(1, parseInt(resolvedSearchParams.page || "1", 10));
+
   const bookings = await getBookingsForUser(user.authUserId);
   const ticketBookings = getTouristTicketBookings(bookings);
 
-  return (
-    <DashboardShell
-      role="user"
-      title="Ticket wallet"
-      description="Open any confirmed or completed pass here, then save the ticket image when you need it."
-    >
-      {ticketBookings.length === 0 ? (
-        <Card>
-          <CardContent className="space-y-3.5 p-6 text-sm text-muted-foreground">
-            <p>No booking passes are ready yet.</p>
-            <p>Once a reservation is confirmed, its ticket will appear here for quick access.</p>
-            <Link href="/destinations">
-              <Button variant="secondary">
-                <Ticket className="h-4 w-4" />
-                Browse destinations
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      ) : (
-        <TouristTicketWalletBrowser bookings={ticketBookings} />
-      )}
-    </DashboardShell>
-  );
+  return <TouristTicketsClient initialBookings={ticketBookings} initialPage={currentPage} />;
 }

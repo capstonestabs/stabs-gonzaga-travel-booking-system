@@ -17,7 +17,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta"
 });
 
-const DASHBOARD_STAFF_PATHS = ["/staff"];
+const DASHBOARD_STAFF_PATHS = ["/staff", "/staff/services", "/staff/bookings", "/staff/financials", "/staff/account", "/staff/feedback"];
 
 export default function StaffLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -50,6 +50,15 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className={`${plusJakartaSans.variable} font-admin min-h-screen`}>
+      {isDashboardStaff && (
+        <>
+          <div
+            className="dashboard-background"
+            style={{ backgroundImage: "url(/assets/dashboard-background.jpg)" }}
+          />
+          <div className="fixed inset-0 -z-10 bg-white/20" />
+        </>
+      )}
       {isDashboardStaff ? (
         <DashboardGlassSidebar role="staff" />
       ) : (

@@ -33,6 +33,7 @@ export function SiteHeaderClient({
   const [isMounted, setIsMounted] = useState(false);
   const scenicPaths = new Set(["/", "/destinations", "/feedback"]);
   const isScenicPage = scenicPaths.has(pathname);
+  const isTouristPage = pathname.startsWith("/account") || pathname.startsWith("/profile");
   const isStaffOrAdmin = role === "admin" || role === "staff";
   const logoHref =
     role === "admin"
@@ -87,7 +88,7 @@ export function SiteHeaderClient({
     <header
       className={cn(
         "z-50",
-        isScenicPage
+        isScenicPage || isTouristPage
           ? "absolute inset-x-0 top-0 bg-[linear-gradient(180deg,rgba(4,18,12,0.56)_0%,rgba(4,18,12,0.22)_55%,transparent_100%)]"
           : "sticky top-0 border-b border-emerald-950/10 bg-[linear-gradient(135deg,rgba(244,250,246,0.98),rgba(224,239,229,0.96))] shadow-[0_14px_30px_rgba(19,69,45,0.08)] backdrop-blur"
       )}
@@ -125,7 +126,7 @@ export function SiteHeaderClient({
                 size="sm"
                 className={cn(
                   "h-11 w-11 shrink-0 px-0",
-                  isScenicPage
+                  isScenicPage || isTouristPage
                     ? "border-white/18 bg-white/10 text-white hover:bg-white/16 hover:text-white"
                     : "border-emerald-900/12 bg-white/82 text-emerald-950 hover:bg-white"
                 )}
@@ -150,18 +151,18 @@ export function SiteHeaderClient({
                 <p
                   className={cn(
                     "font-display text-[0.88rem] font-semibold tracking-tight sm:text-[1.15rem]",
-                    isScenicPage ? "text-white" : "text-emerald-950"
+                    isScenicPage || isTouristPage ? "text-white" : "text-emerald-950"
                   )}
-                  style={isScenicPage ? { textShadow: "0 4px 18px rgba(0,0,0,0.48)" } : undefined}
+                  style={isScenicPage || isTouristPage ? { textShadow: "0 4px 18px rgba(0,0,0,0.48)" } : undefined}
                 >
                   STABS
                 </p>
                 <p
                   className={cn(
                     "hidden text-[9px] font-medium uppercase tracking-[0.1em] min-[360px]:block sm:text-xs sm:tracking-[0.2em]",
-                    isScenicPage ? "text-white" : "text-emerald-900/80"
+                    isScenicPage || isTouristPage ? "text-white" : "text-emerald-900/80"
                   )}
-                  style={isScenicPage ? { textShadow: "0 3px 14px rgba(0,0,0,0.44)" } : undefined}
+                  style={isScenicPage || isTouristPage ? { textShadow: "0 3px 14px rgba(0,0,0,0.44)" } : undefined}
                 >
                   Gonzaga Travel Bookings
                 </p>
@@ -177,18 +178,18 @@ export function SiteHeaderClient({
                   email={account.email}
                   avatarUrl={account.avatarUrl}
                   role={role}
-                  scenic={isScenicPage}
+                  scenic={isScenicPage || isTouristPage}
                 />
               ) : null
             ) : (
               <>
                 <Link href="/sign-in" prefetch className="min-w-0 sm:flex-none">
                   <Button
-                    variant={isScenicPage ? "outline" : "secondary"}
+                    variant={isScenicPage || isTouristPage ? "outline" : "secondary"}
                     size="sm"
                     className={cn(
                       "h-9 w-full min-w-0 px-3 text-xs sm:h-10 sm:w-auto sm:px-4 sm:text-sm",
-                      isScenicPage
+                      isScenicPage || isTouristPage
                         ? "border-white/16 bg-white/10 text-white hover:bg-white/16 hover:text-white"
                         : "border-emerald-900/12 bg-white/84 text-emerald-950 hover:bg-white"
                     )}
@@ -201,7 +202,7 @@ export function SiteHeaderClient({
                     size="sm"
                     className={cn(
                       "h-9 w-full min-w-0 px-3 text-xs sm:h-10 sm:w-auto sm:px-4 sm:text-sm",
-                      isScenicPage ? "bg-white text-primary hover:bg-white/90" : undefined
+                      isScenicPage || isTouristPage ? "bg-white text-primary hover:bg-white/90" : undefined
                     )}
                   >
                     Create account
@@ -262,6 +263,7 @@ export function SiteHeaderClient({
                               email={account.email}
                               avatarUrl={account.avatarUrl}
                               role={role}
+                              scenic={false}
                             />
                             <div className="min-w-0">
                               <p className="truncate text-sm font-medium text-foreground">{account.name}</p>

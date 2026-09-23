@@ -179,7 +179,7 @@ export function ServicesManagerShell({
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-4 sm:gap-6 border-b border-border/60">
+          <div className="flex flex-wrap gap-4 sm:gap-6 border-b border-white/30">
             <button
               type="button"
               onClick={() => switchTab("core")}
@@ -330,9 +330,9 @@ export function ServicesManagerShell({
         ) : activeTab === "policies" ? (
           <DestinationPoliciesManager destination={destination} />
         ) : (
-          <Card className="overflow-hidden border-border/70 shadow-sm">
+          <Card className="dashboard-glass-panel overflow-hidden">
             <CardContent className="p-0">
-              <div className="flex items-center justify-between gap-3 border-b border-border/60 bg-muted/20 px-5 py-4 sm:px-6">
+              <div className="flex items-center justify-between gap-3 border-b border-white/30 bg-white/15 px-5 py-4 sm:px-6">
                 <div className="flex items-center gap-3">
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
                     {activeTab === "core" ? <Home className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
@@ -372,7 +372,7 @@ export function ServicesManagerShell({
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[720px] text-left text-sm">
                     <thead>
-                      <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-400">
+                      <tr className="border-b border-white/30 text-xs uppercase tracking-wide text-muted-foreground">
                         <th className="px-5 py-3 font-medium">Service name</th>
                         <th className="px-3 py-3 font-medium">Description</th>
                         <th className="px-3 py-3 font-medium">Price</th>
@@ -383,7 +383,7 @@ export function ServicesManagerShell({
                     </thead>
                     <tbody>
                       {paginatedServices.map((service) => (
-                        <tr key={service.id} className="border-b border-slate-50 last:border-0">
+                        <tr key={service.id} className="border-b border-white/20 last:border-0">
                           <td className="px-5 py-3">
                             <div className="flex items-center gap-3">
                               {service.image_url ? (
@@ -396,8 +396,8 @@ export function ServicesManagerShell({
                                 <div className="h-16 w-16 shrink-0 rounded-lg bg-slate-100" />
                               )}
                               <div>
-                                <p className="font-semibold text-slate-800">{service.title}</p>
-                                <p className="text-xs text-slate-400">
+                                <p className="font-semibold text-foreground">{service.title}</p>
+                                <p className="text-xs text-muted-foreground">
                                   {formatServiceTypeLabel(service.service_type, {
                                     category: destination.category,
                                     includeSlash: true
@@ -410,13 +410,13 @@ export function ServicesManagerShell({
                               </div>
                             </div>
                           </td>
-                          <td className="max-w-[220px] px-3 py-3 text-slate-600">
+                          <td className="max-w-[220px] px-3 py-3 text-muted-foreground">
                             <p className="line-clamp-2">{service.description || "No description"}</p>
                           </td>
-                          <td className="px-3 py-3 font-medium text-slate-800">
+                          <td className="px-3 py-3 font-medium text-foreground">
                             {formatPesoCurrency(service.price_amount)}
                           </td>
-                          <td className="px-3 py-3 text-slate-600">{service.daily_capacity}</td>
+                          <td className="px-3 py-3 text-muted-foreground">{service.daily_capacity}</td>
                           <td className="px-3 py-3">
                             <Badge variant={service.is_active ? "success" : "muted"}>
                               {service.is_active ? "Active" : "Disabled"}
@@ -424,15 +424,15 @@ export function ServicesManagerShell({
                           </td>
                           <td className="px-5 py-3">
                             <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                title="Edit service"
-                                aria-label="Edit service"
-                                onClick={() => handleEdit(service.id)}
-                                className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50"
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </button>
+                                <button
+                                  type="button"
+                                  title="Edit service"
+                                  aria-label="Edit service"
+                                  onClick={() => handleEdit(service.id)}
+                                  className="flex h-8 w-8 items-center justify-center rounded-md border border-white/40 text-foreground hover:bg-white/25"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </button>
                               <DeleteDestinationServiceButton
                                 destinationId={destination.id}
                                 serviceId={service.id}
@@ -463,7 +463,7 @@ export function ServicesManagerShell({
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[560px] text-left text-sm">
                     <thead>
-                      <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-400">
+                      <tr className="border-b border-white/30 text-xs uppercase tracking-wide text-muted-foreground">
                         <th className="px-5 py-3 font-medium">Service Name</th>
                         <th className="px-3 py-3 font-medium">Description</th>
                         <th className="px-3 py-3 font-medium">Price</th>
@@ -473,7 +473,7 @@ export function ServicesManagerShell({
                     </thead>
                     <tbody>
                       {paginatedServices.map((service) => (
-                        <tr key={service.id} className="border-b border-slate-50 last:border-0">
+                        <tr key={service.id} className="border-b border-white/20 last:border-0">
                           <td className="px-5 py-3">
                             <div className="flex items-center gap-3">
                               {service.image_url ? (
@@ -488,10 +488,10 @@ export function ServicesManagerShell({
                               <p className="font-semibold text-slate-800">{service.title}</p>
                             </div>
                           </td>
-                          <td className="max-w-[260px] px-3 py-3 text-slate-600">
+                          <td className="max-w-[260px] px-3 py-3 text-muted-foreground">
                             <p className="line-clamp-2">{service.description || "No description"}</p>
                           </td>
-                          <td className="px-3 py-3 font-medium text-slate-800">
+                          <td className="px-3 py-3 font-medium text-foreground">
                             {formatPesoCurrency(service.price_amount)}
                           </td>
                           <td className="px-3 py-3">
@@ -501,15 +501,15 @@ export function ServicesManagerShell({
                           </td>
                           <td className="px-5 py-3">
                             <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                title="Edit item"
-                                aria-label="Edit item"
-                                onClick={() => handleEdit(service.id)}
-                                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50"
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </button>
+                                <button
+                                  type="button"
+                                  title="Edit item"
+                                  aria-label="Edit item"
+                                  onClick={() => handleEdit(service.id)}
+                                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/40 text-foreground hover:bg-white/25"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </button>
                               <DeleteDestinationServiceButton
                                 destinationId={destination.id}
                                 serviceId={service.id}
@@ -604,8 +604,8 @@ function PaginationBar({
   onChange: (page: number) => void;
 }) {
   return (
-    <div className="flex items-center justify-between border-t border-slate-100 px-5 py-3 sm:px-6">
-      <p className="text-xs text-slate-400">
+    <div className="flex items-center justify-between border-t border-white/30 px-5 py-3 sm:px-6">
+      <p className="text-xs text-muted-foreground">
         Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
         {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} {itemLabel}
         {totalCount === 1 ? "" : "s"}
@@ -615,7 +615,7 @@ function PaginationBar({
           type="button"
           disabled={currentPage === 1}
           onClick={() => onChange(Math.max(1, currentPage - 1))}
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40"
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-white/40 text-muted-foreground hover:bg-white/25 disabled:opacity-40"
         >
           <ChevronLeft className="h-3.5 w-3.5" />
         </button>
@@ -627,7 +627,7 @@ function PaginationBar({
             className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${
               page === currentPage
                 ? "bg-emerald-700 text-white"
-                : "border border-slate-200 text-slate-500 hover:bg-slate-50"
+                : "border border-white/40 text-muted-foreground hover:bg-white/25"
             }`}
           >
             {page}
@@ -637,7 +637,7 @@ function PaginationBar({
           type="button"
           disabled={currentPage === totalPages}
           onClick={() => onChange(Math.min(totalPages, currentPage + 1))}
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40"
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-white/40 text-muted-foreground hover:bg-white/25 disabled:opacity-40"
         >
           <ChevronRight className="h-3.5 w-3.5" />
         </button>

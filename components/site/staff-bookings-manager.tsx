@@ -481,10 +481,10 @@ export function StaffBookingsManager({
     }
   }
 
-  const detailContent = selectedBooking ? (
+    const detailContent = selectedBooking ? (
     <div className="space-y-5">
       <div className="flex items-start justify-between">
-        <h3 className="text-sm font-semibold text-slate-900">Reservation details</h3>
+        <h3 className="text-sm font-semibold text-foreground">Reservation details</h3>
         <StatusPill status={selectedBooking.status} />
       </div>
 
@@ -507,79 +507,79 @@ export function StaffBookingsManager({
             </div>
           )}
         </div>
-        <div className="min-w-0">
-          <p className="font-semibold text-slate-900">
-            {selectedBooking.ticket_code ?? selectedBooking.id.slice(0, 8)}
-          </p>
-          <p className="truncate text-sm text-slate-600">
-            {selectedBooking.destination_snapshot.title}
-            {selectedBooking.service_snapshot?.title ? ` (${selectedBooking.service_snapshot.title})` : ""}
-          </p>
-          <p className="text-xs text-slate-400">
-            {formatBookingDateTime(selectedBooking.service_date).date} &bull;{" "}
-            {formatBookingDateTime(selectedBooking.service_date).time}
-          </p>
-        </div>
+         <div className="min-w-0">
+           <p className="font-semibold text-foreground">
+             {selectedBooking.ticket_code ?? selectedBooking.id.slice(0, 8)}
+           </p>
+           <p className="truncate text-sm text-muted-foreground">
+             {selectedBooking.destination_snapshot.title}
+             {selectedBooking.service_snapshot?.title ? ` (${selectedBooking.service_snapshot.title})` : ""}
+           </p>
+           <p className="text-xs text-muted-foreground">
+             {formatBookingDateTime(selectedBooking.service_date).date} &bull;{" "}
+             {formatBookingDateTime(selectedBooking.service_date).time}
+           </p>
+         </div>
       </div>
 
-      <div className="space-y-2 border-t border-slate-100 pt-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Guest information</p>
+      <div className="space-y-2 border-t border-white/30 pt-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Guest information</p>
         <dl className="space-y-1.5 text-sm">
           <div className="flex items-center gap-2">
-            <UserRound className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-            <dd className="min-w-0 break-words text-slate-700">{selectedBooking.contact_name}</dd>
+            <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <dd className="min-w-0 break-words text-foreground">{selectedBooking.contact_name}</dd>
           </div>
           <div className="flex items-center gap-2">
-            <Mail className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-            <dd className="min-w-0 break-all text-slate-700">{selectedBooking.contact_email}</dd>
+            <Mail className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <dd className="min-w-0 break-all text-foreground">{selectedBooking.contact_email}</dd>
           </div>
           <div className="flex items-center gap-2">
-            <Phone className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-            <dd className="min-w-0 break-words text-slate-700">{selectedBooking.contact_phone}</dd>
+            <Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <dd className="min-w-0 break-words text-foreground">{selectedBooking.contact_phone}</dd>
           </div>
           <div className="flex items-center gap-2">
-            <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-            <dd className="text-slate-400">Not provided</dd>
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <dd className="text-muted-foreground">Not provided</dd>
           </div>
         </dl>
       </div>
 
-      <div className="space-y-2 border-t border-slate-100 pt-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Booking information</p>
+      <div className="space-y-2 border-t border-white/30 pt-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Booking information</p>
         <dl className="space-y-1.5 text-sm">
           <div className="flex justify-between gap-3">
-            <dt className="shrink-0 text-slate-500">No. of Pax</dt>
-            <dd className="text-right text-slate-800">{selectedBooking.guest_count} guests</dd>
+            <dt className="shrink-0 text-muted-foreground">No. of Pax</dt>
+            <dd className="text-right text-foreground">{selectedBooking.guest_count} guests</dd>
           </div>
           <div className="flex justify-between gap-3">
-            <dt className="shrink-0 text-slate-500">Add-ons</dt>
-            <dd className="text-right text-slate-800">
+            <dt className="shrink-0 text-muted-foreground">Add-ons</dt>
+            <dd className="text-right text-foreground">
               {selectedBooking.service_snapshot?.additional_services?.length
                 ? selectedBooking.service_snapshot.additional_services.map((addon) => addon.title).join(", ")
                 : "None"}
             </dd>
           </div>
           <div className="flex justify-between gap-3">
-            <dt className="shrink-0 text-slate-500">Special request</dt>
-            <dd className="text-right text-slate-800">{selectedBooking.notes || "None specified"}</dd>
+            <dt className="shrink-0 text-muted-foreground">Special request</dt>
+            <dd className="text-right text-foreground">{selectedBooking.notes || "None specified"}</dd>
           </div>
         </dl>
       </div>
 
-      <div className="space-y-2 border-t border-slate-100 pt-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Payment information</p>
+      <div className="space-y-2 border-t border-white/30 pt-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Payment information</p>
         <dl className="space-y-1.5 text-sm">
           <div className="flex justify-between">
-            <dt className="text-slate-500">Payment method</dt>
-            <dd className="text-slate-800">{selectedBooking.payment?.payment_method_type ?? "Not set"}</dd>
+            <dt className="text-muted-foreground">Payment method</dt>
+            <dd className="text-foreground">{selectedBooking.payment?.payment_method_type ?? "Not set"}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-500">Payment status</dt>
-            <dd className="text-slate-800 capitalize">{selectedBooking.payment?.status ?? "pending"}</dd>
+            <dt className="text-muted-foreground">Payment status</dt>
+            <dd className="text-foreground capitalize">{selectedBooking.payment?.status ?? "pending"}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-500">Amount</dt>
-            <dd className="font-semibold text-slate-800">{formatCurrency(selectedBooking.total_amount)}</dd>
+            <dt className="text-muted-foreground">Amount</dt>
+            <dd className="font-semibold text-foreground">{formatCurrency(selectedBooking.total_amount)}</dd>
           </div>
         </dl>
         <button
@@ -595,8 +595,8 @@ export function StaffBookingsManager({
         {resendEmailSuccess ? <p className="mt-1 text-xs text-emerald-700">{resendEmailSuccess}</p> : null}
       </div>
 
-      {selectedBooking.ticket_code ? (
-        <div className="border-t border-slate-100 pt-3">
+          {selectedBooking.ticket_code ? (
+            <div className="border-t border-white/30 pt-3">
           <button
             type="button"
             onClick={() => setExpandGuests((v) => !v)}
@@ -660,12 +660,12 @@ export function StaffBookingsManager({
         </div>
       ) : null}
 
-      <div className="space-y-3 rounded-sm border border-slate-200 bg-slate-50 p-3.5">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Staff action</p>
+      <div className="space-y-3 rounded-sm border border-white/40 bg-white/10 p-3.5">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Staff action</p>
 
         {selectedBooking.status === "pending_payment" || selectedBooking.status === "awaiting_confirmation" ? (
           <>
-            <p className="text-xs text-slate-500">Please review the reservation and take action.</p>
+            <p className="text-xs text-muted-foreground">Please review the reservation and take action.</p>
             <div className="flex flex-col gap-2">
               <Button
                 type="button"
@@ -691,7 +691,7 @@ export function StaffBookingsManager({
             {staffActionSuccess ? <p className="text-xs text-emerald-700">{staffActionSuccess}</p> : null}
 
             <label className="block space-y-1">
-              <span className="text-xs font-medium text-slate-600">Remarks (optional)</span>
+              <span className="text-xs font-medium text-foreground">Remarks (optional)</span>
               <Textarea
                 value={remarksDraft}
                 onChange={(event) => setRemarksDraft(event.target.value)}
@@ -705,9 +705,9 @@ export function StaffBookingsManager({
           </>
         ) : selectedBooking.status === "confirmed" || selectedBooking.status === "awaiting_onsite_payment" ? (
           <div className="space-y-2">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               {selectedBooking.status === "awaiting_onsite_payment"
-                ? "Confirm the tourist&apos;s receipt before recording the cash payment."
+                ? "Confirm the tourist's receipt before recording the cash payment."
                 : "This reservation is confirmed."}
             </p>
             {selectedBooking.status === "awaiting_onsite_payment" ? (
@@ -724,12 +724,12 @@ export function StaffBookingsManager({
                 <CompleteBookingButton bookingId={selectedBooking.id} />
               </div>
             ) : (
-              <p className="text-xs text-slate-500">The visit date has passed; this pass is now expired.</p>
+              <p className="text-xs text-muted-foreground">The visit date has passed; this pass is now expired.</p>
             )}
           </div>
         ) : selectedBooking.status === "cancelled" || selectedBooking.status === "declined" || selectedBooking.status === "completed" ? (
           <div className="space-y-2">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               This reservation is {statusStyle(selectedBooking.status).label.toLowerCase()}.
             </p>
             <DeleteBookingButton
@@ -746,15 +746,15 @@ export function StaffBookingsManager({
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr),380px]">
       {/* LEFT: list */}
-      <div className="rounded-sm border border-slate-200 bg-white">
-        <div className="space-y-4 border-b border-slate-100 p-4 sm:p-5">
+      <div className="dashboard-glass-panel overflow-hidden">
+        <div className="space-y-4 border-b border-white/30 p-4 sm:p-5">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-emerald-700">
             <CalendarCheck2 className="h-3.5 w-3.5" />
             Reservations
           </div>
           <div>
-            <h2 className="text-lg font-bold tracking-tight text-slate-900 sm:text-xl">Manage reservations</h2>
-            <p className="mt-1 text-sm text-slate-500">Review, confirm, or decline incoming reservations.</p>
+            <h2 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">Manage reservations</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Review, confirm, or decline incoming reservations.</p>
           </div>
 
           <div ref={tabDropdownRef} className="relative inline-block">
@@ -887,7 +887,7 @@ export function StaffBookingsManager({
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[640px] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-400">
+                  <tr className="border-b border-white/30 text-xs uppercase tracking-wide text-muted-foreground">
                     <th className="w-7 px-3 py-3">
                       <input
                         type="checkbox"
@@ -914,7 +914,7 @@ export function StaffBookingsManager({
                         key={booking.id}
                         onClick={() => openBooking(booking)}
                         className={cn(
-                          "cursor-pointer border-b border-slate-50 transition-colors last:border-0 hover:bg-slate-50",
+                          "cursor-pointer border-b border-white/20 transition-colors last:border-0 hover:bg-white/25",
                           isSelected && "bg-emerald-50/60"
                         )}
                       >
@@ -933,18 +933,18 @@ export function StaffBookingsManager({
                             <AlertTriangle className="ml-1 inline h-3 w-3 text-amber-600" />
                           ) : null}
                         </td>
-                        <td className="px-2 py-3 text-slate-700">{booking.contact_name}</td>
-                        <td className="px-2 py-3 text-slate-700">
+                        <td className="px-2 py-3 text-foreground">{booking.contact_name}</td>
+                        <td className="px-2 py-3 text-foreground">
                           {booking.destination_snapshot.title}
-                          <p className="text-slate-400">
+                          <p className="text-muted-foreground">
                             {booking.service_snapshot?.title ?? "Standard service"}
                           </p>
                         </td>
-                        <td className="px-2 py-3 text-slate-700">
+                        <td className="px-2 py-3 text-foreground">
                           {date}
-                          <p className="text-xs capitalize text-slate-400">{booking.payment_mode}</p>
+                          <p className="text-xs text-muted-foreground">{booking.payment_mode}</p>
                         </td>
-                        <td className="px-2 py-3 text-slate-700">{booking.guest_count}</td>
+                        <td className="px-2 py-3 text-foreground">{booking.guest_count}</td>
                         <td className="px-2 py-3">
                           <StatusPill status={booking.status} />
                         </td>
@@ -956,19 +956,19 @@ export function StaffBookingsManager({
             </div>
 
             {/* Mobile card list */}
-            <div className="divide-y divide-slate-100 md:hidden">
+            <div className="divide-y divide-white/20 md:hidden">
               {paginatedBookings.map((booking) => {
                 const { date } = formatBookingDateTime(booking.service_date);
                 const isSelected = booking.id === selectedBookingId;
                 return (
-                  <div
-                    key={booking.id}
-                    onClick={() => openBooking(booking)}
-                    className={cn(
-                      "flex cursor-pointer items-start gap-3 p-4 active:bg-slate-50",
-                      isSelected && "bg-emerald-50/60"
-                    )}
-                  >
+                    <div
+                      key={booking.id}
+                      onClick={() => openBooking(booking)}
+                      className={cn(
+                        "flex cursor-pointer items-start gap-3 p-4 active:bg-white/25",
+                        isSelected && "bg-emerald-50/60"
+                      )}
+                    >
                     <div className="pt-0.5" onClick={(event) => event.stopPropagation()}>
                       <input
                         type="checkbox"
@@ -978,33 +978,33 @@ export function StaffBookingsManager({
                         aria-label={`Select ${booking.id}`}
                       />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate font-semibold text-emerald-700">
-                          {booking.ticket_code ?? booking.id.slice(0, 8)}
-                          {duplicateBookingIds.has(booking.id) ? (
-                            <AlertTriangle className="ml-1 inline h-3 w-3 text-amber-600" />
-                          ) : null}
+                     <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="truncate font-semibold text-emerald-700">
+                            {booking.ticket_code ?? booking.id.slice(0, 8)}
+                            {duplicateBookingIds.has(booking.id) ? (
+                              <AlertTriangle className="ml-1 inline h-3 w-3 text-amber-600" />
+                            ) : null}
+                          </p>
+                          <StatusPill status={booking.status} />
+                        </div>
+                        <p className="mt-1 truncate text-sm font-medium text-foreground">{booking.contact_name}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {booking.destination_snapshot.title}
+                          {booking.service_snapshot?.title ? ` · ${booking.service_snapshot.title}` : ""}
                         </p>
-                        <StatusPill status={booking.status} />
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {date} &bull; {booking.guest_count} pax
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">{booking.payment_mode}</p>
                       </div>
-                      <p className="mt-1 truncate text-sm font-medium text-slate-800">{booking.contact_name}</p>
-                      <p className="truncate text-xs text-slate-500">
-                        {booking.destination_snapshot.title}
-                        {booking.service_snapshot?.title ? ` · ${booking.service_snapshot.title}` : ""}
-                      </p>
-                      <p className="mt-1 text-xs text-slate-400">
-                        {date} &bull; {booking.guest_count} pax
-                      </p>
-                      <p className="text-[11px] capitalize text-slate-400">{booking.payment_mode}</p>
-                    </div>
                   </div>
                 );
               })}
             </div>
 
-            <div className="flex flex-col gap-2 border-t border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-              <p className="text-xs text-slate-400">
+            <div className="flex flex-col gap-2 border-t border-white/30 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+              <p className="text-xs text-muted-foreground">
                 Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
                 {Math.min(currentPage * ITEMS_PER_PAGE, filteredBookings.length)} of {filteredBookings.length} entries
               </p>
@@ -1013,7 +1013,7 @@ export function StaffBookingsManager({
                   type="button"
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-white/40 text-muted-foreground hover:bg-white/25 disabled:opacity-40"
                 >
                   <ChevronLeft className="h-3.5 w-3.5" />
                 </button>
@@ -1026,7 +1026,7 @@ export function StaffBookingsManager({
                       "flex h-8 w-8 shrink-0 items-center justify-center rounded-sm text-xs font-semibold",
                       page === currentPage
                         ? "bg-emerald-700 text-white"
-                        : "border border-slate-200 text-slate-500 hover:bg-slate-50"
+                        : "border border-white/40 text-muted-foreground hover:bg-white/25"
                     )}
                   >
                     {page}
@@ -1036,7 +1036,7 @@ export function StaffBookingsManager({
                   type="button"
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-white/40 text-muted-foreground hover:bg-white/25 disabled:opacity-40"
                 >
                   <ChevronRight className="h-3.5 w-3.5" />
                 </button>
@@ -1047,7 +1047,7 @@ export function StaffBookingsManager({
       </div>
 
       {/* RIGHT: detail panel — desktop/tablet inline, mobile full-screen overlay */}
-      <div className="hidden h-fit rounded-sm border border-slate-200 bg-white p-5 xl:block">
+      <div className="dashboard-glass-panel hidden h-fit p-5 xl:block">
         {!selectedBooking ? (
           <p className="text-sm text-muted-foreground">Select a reservation to view its details.</p>
         ) : (

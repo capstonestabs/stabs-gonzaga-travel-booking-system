@@ -11,8 +11,10 @@ export function PageTransitionShell({
   const isAdminRoute = pathname.startsWith("/admin");
   const isStaffRoute = pathname.startsWith("/staff");
   const isDashboardRoute = pathname.startsWith("/dashboard");
+  const isAccountRoute = pathname.startsWith("/account");
+  const isProfileRoute = pathname.startsWith("/profile");
 
-  if (isAdminRoute || isStaffRoute || isDashboardRoute) {
+  if (isAdminRoute || isStaffRoute || isDashboardRoute || isAccountRoute || isProfileRoute) {
     return <div className="min-h-full">{children}</div>;
   }
 

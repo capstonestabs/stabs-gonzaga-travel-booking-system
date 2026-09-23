@@ -124,7 +124,7 @@ fieldset {
 }
 
 .dashboard-glass-panel-solid {
-  @apply rounded-2xl border border-white/40 bg-white/35 backdrop-blur-lg;
+  @apply rounded-2xl border border-white/50 bg-white/65 backdrop-blur-lg;
   box-shadow: 0 8px 30px rgba(15, 60, 40, 0.08);
 }
 

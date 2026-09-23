@@ -68,7 +68,7 @@ export function DashboardAccountButton({
       </button>
 
       {open && (
-        <div className="dashboard-glass-panel-solid absolute right-0 top-[calc(100%+0.5rem)] z-50 w-52 p-1.5">
+        <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-52 rounded-xl border border-border bg-white p-1.5 shadow-[0_8px_30px_rgba(15,60,40,0.08)]">
           <div className="px-2.5 py-2">
             <p className="truncate text-sm font-semibold text-foreground">{account.name}</p>
             <p className="truncate text-xs text-muted-foreground">{account.email}</p>
@@ -76,7 +76,7 @@ export function DashboardAccountButton({
           <div className="my-1 h-px bg-border/70" />
           <Link
             href="/profile"
-            className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground/80 hover:bg-secondary/60"
+            className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground/80 hover:bg-muted/60"
           >
             <User className="h-4 w-4" />
             Profile settings
