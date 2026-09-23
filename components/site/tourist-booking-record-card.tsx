@@ -17,6 +17,14 @@ import { formatServiceTypeLabel } from "@/lib/service-types";
 import type { Booking } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 
+function getReservationStatusLabel(booking: Booking) {
+  const paymentStatus = booking.payment?.status ?? "pending";
+  if (booking.status === "confirmed" || (booking.status === "awaiting_onsite_payment" && booking.onsite_receipt)) {
+    return "Confirmed";
+  }
+  return formatReservationStatusLabel(paymentStatus);
+}
+
 const bookingBadgeVariantByStatus = {
   pending_payment: "warning",
   awaiting_confirmation: "warning",
@@ -68,12 +76,14 @@ export function TouristBookingRecordCard({
           {isExpiredPass ? <Badge variant="warning">Expired pass</Badge> : null}
           <Badge
             variant={
-              booking.payment?.status
+              booking.status === "confirmed" || (booking.status === "awaiting_onsite_payment" && booking.onsite_receipt)
+                ? "success"
+                : booking.payment?.status
                 ? paymentBadgeVariantByStatus[booking.payment.status] ?? "warning"
                 : "warning"
             }
           >
-            Reservation: {formatReservationStatusLabel(booking.payment?.status ?? "pending")}
+            Reservation: {getReservationStatusLabel(booking)}
           </Badge>
         </div>
       </CardHeader>

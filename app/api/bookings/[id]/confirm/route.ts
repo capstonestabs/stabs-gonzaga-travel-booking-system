@@ -136,7 +136,7 @@ export async function POST(
     const { error: updateError } = await supabase
       .from("bookings")
       .update({
-        status: "pending_payment",
+        status: "confirmed",
         confirmed_at: now
       })
       .eq("id", id)
@@ -155,7 +155,7 @@ export async function POST(
 
     return NextResponse.json({
       message: "Reservation confirmed.",
-      status: "pending_payment",
+      status: "confirmed",
       checkoutUrl: payment.checkout_url,
       email: { sent: false, reason: emailError instanceof Error ? emailError.message : "Unknown email error" }
     });
