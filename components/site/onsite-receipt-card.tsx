@@ -26,7 +26,7 @@ export function OnsiteReceiptCard({ booking }: { booking: Booking }) {
             Present this at check-in and pay the amount below in cash.
           </p>
         </div>
-        <Badge variant="warning">Awaiting onsite payment</Badge>
+        <Badge variant="warning">Waiting onsite payment</Badge>
       </div>
       <div className="flex items-center justify-between gap-3 border-y border-amber-200 py-3">
         <span className="text-xs text-amber-800">Receipt code</span>

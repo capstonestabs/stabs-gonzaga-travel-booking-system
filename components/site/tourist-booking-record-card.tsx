@@ -141,7 +141,7 @@ export function TouristBookingRecordCard({
                   : getBookingTicketState(booking) === "expired"
                     ? "expired after the service date"
                     : getBookingTicketState(booking) === "pending"
-                      ? "awaiting confirmation"
+                      ? "Waiting confirmation"
                       : "inactive"}
             </p>
           </div>
