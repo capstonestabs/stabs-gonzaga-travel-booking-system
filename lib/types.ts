@@ -139,6 +139,7 @@ export interface Destination {
   cover_path: string | null;
   cover_url: string | null;
   featured: boolean;
+  completed_booking_count?: number;
   created_at: string;
   updated_at: string;
   staff_profile?: StaffProfile | null;
@@ -353,6 +354,15 @@ export interface ActivityItem {
 export interface StaffDashboardData {
   metrics: DashboardMetric[];
   listings: Destination[];
+  topServices: {
+    id: string;
+    title: string;
+    destinationTitle: string;
+    serviceType: string;
+    priceAmount: number;
+    imageUrl: string | null;
+    bookingCount: number;
+  }[];
   recentBookings: Booking[];
   feedbackEntries: FeedbackEntry[];
   overview: {
@@ -371,6 +381,8 @@ todaySummary: {
   confirmed: number;
   pending: number;
   declined: number;
+  awaitingReview: number;
+  confirmationRate: number;
 };
 tasks?: StaffTaskReminder[];
 }

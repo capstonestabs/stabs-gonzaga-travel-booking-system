@@ -8,6 +8,7 @@ import type {
   DashboardMetric,
   DashboardMetricTrend,
   Destination,
+  DestinationService,
   FinancialRecordSummary,
   MonthlyRevenuePoint,
   PaymentStatus,
@@ -725,18 +726,32 @@ export async function getPublishedDestinations() {
   }
 
   const supabase = createAdminSupabaseClient();
-  const { data, error } = await supabase
-    .from("destinations")
-    .select("*, destination_images(*), destination_services(*)")
-    .eq("status", "published")
-    .order("featured", { ascending: false })
-    .order("created_at", { ascending: false });
+  const [{ data, error }, { data: completedBookings, error: bookingsError }] = await Promise.all([
+    supabase
+      .from("destinations")
+      .select("*, destination_images(*), destination_services(*)")
+      .eq("status", "published")
+      .order("featured", { ascending: false })
+      .order("created_at", { ascending: false }),
+    supabase.from("bookings").select("destination_id").eq("status", "completed")
+  ]);
 
-  if (error) {
-    throw new Error(error.message);
+  if (error || bookingsError) {
+    throw new Error(error?.message ?? bookingsError?.message ?? "Unable to load destinations.");
   }
 
-  return (data ?? []) as Destination[];
+  const completedBookingCounts = new Map<string, number>();
+  for (const booking of completedBookings ?? []) {
+    completedBookingCounts.set(
+      booking.destination_id,
+      (completedBookingCounts.get(booking.destination_id) ?? 0) + 1
+    );
+  }
+
+  return ((data ?? []) as Destination[]).map((destination) => ({
+    ...destination,
+    completed_booking_count: completedBookingCounts.get(destination.id) ?? 0
+  }));
 }
 
 export async function getDestinationBySlug(slug: string): Promise<Destination | null> {
@@ -933,6 +948,7 @@ export async function getStaffDashboardData(
         { label: "Payout waiting", value: formatCurrency(0), helper: "Supabase service role not configured" }
       ],
       listings: [],
+      topServices: [],
       recentBookings: [],
       feedbackEntries: [],
       overview: {
@@ -946,7 +962,14 @@ export async function getStaffDashboardData(
         bookingsCancelled: 0,
         servicesTotal: 0
       },
-      todaySummary: { newBookings: 0, confirmed: 0, pending: 0, declined: 0 },
+      todaySummary: {
+        newBookings: 0,
+        confirmed: 0,
+        pending: 0,
+        declined: 0,
+        awaitingReview: 0,
+        confirmationRate: 0
+      },
       tasks: []
     };
   }
@@ -984,6 +1007,11 @@ export async function getStaffDashboardData(
   const newBookingsToday = (todayBookings ?? []).filter((b) => isToday(b.created_at)).length;
   const confirmedToday = (todayBookings ?? []).filter((b) => isToday(b.confirmed_at)).length;
   const declinedToday = (todayBookings ?? []).filter((b) => isToday(b.cancelled_at)).length;
+  const awaitingReviewToday = (todayBookings ?? []).filter(
+    (booking) => booking.status === "awaiting_confirmation"
+  ).length;
+  const confirmationRate =
+    newBookingsToday > 0 ? Math.round((confirmedToday / newBookingsToday) * 100) : 0;
 
   const { count: pendingOngoing, error: pendingOngoingError } = await supabase
     .from("bookings")
@@ -1094,6 +1122,7 @@ export async function getStaffDashboardData(
     { data: listings, error: listingsError },
     { data: recentBookings, error: recentBookingsError },
     { data: bookingStatuses, error: bookingStatusesError },
+    { data: serviceBookings, error: serviceBookingsError },
     { data: unsettledFinancials, error: unresolvedUnsettledFinancialsError }
   ] = await Promise.all([
     supabase
@@ -1108,14 +1137,21 @@ export async function getStaffDashboardData(
       .order("created_at", { ascending: false })
       .limit(8),
     supabase.from("bookings").select("status").eq("staff_id", staffId),
+    supabase
+      .from("bookings")
+      .select("service_id, destination_id, status")
+      .eq("staff_id", staffId)
+      .neq("status", "cancelled")
+      .neq("status", "declined"),
     Promise.resolve({ data: unsettledFinancialsData, error: unsettledFinancialsError })
   ]);
 
-  if (listingsError || recentBookingsError || bookingStatusesError || unsettledFinancialsError) {
+  if (listingsError || recentBookingsError || bookingStatusesError || serviceBookingsError || unsettledFinancialsError) {
     throw new Error(
       listingsError?.message ??
         recentBookingsError?.message ??
         bookingStatusesError?.message ??
+        serviceBookingsError?.message ??
         unsettledFinancialsError?.message ??
         unresolvedUnsettledFinancialsError?.message ??
         "Unable to load the staff dashboard."
@@ -1129,6 +1165,30 @@ export async function getStaffDashboardData(
     (acc, listing) => acc + (listing.destination_services?.length ?? 0),
     0
   );
+  const serviceBookingCounts = new Map<string, number>();
+  for (const booking of serviceBookings ?? []) {
+    if (!booking.service_id) continue;
+    serviceBookingCounts.set(
+      booking.service_id,
+      (serviceBookingCounts.get(booking.service_id) ?? 0) + 1
+    );
+  }
+  const topServices = (listings ?? [])
+    .flatMap((listing) =>
+      (listing.destination_services ?? [])
+        .filter((service: DestinationService) => service.is_active)
+        .map((service: DestinationService) => ({
+          id: service.id,
+          title: service.title,
+          destinationTitle: listing.title,
+          serviceType: service.service_type,
+          priceAmount: service.price_amount,
+          imageUrl: service.image_url ?? service.image_urls?.[0] ?? null,
+          bookingCount: serviceBookingCounts.get(service.id) ?? 0
+        }))
+    )
+    .sort((a, b) => b.bookingCount - a.bookingCount || a.title.localeCompare(b.title))
+    .slice(0, 4);
 
    const feedbackEntries = await getFeedbackEntriesForStaff(staffId, 6);
 
@@ -1196,6 +1256,7 @@ export async function getStaffDashboardData(
       }
     ],
     listings: (listings ?? []) as Destination[],
+    topServices,
     recentBookings: await hydrateBookings((recentBookings ?? []) as Booking[]),
     feedbackEntries: (feedbackEntries ?? []) as FeedbackEntry[],
     overview: {
@@ -1213,7 +1274,9 @@ export async function getStaffDashboardData(
       newBookings: newBookingsToday,
       confirmed: confirmedToday,
       pending: pendingOngoing ?? 0,
-      declined: declinedToday
+      declined: declinedToday,
+      awaitingReview: awaitingReviewToday,
+      confirmationRate
     },
     tasks
   };

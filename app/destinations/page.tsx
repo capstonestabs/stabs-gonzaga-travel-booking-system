@@ -1,4 +1,4 @@
-import { ListingCard } from "@/components/site/listing-card";
+import { DestinationFilterGrid } from "@/components/site/destination-filter-grid";
 import { ScenicPageHero } from "@/components/site/scenic-page-hero";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -87,11 +87,7 @@ export default async function DestinationsPage({
                 </Card>
               ) : null}
 
-              <div className="grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
-                {visibleDestinations.map((destination) => (
-                  <ListingCard key={destination.id} destination={destination} />
-                ))}
-              </div>
+              <DestinationFilterGrid destinations={visibleDestinations} />
             </>
           )}
         </div>

@@ -1,13 +1,26 @@
 import type { Route } from "next";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, CalendarCheck2, Landmark, Package, UsersRound } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowRight,
+  CalendarDays,
+  CalendarCheck2,
+  CheckCircle2,
+  ClipboardList,
+  Landmark,
+  Package,
+  Percent,
+  TrendingUp,
+  UsersRound,
+  XCircle
+} from "lucide-react";
 
 import { DateRangePicker } from "@/components/site/date-range-picker";
 import { TasksRemindersPanel } from "@/components/site/tasks-reminders-panel";
 import { requireRole } from "@/lib/auth";
 import { getStaffDashboardData } from "@/lib/repositories";
-import { formatDateKey, formatCurrency } from "@/lib/utils";
-import { CheckCircle2, Hourglass, XCircle } from "lucide-react";
+import { formatDateKey, formatCurrency, formatPesoCurrency } from "@/lib/utils";
+import { Hourglass } from "lucide-react";
 import { getStaffBookingsSummary } from "@/lib/repositories";
 
 interface OverviewCardProps {
@@ -230,12 +243,21 @@ export default async function StaffDashboardPage({
 
         <section
           aria-label="Today's summary"
-          className="dashboard-glass-panel dashboard-fade-in p-5"        
+          className="dashboard-fade-in grid gap-4 lg:grid-cols-[minmax(0,1.2fr),minmax(20rem,0.8fr)]"
           style={{ animationDelay: "120ms" }}
         >
-          <h2 className="text-sm font-semibold text-slate-900">Today&apos;s summary</h2>
-          <div className="mt-4 grid grid-cols-2 gap-y-5 border-t border-slate-200 pt-4 sm:grid-cols-4 sm:divide-x sm:divide-slate-200">
-            <div className="sm:pr-5">
+          <div className="dashboard-glass-panel p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold text-slate-900">Today&apos;s summary</h2>
+                <p className="mt-1 text-xs text-slate-600">Live activity across your reservations</p>
+              </div>
+              <div className="rounded-xl bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-700">
+                Today
+              </div>
+            </div>
+            <div className="mt-4 grid gap-5 border-t border-slate-200 pt-4 md:grid-cols-[minmax(0,1fr),minmax(13rem,0.8fr)]">
+              <div className="space-y-4 md:border-r md:border-slate-200 md:pr-5">
               <TodaysSummaryItem
                 icon={CalendarCheck2}
                 iconBg="bg-emerald-50"
@@ -244,8 +266,6 @@ export default async function StaffDashboardPage({
                 value={data.todaySummary.newBookings}
                 caption="Today"
               />
-            </div>
-            <div className="sm:px-5">
               <TodaysSummaryItem
                 icon={CheckCircle2}
                 iconBg="bg-blue-50"
@@ -254,8 +274,6 @@ export default async function StaffDashboardPage({
                 value={data.todaySummary.confirmed}
                 caption="Today"
               />
-            </div>
-            <div className="sm:px-5">
               <TodaysSummaryItem
                 icon={Hourglass}
                 iconBg="bg-amber-50"
@@ -264,8 +282,6 @@ export default async function StaffDashboardPage({
                 value={data.todaySummary.pending}
                 caption="Ongoing"
               />
-            </div>
-            <div className="sm:pl-5">
               <TodaysSummaryItem
                 icon={XCircle}
                 iconBg="bg-rose-50"
@@ -274,7 +290,90 @@ export default async function StaffDashboardPage({
                 value={data.todaySummary.declined}
                 caption="Today"
               />
+              </div>
+              <div className="space-y-3">
+                <div className="rounded-xl bg-slate-50 p-3.5">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                    <Percent className="h-3.5 w-3.5 text-emerald-600" />
+                    Confirmation rate
+                  </div>
+                  <p className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+                    {data.todaySummary.confirmationRate}%
+                  </p>
+                  <p className="text-[11px] text-slate-500">Confirmed from new bookings today</p>
+                </div>
+                <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3.5">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-amber-800">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    Needs attention
+                  </div>
+                  <p className="mt-1 text-lg font-bold text-amber-900">
+                    {data.todaySummary.awaitingReview} awaiting review
+                  </p>
+                  <Link
+                    href={"/staff/bookings" as Route}
+                    className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 hover:text-amber-950"
+                  >
+                    Open reservations <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </div>
+                <div className="flex items-center gap-2 text-[11px] text-slate-500">
+                  <ClipboardList className="h-3.5 w-3.5" />
+                  <span>{data.todaySummary.newBookings} new reservation updates today</span>
+                </div>
+              </div>
             </div>
+          </div>
+
+          <div className="dashboard-glass-panel p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold text-slate-900">Top pick services</h2>
+                <p className="mt-1 text-xs text-slate-600">Your most booked active services</p>
+              </div>
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
+                <TrendingUp className="h-4 w-4" />
+              </div>
+            </div>
+            <div className="mt-4 space-y-3 border-t border-slate-200 pt-3">
+              {data.topServices.length > 0 ? data.topServices.map((service, index) => (
+                <div key={service.id} className="flex items-center gap-3">
+                  {service.imageUrl ? (
+                    <img
+                      src={service.imageUrl}
+                      alt={service.title}
+                      className="h-12 w-12 shrink-0 rounded-xl object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
+                      <Package className="h-5 w-5" />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-600">
+                        {index + 1}
+                      </span>
+                      <p className="truncate text-sm font-semibold text-slate-900">{service.title}</p>
+                    </div>
+                    <p className="truncate text-xs text-slate-600">{service.destinationTitle} · {service.serviceType}</p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-xs font-bold text-emerald-700">{service.bookingCount} booking{service.bookingCount === 1 ? "" : "s"}</p>
+                    <p className="text-[11px] text-slate-500">from {formatPesoCurrency(service.priceAmount)}</p>
+                  </div>
+                </div>
+              )) : (
+                <p className="py-3 text-sm text-slate-600">No active services have bookings yet.</p>
+              )}
+            </div>
+            <Link
+              href={"/staff/services" as Route}
+              className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-purple-200 py-2 text-sm font-semibold text-purple-700 transition hover:bg-purple-50"
+            >
+              <Package className="h-4 w-4" />
+              Manage services
+            </Link>
           </div>
         </section>
 
