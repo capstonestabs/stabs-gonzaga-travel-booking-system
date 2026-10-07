@@ -100,6 +100,7 @@ create table if not exists public.destinations (
   entrance_fee_amount integer default 0 check (entrance_fee_amount >= 0),
   is_entrance_fee_active boolean not null default false,
   entrance_fee_title text not null default 'Entrance Fee',
+  entrance_fee_categories jsonb not null default '[{"id":"child","label":"Child","minAge":3,"maxAge":17,"amount":0},{"id":"adult","label":"Adults","minAge":18,"maxAge":59,"amount":0},{"id":"senior","label":"Senior","minAge":60,"maxAge":null,"amount":0}]'::jsonb,
   cover_path text,
   cover_url text,
   featured boolean not null default false,

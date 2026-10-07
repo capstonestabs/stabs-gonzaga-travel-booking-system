@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { CalendarDays, History } from "lucide-react";
 
 import { DashboardShell } from "@/components/site/dashboard-shell";
+import { CurrentBookingsAutoRefresh } from "@/components/site/current-bookings-auto-refresh";
 import { TouristBookingRecordCard } from "@/components/site/tourist-booking-record-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,6 +33,7 @@ export default async function TouristCurrentBookingsPage() {
       title="Current bookings"
       description="Review active reservations on their own page so the tourist dashboard stays lighter and easier to scan."
     >
+      <CurrentBookingsAutoRefresh />
       {activeBookings.length === 0 ? (
         <Card>
           <CardContent className="space-y-3 p-5 text-sm text-muted-foreground sm:p-[1.375rem]">

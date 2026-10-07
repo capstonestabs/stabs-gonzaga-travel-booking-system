@@ -130,12 +130,24 @@ export default async function VerifyGuestTicketPage({
               
               {/* Entrance Fee Line */}
               {entranceFeeInfo ? (
-                <div className="flex justify-between gap-2 text-xs">
-                  <span>{entranceFeeInfo.title || "Entrance Fee"} :</span>
-                  <span className="font-bold">
-                    {entranceFeeInfo.price_amount} × {entranceFeeInfo.guest_count}
-                  </span>
-                </div>
+                entranceFeeInfo.categories?.length ? (
+                  <div className="space-y-1 text-xs">
+                    <p className="font-semibold">{entranceFeeInfo.title || "Entrance Fee"} :</p>
+                    {entranceFeeInfo.categories.map((category: { id: string; label: string; amount: number; guest_count: number }) => (
+                      <div key={category.id} className="flex justify-between gap-2 pl-3">
+                        <span>{category.label} :</span>
+                        <span className="font-bold">{category.amount} × {category.guest_count}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex justify-between gap-2 text-xs">
+                    <span>{entranceFeeInfo.title || "Entrance Fee"} :</span>
+                    <span className="font-bold">
+                      {entranceFeeInfo.price_amount} × {entranceFeeInfo.guest_count}
+                    </span>
+                  </div>
+                )
               ) : null}
 
               {/* Main Service Package */}

@@ -19,6 +19,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { PaymentModeModal } from "@/components/site/payment-mode-modal";
+import { GuestCategorySelect } from "@/components/forms/guest-category-select";
 import { AvailabilityCalendarPanel } from "@/components/forms/availability-calendar-panel";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
@@ -32,6 +33,7 @@ import type { AvailabilitySnapshot, ListingCategory, PaymentMode, UserRole } fro
 import { writeOnsiteBookingDraft } from "@/lib/onsite-booking-draft";
 import { getBookingDayCount } from "@/lib/booking-pricing";
 import { formatPesoCurrency, pesoAmountToCentavos } from "@/lib/utils";
+import type { EntranceFeeCategory } from "@/lib/entrance-fees";
 
 interface GuestEntry {
   id: number;
@@ -57,7 +59,9 @@ export function AbramBookingWizard({
   defaultContactName,
   defaultContactEmail,
   defaultContactPhone,
-  policies = []
+  policies = [],
+  isEntranceFeeActive = false,
+  entranceFeeCategories = []
 }: {
   destinationId: string;
   destinationSlug: string;
@@ -70,6 +74,8 @@ export function AbramBookingWizard({
   defaultContactEmail?: string;
   defaultContactPhone?: string;
   policies?: string[];
+  isEntranceFeeActive?: boolean;
+  entranceFeeCategories?: EntranceFeeCategory[];
 }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -82,6 +88,7 @@ export function AbramBookingWizard({
     { id: 1, type: "adult", name: defaultContactName ?? "" }
   ]);
   const [nextGuestId, setNextGuestId] = useState(2);
+  const [guestCategoryIds, setGuestCategoryIds] = useState<string[]>([""]);
   const [isChecking, setIsChecking] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isPaymentModeModalOpen, setIsPaymentModeModalOpen] = useState(false);
@@ -100,7 +107,13 @@ export function AbramBookingWizard({
   const bookingDayCount = serviceDate && checkOutDate
     ? getBookingDayCount(serviceDate, checkOutDate)
     : 1;
-  const grandTotalAmount = totalAmount * bookingDayCount;
+  const entranceFeeTotal = isEntranceFeeActive
+    ? guests.reduce((total, guest, index) => {
+        const category = entranceFeeCategories.find((entry) => entry.id === guestCategoryIds[index]);
+        return total + (category?.amount ?? 0);
+      }, 0)
+    : 0;
+  const grandTotalAmount = totalAmount * bookingDayCount + entranceFeeTotal;
   const canFitGuests = Boolean(
     availability?.is_open && guests.length <= availability.remaining_guests
   );
@@ -155,6 +168,7 @@ export function AbramBookingWizard({
     }
 
     setGuests((current) => [...current, { id: nextGuestId, type: "adult", name: "" }]);
+    setGuestCategoryIds((current) => [...current, ""]);
     setNextGuestId((current) => current + 1);
     setError(null);
   }
@@ -165,7 +179,9 @@ export function AbramBookingWizard({
       return;
     }
 
+    const removedGuestIndex = guests.findIndex((guest) => guest.id === id);
     setGuests((current) => current.filter((guest) => guest.id !== id));
+    setGuestCategoryIds((current) => current.filter((_, guestIndex) => guestIndex !== removedGuestIndex));
     setError(null);
   }
 
@@ -199,11 +215,17 @@ export function AbramBookingWizard({
     const contactPhone = String(formData.get("contactPhone") ?? "").trim();
     const guestDetails = guests.map((guest) => ({
       name: guest.name.trim(),
-      type: guest.type
+      type: guest.type,
+      category_id: guestCategoryIds[guests.indexOf(guest)]
     }));
 
     if (guestDetails.some((guest) => guest.name.length < 2)) {
       setError("Enter the full name of every guest so each pass can be issued correctly.");
+      return;
+    }
+
+    if (isEntranceFeeActive && entranceFeeCategories.length > 0 && guestCategoryIds.some((categoryId) => !categoryId)) {
+      setError("Choose an entrance fee category for every guest.");
       return;
     }
 
@@ -239,6 +261,7 @@ export function AbramBookingWizard({
       checkOutDate,
       checkOutTime,
         guestCount: guests.length,
+        guestCategoryIds: entranceFeeCategories.length > 0 ? guestCategoryIds : undefined,
         guestTypes,
         guestDetails,
         contactName,
@@ -477,6 +500,22 @@ export function AbramBookingWizard({
                       <option value="child">Child — {formatPesoCurrency(ratePlan.child.priceAmount)}</option>
                     </select>
                     </label>
+                    {entranceFeeCategories.length > 0 ? (
+                      <label className="block">
+                        <span className="text-xs font-medium">Entrance fee category</span>
+                        <GuestCategorySelect
+                          categories={entranceFeeCategories}
+                          value={guestCategoryIds[index] ?? ""}
+                          onChange={(categoryId) => {
+                            setGuestCategoryIds((current) =>
+                              current.map((entry, entryIndex) => entryIndex === index ? categoryId : entry)
+                            );
+                            setError(null);
+                          }}
+                          required={isEntranceFeeActive}
+                        />
+                      </label>
+                    ) : null}
                   </div>
                   <button type="button" onClick={() => removeGuest(guest.id)} className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive" aria-label={`Remove guest ${index + 1}`}>
                     <Trash2 className="h-4 w-4" />

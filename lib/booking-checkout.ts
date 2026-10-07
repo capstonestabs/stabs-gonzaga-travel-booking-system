@@ -12,6 +12,7 @@ interface BookingCheckoutRecord {
   contact_phone: string;
   total_amount: number;
   destination_snapshot: { title?: string; cover_url?: string | null } | null;
+  policy_snapshot?: string[] | null;
   service_snapshot: {
     title?: string;
     price_amount?: number;
@@ -25,6 +26,11 @@ interface BookingCheckoutRecord {
       title?: string;
       price_amount?: number;
       guest_count?: number;
+      categories?: Array<{
+        label?: string;
+        amount?: number;
+        guest_count?: number;
+      }>;
     } | null;
     additional_services?: Array<{
       title: string;
@@ -40,6 +46,12 @@ export async function createBookingCheckoutSession(booking: BookingCheckoutRecor
     ? getBookingDayCount(booking.service_date, booking.check_out_date)
     : 1;
   const title = serviceSnapshot.title ?? "Booking";
+  const policyDescription = (booking.policy_snapshot ?? []).filter(Boolean).length > 0
+    ? `\u2028RULES & POLICIES:\u2028${(booking.policy_snapshot ?? [])
+        .filter(Boolean)
+      .map((policy) => `• ${policy}`)
+      .join("  ")}`
+    : "";
   const lineItems: Array<{
     name: string;
     amount: number;
@@ -76,7 +88,17 @@ export async function createBookingCheckoutSession(booking: BookingCheckoutRecor
   }
 
   const entranceFee = serviceSnapshot.entrance_fee;
-  if (entranceFee?.price_amount && entranceFee.guest_count) {
+  if (entranceFee?.categories?.length) {
+    for (const category of entranceFee.categories) {
+      if (category.amount && category.guest_count) {
+        lineItems.push({
+          name: `${entranceFee.title ?? "Entrance Fee"} - ${category.label ?? "Category"}`,
+          amount: pesoAmountToCentavos(category.amount),
+          quantity: category.guest_count
+        });
+      }
+    }
+  } else if (entranceFee?.price_amount && entranceFee.guest_count) {
     lineItems.push({
       name: entranceFee.title ?? "Entrance Fee",
       amount: pesoAmountToCentavos(entranceFee.price_amount),
@@ -95,7 +117,7 @@ export async function createBookingCheckoutSession(booking: BookingCheckoutRecor
   const session = await createCheckoutSession({
     bookingId: booking.id,
     title: `${destinationTitle} - ${title}`,
-    description: `Booking ${booking.id.slice(0, 8).toUpperCase()} for ${booking.service_date} - ${booking.guest_count} guest(s)`,
+    description: `Booking ${booking.id.slice(0, 8).toUpperCase()} for ${booking.service_date} - ${booking.guest_count} guest(s)${policyDescription}`,
     amount: booking.total_amount,
     customerName: booking.contact_name,
     customerEmail: booking.contact_email,

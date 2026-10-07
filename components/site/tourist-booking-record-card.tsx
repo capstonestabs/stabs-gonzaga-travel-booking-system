@@ -1,5 +1,8 @@
+"use client";
+
 import type { Route } from "next";
 import Link from "next/link";
+import { useState } from "react";
 
 import { CancelBookingButton } from "@/components/forms/cancel-booking-button";
 import { DeleteBookingButton } from "@/components/forms/delete-booking-button";
@@ -50,6 +53,7 @@ export function TouristBookingRecordCard({
   booking: Booking;
   mode?: "active" | "history";
 }) {
+  const [guestsOpen, setGuestsOpen] = useState(false);
   const isExpiredPass = isBookingTicketExpired(booking);
   const canOpenTicket = Boolean(
     booking.ticket_code && booking.status !== "cancelled" && booking.status !== "declined"
@@ -91,18 +95,63 @@ export function TouristBookingRecordCard({
         <div className="grid gap-2.5 text-sm sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3">
             <p className="text-muted-foreground">Package</p>
-            <p className="mt-1 font-medium">
-              {booking.service_snapshot?.title ?? "Standard service"}
-            </p>
-            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-              {formatServiceTypeLabel(booking.service_snapshot?.service_type, {
-                category: booking.destination_snapshot.category
-              })}
-            </p>
+            <div className="mt-2 flex items-center gap-3">
+              {booking.service_snapshot?.image_url ? (
+                <img
+                  src={booking.service_snapshot.image_url}
+                  alt=""
+                  className="h-14 w-20 shrink-0 rounded-lg object-cover"
+                />
+              ) : null}
+              <div className="min-w-0">
+                <p className="font-medium">
+                  {booking.service_snapshot?.title ?? "Standard service"}
+                </p>
+                <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                  {formatServiceTypeLabel(booking.service_snapshot?.service_type, {
+                    category: booking.destination_snapshot.category
+                  })}
+                </p>
+              </div>
+            </div>
           </div>
           <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3">
             <p className="text-muted-foreground">Guests</p>
-            <p className="mt-1 font-medium">{booking.guest_count}</p>
+            {booking.guest_count >= 2 ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setGuestsOpen((current) => !current)}
+                  aria-expanded={guestsOpen}
+                  className="mt-1 flex w-full items-center justify-between gap-2 text-left font-medium"
+                >
+                  <span>{booking.guest_count} guests</span>
+                  <span className="text-xs text-muted-foreground">{guestsOpen ? "Hide" : "View"}</span>
+                </button>
+                {guestsOpen ? (
+                  <div className="mt-2 space-y-1.5 border-t border-border/60 pt-2 text-xs">
+                    {Array.from({ length: booking.guest_count }, (_, index) => {
+                      const guest = booking.service_snapshot?.guest_details?.[index];
+                      const category = booking.service_snapshot?.entrance_fee?.categories?.find(
+                        (entry) => entry.id === guest?.category_id
+                      );
+                      return (
+                        <div key={`${booking.id}-guest-${index}`} className="flex justify-between gap-2">
+                          <span className="min-w-0 truncate">
+                            {guest?.name || `Guest ${index + 1}`}
+                          </span>
+                          <span className="shrink-0 text-muted-foreground">
+                            {category?.label ?? (guest?.type === "child" ? "Child" : "Adult")}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <p className="mt-1 font-medium">1 guest</p>
+            )}
           </div>
           <div className="rounded-[0.95rem] bg-muted/45 px-3.5 py-3">
             <p className="text-muted-foreground">Check-in</p>

@@ -135,6 +135,7 @@ export interface Destination {
   entrance_fee_amount?: number | null;
   is_entrance_fee_active?: boolean | null;
   entrance_fee_title?: string | null;
+  entrance_fee_categories?: import("@/lib/entrance-fees").EntranceFeeCategory[] | null;
   cover_path: string | null;
   cover_url: string | null;
   featured: boolean;
@@ -190,6 +191,7 @@ export interface Booking {
   service_snapshot: {
     id: string;
     title: string;
+    image_url?: string | null;
     description: string | null;
     price_amount: number;
     pricing_basis: PricingBasis;
@@ -204,6 +206,7 @@ export interface Booking {
     guest_details?: Array<{
       name: string;
       type: "adult" | "child";
+      category_id?: string;
     }>;
     entrance_fee?: {
       title: string;
@@ -211,6 +214,13 @@ export interface Booking {
       guest_count: number;
       total_amount: number;
       is_active: boolean;
+      categories?: Array<{
+        id: string;
+        label: string;
+        amount: number;
+        guest_count: number;
+        total_amount: number;
+      }>;
     } | null;
     additional_services?: Array<{
       id: string;

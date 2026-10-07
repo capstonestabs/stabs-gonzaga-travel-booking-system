@@ -143,6 +143,7 @@ export default async function DestinationBookingPage({
           entranceFeeAmount={destination.entrance_fee_amount ?? 0}
           isEntranceFeeActive={destination.is_entrance_fee_active ?? false}
           entranceFeeTitle={destination.entrance_fee_title ?? "Entrance Fee"}
+          entranceFeeCategories={destination.entrance_fee_categories ?? []}
         />
       )}
     </div>

@@ -58,6 +58,7 @@ export const bookingSchema = z
     checkOutDate: z.string().min(1),
     checkOutTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
     guestCount: z.coerce.number().int().min(1).max(200),
+    guestCategoryIds: z.array(z.string().min(1)).min(1).max(200).optional(),
     guestTypes: z.array(guestTypeSchema).min(1).max(200).optional(),
     guestDetails: z.array(bookingGuestSchema).min(1).max(200).optional(),
     serviceId: z.string().uuid(),

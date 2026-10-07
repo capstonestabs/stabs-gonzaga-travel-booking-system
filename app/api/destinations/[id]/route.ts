@@ -7,6 +7,7 @@ import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { hasSupabaseServiceEnv } from "@/lib/env";
 import { formatZodError } from "@/lib/validation";
 import { parseMultilineList } from "@/lib/utils";
+import type { EntranceFeeCategory } from "@/lib/entrance-fees";
 
 export async function PATCH(
   request: NextRequest,
@@ -49,7 +50,7 @@ export async function PATCH(
 
     const isStatusOnly = Object.keys(body).length === 1 && "status" in body;
     const isEntranceFeeOnly =
-      ("isEntranceFeeActive" in body || "entranceFeeAmount" in body || "entranceFeeTitle" in body) &&
+      ("isEntranceFeeActive" in body || "entranceFeeAmount" in body || "entranceFeeTitle" in body || "entranceFeeCategories" in body) &&
       !("title" in body);
     const isPoliciesOnly = "policies" in body && !("title" in body);
 
@@ -70,6 +71,10 @@ export async function PATCH(
             entrance_fee_title:
               body.entranceFeeTitle !== undefined
                 ? String(body.entranceFeeTitle || "Entrance Fee").trim()
+                : undefined,
+            entrance_fee_categories:
+              body.entranceFeeCategories !== undefined
+                ? normalizeEntranceFeeCategories(body.entranceFeeCategories)
                 : undefined
           }
         : isPoliciesOnly
@@ -151,4 +156,35 @@ export async function PATCH(
       { status: 400 }
     );
   }
+}
+
+function normalizeEntranceFeeCategories(value: unknown): EntranceFeeCategory[] {
+  if (!Array.isArray(value)) {
+    throw new Error("Entrance fee categories must be an array.");
+  }
+
+  return value.slice(0, 20).map((category, index) => {
+    if (!category || typeof category !== "object") {
+      throw new Error(`Entrance fee category ${index + 1} is invalid.`);
+    }
+
+    const item = category as Record<string, unknown>;
+    const label = String(item.label ?? "").trim();
+    const minAge = Math.max(0, Math.floor(Number(item.minAge) || 0));
+    const rawMaxAge = item.maxAge === null || item.maxAge === "" ? null : Number(item.maxAge);
+    const maxAge = rawMaxAge === null ? null : Math.max(minAge, Math.floor(rawMaxAge || 0));
+    const amount = Math.max(0, Number(item.amount) || 0);
+
+    if (!label) {
+      throw new Error(`Entrance fee category ${index + 1} needs a label.`);
+    }
+
+    return {
+      id: String(item.id || `category-${index + 1}`),
+      label: label.slice(0, 80),
+      minAge,
+      maxAge,
+      amount
+    };
+  });
 }

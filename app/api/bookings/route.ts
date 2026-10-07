@@ -81,7 +81,8 @@ export async function POST(request: NextRequest) {
         payload.guestDetails?.[index]?.name ??
         (index === 0 ? payload.contactName : `${payload.contactName} - Guest ${index + 1}`),
       // Always use the server-priced type so ticket details cannot disagree with payment.
-      type: guestTypes?.[index] ?? "adult" as const
+      type: guestTypes?.[index] ?? "adult" as const,
+      category_id: payload.guestCategoryIds?.[index]
     }));
 
     if (mergedAbramRatePlan && !guestTypes) {
@@ -216,9 +217,40 @@ export async function POST(request: NextRequest) {
     const isEntranceFeeActive = destination.is_entrance_fee_active ?? false;
     const entranceFeeUnitAmount = destination.entrance_fee_amount ?? 0;
     const entranceFeeTitle = destination.entrance_fee_title || "Entrance Fee";
-    const entranceFeeCentavos = isEntranceFeeActive && entranceFeeUnitAmount > 0
-      ? pesoAmountToCentavos(entranceFeeUnitAmount) * payload.guestCount
-      : 0;
+    const entranceFeeCategories = destination.entrance_fee_categories ?? [];
+    const selectedEntranceFeeCategories = payload.guestCategoryIds?.map((categoryId) =>
+      entranceFeeCategories.find((category) => category.id === categoryId)
+    );
+
+    if (isEntranceFeeActive && entranceFeeCategories.length > 0) {
+      if (payload.guestCategoryIds?.length !== payload.guestCount || selectedEntranceFeeCategories?.some((category) => !category)) {
+        return NextResponse.json(
+          { error: "Choose a valid entrance fee category for every guest." },
+          { status: 400 }
+        );
+      }
+    }
+
+    const entranceFeeCategoryBreakdown = entranceFeeCategories
+      .map((category) => {
+        const guestCount = selectedEntranceFeeCategories?.filter((selected) => selected?.id === category.id).length ?? 0;
+        return {
+          id: category.id,
+          label: category.label,
+          amount: category.amount,
+          guest_count: guestCount,
+          total_amount: category.amount * guestCount
+        };
+      })
+      .filter((category) => category.guest_count > 0);
+    const entranceFeeCentavos = isEntranceFeeActive && entranceFeeCategories.length > 0
+      ? entranceFeeCategoryBreakdown.reduce(
+          (total, category) => total + pesoAmountToCentavos(category.total_amount),
+          0
+        )
+      : isEntranceFeeActive && entranceFeeUnitAmount > 0
+        ? pesoAmountToCentavos(entranceFeeUnitAmount) * payload.guestCount
+        : 0;
 
     const totalAmount = baseTotalAmount + entranceFeeCentavos + addonsTotalCentavos;
 
@@ -245,6 +277,7 @@ export async function POST(request: NextRequest) {
         service_snapshot: {
           id: service.id,
           title: mergedAbramRatePlan?.title ?? service.title,
+          image_url: service.image_url ?? null,
           description: mergedAbramRatePlan
             ? "Combined Adult and Child admission under one reservation."
             : service.description,
@@ -264,13 +297,14 @@ export async function POST(request: NextRequest) {
               }
             : {}),
           entrance_fee:
-            isEntranceFeeActive && entranceFeeUnitAmount > 0
+            isEntranceFeeActive && entranceFeeCentavos > 0
               ? {
                   title: entranceFeeTitle,
                   price_amount: entranceFeeUnitAmount,
                   guest_count: payload.guestCount,
-                  total_amount: entranceFeeUnitAmount * payload.guestCount,
-                  is_active: true
+                  total_amount: entranceFeeCentavos / 100,
+                  is_active: true,
+                  categories: entranceFeeCategoryBreakdown
                 }
               : null,
           additional_services: validatedAdditionalServices

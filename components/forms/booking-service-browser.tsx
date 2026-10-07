@@ -22,6 +22,7 @@ import { getAbramMergedGuestRatePlan } from "@/lib/guest-pricing";
 import { formatServiceTypeLabel } from "@/lib/service-types";
 import { getBookableServices, getAdditionalServices } from "@/lib/service-categories";
 import type { DestinationService, ListingCategory, UserRole } from "@/lib/types";
+import type { EntranceFeeCategory } from "@/lib/entrance-fees";
 import { cn, formatPesoCurrency } from "@/lib/utils";
 
 interface BrowserService {
@@ -53,7 +54,8 @@ export function BookingServiceBrowser({
   policies = [],
   entranceFeeAmount = 0,
   isEntranceFeeActive = false,
-  entranceFeeTitle = "Entrance Fee"
+  entranceFeeTitle = "Entrance Fee",
+  entranceFeeCategories = []
 }: {
   destinationId: string;
   destinationSlug: string;
@@ -72,6 +74,7 @@ export function BookingServiceBrowser({
   entranceFeeAmount?: number;
   isEntranceFeeActive?: boolean;
   entranceFeeTitle?: string;
+  entranceFeeCategories?: EntranceFeeCategory[];
 }) {
   const activeServices = services.filter((service) => service.is_active);
   const coreServices = getBookableServices(activeServices);
@@ -147,6 +150,7 @@ export function BookingServiceBrowser({
       entranceFeeAmount={entranceFeeAmount}
       isEntranceFeeActive={isEntranceFeeActive}
       entranceFeeTitle={entranceFeeTitle}
+      entranceFeeCategories={entranceFeeCategories}
     />
   );
 

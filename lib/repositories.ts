@@ -427,7 +427,29 @@ async function hydrateBookings(bookings: Booking[]) {
 }
 
 async function hydrateUserBookings(bookings: Booking[]) {
-  return hydrateBookingTickets(bookings.map(normalizeBookingOnsiteReceipt));
+  const hydratedBookings = await hydrateBookingTickets(bookings.map(normalizeBookingOnsiteReceipt));
+  return hydratedBookings.map((booking) => {
+    if (
+      !booking.service_snapshot ||
+      booking.service_snapshot.image_url ||
+      !booking.destination?.destination_services
+    ) {
+      return booking;
+    }
+
+    const service = booking.destination.destination_services.find(
+      (entry) => entry.id === booking.service_id
+    );
+    if (!service?.image_url) return booking;
+
+    return {
+      ...booking,
+      service_snapshot: {
+        ...booking.service_snapshot,
+        image_url: service.image_url
+      }
+    };
+  });
 }
 
 function buildDestinationRevenueSummaries(
@@ -1930,7 +1952,7 @@ export async function getBookingsForUser(userId: string) {
   const supabase = createAdminSupabaseClient();
   const { data, error } = await supabase
     .from("bookings")
-    .select("*, destination:destinations(*), payment:payments(*), onsite_receipt:onsite_receipts(*)")
+    .select("*, destination:destinations(*, destination_services(*)), payment:payments(*), onsite_receipt:onsite_receipts(*)")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
@@ -1944,7 +1966,7 @@ export async function getBookingsForUser(userId: string) {
   if (didSync) {
     const { data: refreshedData, error: refreshedError } = await supabase
       .from("bookings")
-      .select("*, destination:destinations(*), payment:payments(*), onsite_receipt:onsite_receipts(*)")
+      .select("*, destination:destinations(*, destination_services(*)), payment:payments(*), onsite_receipt:onsite_receipts(*)")
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
 

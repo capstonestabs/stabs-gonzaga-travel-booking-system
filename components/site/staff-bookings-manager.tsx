@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo,useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Search,
@@ -41,6 +41,7 @@ import type { Booking } from "@/lib/types";
 import { cn, formatCurrency, formatPesoCurrency, pesoAmountToCentavos } from "@/lib/utils";
 
 const ITEMS_PER_PAGE = 7;
+const AUTO_REFRESH_INTERVAL_MS = 15_000;
 
 const todayString = (() => {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -104,6 +105,16 @@ function formatBookingDateTime(iso: string) {
   };
 }
 
+function hasActiveStaffInput() {
+  const activeElement = document.activeElement;
+  return (
+    activeElement instanceof HTMLInputElement ||
+    activeElement instanceof HTMLTextAreaElement ||
+    activeElement instanceof HTMLSelectElement ||
+    activeElement instanceof HTMLButtonElement
+  );
+}
+
 export function StaffBookingsManager({
   bookings,
   destinationCoverByDestinationId = {},
@@ -143,6 +154,47 @@ export function StaffBookingsManager({
   const [resendEmailPending, setResendEmailPending] = useState(false);
   const [resendEmailError, setResendEmailError] = useState<string | null>(null);
   const [resendEmailSuccess, setResendEmailSuccess] = useState<string | null>(null);
+  const autoRefreshInProgress = useRef(false);
+
+  useEffect(() => {
+    const refresh = () => {
+      if (
+        document.visibilityState !== "visible" ||
+        selectedBookingId ||
+        bulkDialogMode ||
+        onsitePaymentOpen ||
+        onsitePaymentSuccessOpen ||
+        staffActionPending ||
+        onsitePaymentPending ||
+        bulkPending ||
+        resendEmailPending ||
+        hasActiveStaffInput() ||
+        autoRefreshInProgress.current
+      ) {
+        return;
+      }
+
+      autoRefreshInProgress.current = true;
+      router.refresh();
+
+      window.setTimeout(() => {
+        autoRefreshInProgress.current = false;
+      }, 1_000);
+    };
+
+    const intervalId = window.setInterval(refresh, AUTO_REFRESH_INTERVAL_MS);
+    return () => window.clearInterval(intervalId);
+  }, [
+    router,
+    selectedBookingId,
+    bulkDialogMode,
+    onsitePaymentOpen,
+    onsitePaymentSuccessOpen,
+    staffActionPending,
+    onsitePaymentPending,
+    bulkPending,
+    resendEmailPending
+  ]);
 
   useEffect(() => {
     if (!bulkMenuOpen) return;

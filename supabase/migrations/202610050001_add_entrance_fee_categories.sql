@@ -1,0 +1,2 @@
+alter table public.destinations
+  add column if not exists entrance_fee_categories jsonb not null default '[{"id":"child","label":"Child","minAge":3,"maxAge":17,"amount":0},{"id":"adult","label":"Adults","minAge":18,"maxAge":59,"amount":0},{"id":"senior","label":"Senior","minAge":60,"maxAge":null,"amount":0}]'::jsonb;

@@ -84,7 +84,11 @@ export async function sendBookingReceiptEmail(bookingId: string) {
       ? [
           [
             entranceFee.title || "Entrance fee",
-            `₱${entranceFee.price_amount} × ${entranceFee.guest_count} (${formatCurrency(pesoAmountToCentavos(entranceFee.total_amount))})`
+            entranceFee.categories?.length
+              ? entranceFee.categories
+                  .map((category: { label?: string; amount?: number; guest_count?: number }) => `${category.label || "Category"}: ₱${category.amount ?? 0} × ${category.guest_count ?? 0}`)
+                  .join(", ")
+              : `₱${entranceFee.price_amount} × ${entranceFee.guest_count} (${formatCurrency(pesoAmountToCentavos(entranceFee.total_amount))})`
           ]
         ]
       : []),
