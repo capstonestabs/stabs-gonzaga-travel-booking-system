@@ -4,6 +4,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { ZodError } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,14 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { signInSchema, signUpSchema } from "@/lib/schemas";
 import { createClientSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getSafeRedirectPath } from "@/lib/utils";
+import { formatZodError } from "@/lib/validation";
+
+const passwordRequirements = [
+  { label: "At least 8 characters", test: (value: string) => value.length >= 8 },
+  { label: "1 capital letter", test: (value: string) => /[A-Z]/.test(value) },
+  { label: "1 number", test: (value: string) => /[0-9]/.test(value) },
+  { label: "1 symbol", test: (value: string) => /[^A-Za-z0-9]/.test(value) }
+];
 
 export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   const searchParams = useSearchParams();
@@ -19,8 +28,10 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   const [isPending, setIsPending] = useState(false);
   const [isResendingConfirmation, setIsResendingConfirmation] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string[] | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [emailValue, setEmailValue] = useState("");
+  const [passwordValue, setPasswordValue] = useState("");
   const [showResendConfirmation, setShowResendConfirmation] = useState(false);
 
   function isEmailNotConfirmedError(value: string) {
@@ -35,6 +46,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     }
 
     setError(null);
+    setPasswordError(null);
     setMessage(null);
     setIsResendingConfirmation(true);
 
@@ -75,6 +87,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     }
 
     setError(null);
+    setPasswordError(null);
     setMessage(null);
     setShowResendConfirmation(false);
     setIsPending(true);
@@ -173,9 +186,35 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
       setShowResendConfirmation(true);
       setIsPending(false);
     } catch (submissionError) {
-      setError(
-        submissionError instanceof Error ? submissionError.message : "Unable to continue."
-      );
+      if (submissionError instanceof ZodError) {
+        const passwordIssues = submissionError.issues.filter(
+          (issue) => issue.path[0] === "password"
+        );
+        const otherIssues = submissionError.issues.filter(
+          (issue) => issue.path[0] !== "password"
+        );
+
+        setPasswordError(
+          passwordIssues.length > 0
+            ? passwordIssues.map((issue) =>
+                formatZodError(new ZodError([issue]), { password: "Password" })
+              )
+            : null
+        );
+        setError(
+          otherIssues.length > 0
+            ? formatZodError(new ZodError(otherIssues), {
+                fullName: "Full name",
+                email: "Email address",
+                privacyAccepted: "Privacy Notice"
+              })
+            : null
+        );
+      } else {
+        setError(
+          submissionError instanceof Error ? submissionError.message : "Unable to continue."
+        );
+      }
       setIsPending(false);
     }
   }
@@ -227,7 +266,37 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
 
           <label className="block space-y-2">
             <span className="text-sm font-medium">Password</span>
-            <PasswordInput name="password" placeholder="At least 8 characters" required />
+            <PasswordInput
+              id="password"
+              name="password"
+              placeholder="At least 8 characters"
+              required
+              aria-describedby={isSignUp ? "password-hint password-error" : undefined}
+              aria-invalid={passwordError ? true : undefined}
+              onChange={(event) => {
+                setPasswordValue(event.target.value);
+                setPasswordError(null);
+              }}
+            />
+            {isSignUp ? (
+              <ul id="password-hint" className="space-y-1 text-xs text-muted-foreground">
+                {passwordRequirements.map((requirement) => {
+                  const isMet = requirement.test(passwordValue);
+                  return (
+                    <li key={requirement.label} className={isMet ? "text-emerald-700" : undefined}>
+                      {isMet ? "✓" : "○"} {requirement.label}
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
+            {passwordError ? (
+              <ul id="password-error" className="space-y-1 text-sm text-destructive">
+                {passwordError.map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            ) : null}
           </label>
 
           {isSignUp ? (

@@ -18,7 +18,7 @@ export function formatZodError(
 
         if (issue.code === "too_small") {
           if (issue.type === "string") {
-            return `${label} must contain at least ${issue.minimum} characters.`;
+            return `${label} must be at least ${issue.minimum} characters.`;
           }
 
           if (issue.type === "number") {

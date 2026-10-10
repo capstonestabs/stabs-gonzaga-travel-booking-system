@@ -7,10 +7,18 @@ export const signInSchema = z.object({
   password: z.string().min(8)
 });
 
+export const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters.")
+  .max(120, "Password must be 120 characters or less.")
+  .regex(/[A-Z]/, "Password must contain at least 1 capital letter.")
+  .regex(/[0-9]/, "Password must contain at least 1 number.")
+  .regex(/[^A-Za-z0-9]/, "Password must contain at least 1 symbol.");
+
 export const signUpSchema = z.object({
   fullName: z.string().min(2).max(120),
   email: z.string().email(),
-  password: z.string().min(8),
+  password: passwordSchema,
   privacyAccepted: z.literal("on", {
     errorMap: () => ({ message: "Accept the Privacy Notice to create an account." })
   })
@@ -35,8 +43,8 @@ export const serviceTypeLabelSchema = z
 
 export const setPasswordSchema = z
   .object({
-    password: z.string().min(8),
-    confirmPassword: z.string().min(8)
+    password: passwordSchema,
+    confirmPassword: passwordSchema
   })
   .refine((value) => value.password === value.confirmPassword, {
     message: "Passwords do not match",
@@ -242,11 +250,11 @@ export const adminStaffSchema = z.object({
   destination: z.string().min(2).max(140),
   locationText: z.string().min(3).max(160),
   email: z.string().email(),
-  defaultPassword: z.string().min(8).max(120)
+  defaultPassword: passwordSchema
 });
 
 export const adminResetStaffPasswordSchema = z.object({
-  password: z.string().min(8).max(120)
+  password: passwordSchema
 });
 
 export const staffDestinationAssignmentSchema = z.object({

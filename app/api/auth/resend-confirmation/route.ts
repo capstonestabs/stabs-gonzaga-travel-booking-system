@@ -35,18 +35,18 @@ export async function POST(request: Request) {
       throw new Error(userError.message);
     }
 
-    if (!user || user.archived_at) {
+    if (user?.archived_at) {
       return NextResponse.json({ message: TOURIST_CONFIRMATION_MESSAGE });
     }
 
-    if (user.role === "staff") {
+    if (user?.role === "staff") {
       return NextResponse.json({
         message: "Please contact admin. This is a staff account for security reasons.",
         mode: "staff"
       });
     }
 
-    if (user.role === "admin") {
+    if (user?.role === "admin") {
       return NextResponse.json({
         message: "Admin email confirmation is handled directly by the system owner.",
         mode: "admin"
