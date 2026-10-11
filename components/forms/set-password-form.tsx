@@ -5,17 +5,28 @@ import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ZodError } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PasswordInput } from "@/components/ui/password-input";
 import { setPasswordSchema } from "@/lib/schemas";
 import { createClientSupabaseBrowserClient } from "@/lib/supabase/client";
+import { formatZodError } from "@/lib/validation";
+
+const passwordRequirements = [
+  { label: "At least 8 characters", test: (value: string) => value.length >= 8 },
+  { label: "1 capital letter", test: (value: string) => /[A-Z]/.test(value) },
+  { label: "1 number", test: (value: string) => /[0-9]/.test(value) },
+  { label: "1 symbol", test: (value: string) => /[^A-Za-z0-9]/.test(value) }
+];
 
 export function SetPasswordForm() {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [passwordErrors, setPasswordErrors] = useState<string[] | null>(null);
+  const [passwordValue, setPasswordValue] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [sessionState, setSessionState] = useState<"checking" | "ready" | "missing">("checking");
 
@@ -126,6 +137,7 @@ export function SetPasswordForm() {
     }
 
     setError(null);
+    setPasswordErrors(null);
     setMessage(null);
     setIsPending(true);
 
@@ -156,9 +168,35 @@ export function SetPasswordForm() {
       router.push("/dashboard" as Route);
       router.refresh();
     } catch (submissionError) {
-      setError(
-        submissionError instanceof Error ? submissionError.message : "Unable to update password."
-      );
+      if (submissionError instanceof ZodError) {
+        const passwordIssues = submissionError.issues.filter(
+          (issue) => issue.path[0] === "password"
+        );
+        const otherIssues = submissionError.issues.filter(
+          (issue) => issue.path[0] !== "password"
+        );
+
+        setPasswordErrors(
+          passwordIssues.length > 0
+            ? passwordIssues.map((issue) =>
+                formatZodError(new ZodError([issue]), { password: "Password" })
+              )
+            : null
+        );
+        setError(
+          otherIssues.length > 0
+            ? formatZodError(new ZodError(otherIssues), {
+                confirmPassword: "Password confirmation"
+              })
+            : null
+        );
+      } else {
+        setError(
+          submissionError instanceof Error
+            ? submissionError.message
+            : "Unable to update password."
+        );
+      }
     } finally {
       setIsPending(false);
     }
@@ -208,7 +246,33 @@ export function SetPasswordForm() {
         >
           <label className="block space-y-2">
             <span className="text-sm font-medium">New password</span>
-            <PasswordInput name="password" required />
+            <PasswordInput
+              name="password"
+              required
+              aria-describedby="password-hint password-error"
+              aria-invalid={passwordErrors ? true : undefined}
+              onChange={(event) => {
+                setPasswordValue(event.target.value);
+                setPasswordErrors(null);
+              }}
+            />
+            <ul id="password-hint" className="space-y-1 text-xs text-muted-foreground">
+              {passwordRequirements.map((requirement) => {
+                const isMet = requirement.test(passwordValue);
+                return (
+                  <li key={requirement.label} className={isMet ? "text-emerald-700" : undefined}>
+                    {isMet ? "✓" : "○"} {requirement.label}
+                  </li>
+                );
+              })}
+            </ul>
+            {passwordErrors ? (
+              <ul id="password-error" className="space-y-1 text-sm text-destructive">
+                {passwordErrors.map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            ) : null}
           </label>
 
           <label className="block space-y-2">

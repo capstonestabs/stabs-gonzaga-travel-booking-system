@@ -36,15 +36,15 @@ export const adminNavSections: AdminNavSection[] = [
       { href: "/admin", label: "Overview", icon: "home" },
       { href: "/admin/tourists", label: "Tourists", icon: "tourists" },
       { href: "/admin/destination-financials", label: "Destinations", icon: "pin" },
-      { href: "/admin/staff", label: "Staff", icon: "staff", matchHrefs: ["/admin/staff/create"] },
-      { href: "/admin/reports", label: "Reports & Analytics", icon: "reports" }
+      { href: "/admin/staff", label: "Staff", icon: "staff", matchHrefs: ["/admin/staff/create"] }
+      // { href: "/admin/reports", label: "Reports & Analytics", icon: "reports" }
     ]
   },
   {
     title: "System",
     items: [
-      { href: "/admin/settings", label: "Settings", icon: "settings" },
-      { href: "/admin/activity-logs", label: "Activity Logs", icon: "activity" }
+      // { href: "/admin/settings", label: "Settings", icon: "settings" },
+      // { href: "/admin/activity-logs", label: "Activity Logs", icon: "activity" }
     ]
   }
 ];
